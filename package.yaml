@@ -2,9 +2,9 @@ name:                icfpc2023
 version:             0.1.0.0
 github:              "nobsun/icfpc2023"
 license:             BSD3
-author:              "Nobuo Yamashita"
-maintainer:          "nobsun@sampou.org"
-copyright:           "Copyright: (c) 2023 Nobuo Yamashita"
+author:              "Team Sampou"
+maintainer:          "icfpc2023@reasoning.tokyo"
+copyright:           "Copyright: (c) 2023 Team Sampou"
 
 extra-source-files:
 - README.md
