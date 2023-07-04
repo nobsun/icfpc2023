@@ -45,14 +45,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
-    , doctest
-    , free
-    , hspec
-    , main-tester
-    , recursion-schemes
     , time
-    , unicode-show
-    , utf8-string
   default-language: GHC2021
 
 executable icfpc2023
@@ -76,15 +69,8 @@ executable icfpc2023
     , base >=4.7 && <5
     , bytestring
     , containers
-    , doctest
-    , free
-    , hspec
     , icfpc2023
-    , main-tester
-    , recursion-schemes
     , time
-    , unicode-show
-    , utf8-string
   default-language: GHC2021
 
 test-suite icfpc2023-doctest
@@ -111,14 +97,8 @@ test-suite icfpc2023-doctest
     , bytestring
     , containers
     , doctest
-    , free
-    , hspec
     , icfpc2023
-    , main-tester
-    , recursion-schemes
     , time
-    , unicode-show
-    , utf8-string
   default-language: GHC2021
 
 test-suite icfpc2023-test
@@ -144,13 +124,8 @@ test-suite icfpc2023-test
     , base >=4.7 && <5
     , bytestring
     , containers
-    , doctest
-    , free
     , hspec
     , icfpc2023
     , main-tester
-    , recursion-schemes
     , time
-    , unicode-show
-    , utf8-string
   default-language: GHC2021
