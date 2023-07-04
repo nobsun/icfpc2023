@@ -21,17 +21,10 @@ description:         Please see the README on GitHub at <https://github.com/nobs
 
 dependencies:
 - base >= 4.7 && < 5
-- unicode-show
 - bytestring
-- utf8-string
 - time
-- hspec
-- main-tester
-- doctest
 - array
 - containers
-- free
-- recursion-schemes
 
 language: GHC2021
 
