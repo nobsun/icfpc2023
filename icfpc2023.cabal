@@ -1,0 +1,156 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.2.
+--
+-- see: https://github.com/sol/hpack
+
+name:           icfpc2023
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/nobsun/icfpc2023#readme>
+homepage:       https://github.com/nobsun/icfpc2023#readme
+bug-reports:    https://github.com/nobsun/icfpc2023/issues
+author:         Nobuo Yamashita
+maintainer:     nobsun@sampou.org
+copyright:      Copyright: (c) 2023 Nobuo Yamashita
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/nobsun/icfpc2023
+
+library
+  exposed-modules:
+      Lib
+  other-modules:
+      Paths_icfpc2023
+  hs-source-dirs:
+      src
+  default-extensions:
+      LambdaCase
+      MultiWayIf
+      NPlusKPatterns
+      OverloadedStrings
+      NoStarIsType
+      TypeFamilyDependencies
+      TypeInType
+      UndecidableInstances
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-unused-top-binds -Wno-orphans
+  build-depends:
+      array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , doctest
+    , free
+    , hspec
+    , main-tester
+    , recursion-schemes
+    , time
+    , unicode-show
+    , utf8-string
+  default-language: GHC2021
+
+executable icfpc2023
+  main-is: Main.hs
+  other-modules:
+      Paths_icfpc2023
+  hs-source-dirs:
+      app
+  default-extensions:
+      LambdaCase
+      MultiWayIf
+      NPlusKPatterns
+      OverloadedStrings
+      NoStarIsType
+      TypeFamilyDependencies
+      TypeInType
+      UndecidableInstances
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-unused-top-binds -Wno-orphans -rtsopts
+  build-depends:
+      array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , doctest
+    , free
+    , hspec
+    , icfpc2023
+    , main-tester
+    , recursion-schemes
+    , time
+    , unicode-show
+    , utf8-string
+  default-language: GHC2021
+
+test-suite icfpc2023-doctest
+  type: exitcode-stdio-1.0
+  main-is: doctests.hs
+  other-modules:
+      LibSpec
+      Paths_icfpc2023
+  hs-source-dirs:
+      test
+  default-extensions:
+      LambdaCase
+      MultiWayIf
+      NPlusKPatterns
+      OverloadedStrings
+      NoStarIsType
+      TypeFamilyDependencies
+      TypeInType
+      UndecidableInstances
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-unused-top-binds -Wno-orphans
+  build-depends:
+      array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , doctest
+    , free
+    , hspec
+    , icfpc2023
+    , main-tester
+    , recursion-schemes
+    , time
+    , unicode-show
+    , utf8-string
+  default-language: GHC2021
+
+test-suite icfpc2023-test
+  type: exitcode-stdio-1.0
+  main-is: spec.hs
+  other-modules:
+      LibSpec
+      Paths_icfpc2023
+  hs-source-dirs:
+      test
+  default-extensions:
+      LambdaCase
+      MultiWayIf
+      NPlusKPatterns
+      OverloadedStrings
+      NoStarIsType
+      TypeFamilyDependencies
+      TypeInType
+      UndecidableInstances
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-unused-top-binds -Wno-orphans
+  build-depends:
+      array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , doctest
+    , free
+    , hspec
+    , icfpc2023
+    , main-tester
+    , recursion-schemes
+    , time
+    , unicode-show
+    , utf8-string
+  default-language: GHC2021
