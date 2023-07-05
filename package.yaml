@@ -75,6 +75,7 @@ tests:
 
   icfpc2023-doctest:
     main:                doctests.hs
+    other-modules:       []
     source-dirs:         test
     # ghc-options:
     # - -threaded
