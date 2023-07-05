@@ -39,7 +39,7 @@ library
       TypeFamilyDependencies
       TypeInType
       UndecidableInstances
-  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-unused-top-binds -Wno-orphans
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans
   build-depends:
       array
     , base >=4.7 && <5
@@ -63,7 +63,7 @@ executable icfpc2023
       TypeFamilyDependencies
       TypeInType
       UndecidableInstances
-  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-unused-top-binds -Wno-orphans -rtsopts
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts
   build-depends:
       array
     , base >=4.7 && <5
@@ -87,7 +87,7 @@ test-suite icfpc2023-doctest
       TypeFamilyDependencies
       TypeInType
       UndecidableInstances
-  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-unused-top-binds -Wno-orphans
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans
   build-depends:
       array
     , base >=4.7 && <5
@@ -115,7 +115,7 @@ test-suite icfpc2023-test
       TypeFamilyDependencies
       TypeInType
       UndecidableInstances
-  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-unused-top-binds -Wno-orphans
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans
   build-depends:
       array
     , base >=4.7 && <5

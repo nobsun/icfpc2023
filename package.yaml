@@ -43,7 +43,6 @@ ghc-options:
 - -Wno-unticked-promoted-constructors
 - -Wno-unused-imports
 - -Wno-unused-top-binds
-- -Wno-unused-top-binds
 - -Wno-orphans
 
 library:
