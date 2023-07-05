@@ -3,7 +3,6 @@ module LibSpec
   ( spec
   ) where
 
-import Data.String
 import qualified Data.ByteString as B
 import Test.Main
 import Test.Hspec
