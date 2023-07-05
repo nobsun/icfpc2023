@@ -76,9 +76,6 @@ executable icfpc2023
 test-suite icfpc2023-doctest
   type: exitcode-stdio-1.0
   main-is: doctests.hs
-  other-modules:
-      LibSpec
-      Paths_icfpc2023
   hs-source-dirs:
       test
   default-extensions:
