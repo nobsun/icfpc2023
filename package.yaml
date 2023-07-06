@@ -25,6 +25,7 @@ dependencies:
 - time
 - array
 - containers
+- aeson
 
 language: GHC2021
 
