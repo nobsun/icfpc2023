@@ -31,6 +31,17 @@ happiness prob ans = score
 --   musician (mx, my)
 --   attendee (ax, ay)
 --   blocker  (bx, by)
+
+--  |
+-- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 2.0 2.0)
+-- False
+-- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 1.0)
+-- True
+-- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 2.0)
+-- True
+-- >>> isBlock (Placement -1.0 1.0) (Attendee 0.0 3.0 []) (Placement 0.0 0.0)
+-- False
+--
 isBlock :: Placement -> Attendee -> Placement -> Bool
 isBlock (Placement mx my) (Attendee ax ay _) (Placement bx by)
   = distance (a, b, c) (bx, by) <= 5.0 && between (mx, my) (p, q) (ax, ay)
@@ -44,13 +55,17 @@ isBlock (Placement mx my) (Attendee ax ay _) (Placement bx by)
       where
         k = (a * bx + b * by + c) / (a * a + b * b)
     
-    -- (x1, y1) (x2, y2) を通る直線の方程式の係数 a, b, c を求める
-    -- 傾き a = (y2 - y1) / (x2 - x1) として
-    -- y = a * (x - x1) + y1
-    line (x1, y1) (x2, y2) = (y2 - y1, x1 - x2, x2 * y1 - x1 * y2)
-    -- また直線 a * x + b * y + c = 0 と 点 (x0, y0) の距離 d
-    distance (a, b, c) (x0, y0) = abs (a * x0 + b * y0 + c) / sqrt (a * a + b * b)
+-- (x1, y1) (x2, y2) を通る直線の方程式の係数 a, b, c を求める
+-- 傾き a = (y2 - y1) / (x2 - x1) として
+-- y = a * (x - x1) + y1
+line :: (Float, Float) -> (Float, Float) -> (Float, Float, Float)
+line (x1, y1) (x2, y2) = (y2 - y1, x1 - x2, x2 * y1 - x1 * y2)
 
-    -- (x0, y0) が (x1, y1) (x2, y2) の間にあるかどうか
-    between (x1, y1) (x0, y0) (x2, y2)
-      = (x0 - x1) * (x0 - x2) <= 0 && (y0 - y1) * (y0 - y2) <= 0
+-- また直線 a * x + b * y + c = 0 と 点 (x0, y0) の距離 d
+distance :: (Float, Float, Float) -> (Float, Float) -> Float
+distance (a, b, c) (x0, y0) = abs (a * x0 + b * y0 + c) / sqrt (a * a + b * b)
+
+-- (x0, y0) が (x1, y1) (x2, y2) の間にあるかどうか
+between :: (Float, Float) -> (Float, Float) -> (Float, Float) -> Bool
+between (x1, y1) (x0, y0) (x2, y2)
+  = (x0 - x1) * (x0 - x2) <= 0 && (y0 - y1) * (y0 - y2) <= 0

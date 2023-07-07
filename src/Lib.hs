@@ -10,19 +10,11 @@ license:      BSD-3
 maintainer:   nobsun@sampou.org
 stability:    experimental
 -}
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Lib
     ( someFunc
     ) where
-
-import Data.ByteString.Lazy as B
-import Data.Aeson
-import Text.Printf (printf)
-import GHC.Generics
 
 {- |
 print "some func" to stdout
