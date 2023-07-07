@@ -15,8 +15,6 @@ stability:    experimental
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 module Lib
     ( someFunc
     ) where
@@ -33,34 +31,3 @@ some func
 -}
 someFunc :: IO ()
 someFunc = putStrLn "some func"
-
-type Instrument = Int
-type Like = Float
-
-data Attendee
-  = Attendee { x :: Float
-             , y :: Float
-             , tastes :: [Like]
-             }
-  deriving (Show, Eq, Generic)
-
-data Problem
-  = Problem { room_width :: Float
-            , room_height :: Float
-            , stage_width :: Float
-            , stage_height :: Float
-            , musicians :: [Instrument]
-            , attendees :: [Attendee]
-            }
-  deriving (Show, Eq, Generic)
-
-instance ToJSON Attendee
-instance FromJSON Attendee
-instance ToJSON Problem
-instance FromJSON Problem
-
-test :: Int -> IO ()
-test q = do
-  inp <- B.readFile (printf "problems/%03d.json" q)
-  let problem = (decode inp :: Maybe Problem)
-  print problem
