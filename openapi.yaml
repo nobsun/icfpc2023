@@ -1,0 +1,386 @@
+openapi: 3.0.0
+info:
+  title: ICFP Programming Contest 2023
+  description: ICFP Programming Contest 2023
+  version: 1.0.0
+servers:
+  - url: https://api.icfpcontest.com/
+    description: the server
+
+paths:
+  /submission:
+    get:
+      tags:
+        - submission
+      summary: "Get submission with ID. You can only get submissions linked to your account."
+      description: "Get submission with ID. You can only get submissions linked to your account."
+      parameters:
+        - name: submission-id
+          in: query
+          required: true
+          schema:
+            type: string
+      security:
+        - Bearer: []
+      responses:
+        "200":
+          description: hoge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResponse'
+    post:
+      tags:
+        - submission
+      summary: "Post submission with contents and problem id."
+      description: "Post submission with contents and problem id."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionRequest'
+      security:
+        - Bearer: []
+      responses:
+        "200":
+          description: hoge
+          content:
+            text/plain:
+              example: hoge
+
+  /submissions:
+    get:
+      tags:
+        - submission
+      summary: "Get [limit] number of your past submissions starting from a given [offset], sorted by submission time."
+      description: "Get [limit] number of your past submissions starting from a given [offset], sorted by submission time."
+      parameters:
+        - name: offset
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: problem_id
+          in: query
+          required: false
+          schema:
+            type: integer
+      security:
+        - Bearer: []
+      responses:
+        "200":
+          description: hoge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionsResponse'
+
+  /problem:
+    get:
+      tags:
+        - problem
+      summary: "Get problems contents with problem id."
+      description: "Get problems contents with problem id."
+      parameters:
+        - name: problem_id
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: hoge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemResponse'
+
+  /problems:
+    get:
+      tags:
+        - problem
+      summary: "Get number of problems."
+      description: "Get number of problems."
+      parameters: []
+      responses:
+        "200":
+          description: hoge
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  number_of_problems:
+                    type: number
+                    description: hoge
+
+  /scoreboard:
+    get:
+      tags:
+        - scoreboard
+      summary: "Get the global scoreboard."
+      description: "Get the global scoreboard."
+      parameters: []
+      responses:
+        "200":
+          description: hoge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scoreboard'
+
+  /userboard:
+    get:
+      tags:
+        - scoreboard
+      summary: "Get the global scoreboard."
+      description: "Get the global scoreboard."
+      parameters: []
+      security:
+        - Bearer: []
+      responses:
+        "200":
+          description: hoge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserboardResponse'
+
+  /register:
+    post:
+      tags:
+        - account
+      summary: "Register your account to the contest."
+      description: "Register your account to the contest."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        "200":
+          description: hoge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+
+  /login:
+    post:
+      tags:
+        - account
+      summary: "Login with your account"
+      description: "Login with your account"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: hoge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      description: Credentials or access token for API
+
+  schemas:
+    Failure:
+      type: object
+      properties:
+        Failure:
+          type: string
+          description: hoge
+      required:
+        - Failure
+
+    SubmissionResponse:
+      oneOf:
+        - $ref: '#/components/schemas/SubmissionResponseSuccess'
+        - $ref: '#/components/schemas/Failure'
+    SubmissionResponseSuccess:
+      type: object
+      properties:
+        Success:
+          $ref: '#/components/schemas/Submission'
+      required:
+        - Success
+    Submission:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: submission id
+        problem_id:
+          type: integer
+          description: problem id
+        user_id:
+          type: string
+          description: hoge
+        score:
+          $ref: '#/components/schemas/Score'
+      required:
+        - _id
+        - problem_id
+        - user_id
+        - score
+    Score:
+      oneOf:
+        - $ref: '#/components/schemas/ScoreSuccess'
+        - $ref: '#/components/schemas/Failure'
+    ScoreSuccess:
+      type: object
+      properties:
+        Success:
+          type: number
+          description: hoge
+      required:
+        - Success
+
+    SubmissionRequest:
+      type: object
+      properties:
+        problem_id:
+          type: integer
+          description: hoge
+        contents:
+          type: string
+          description: submission contents
+      required:
+        - problem_id
+        - contents
+
+    SubmissionsResponse:
+      oneOf:
+        - $ref: '#/components/schemas/SubmissionsResponseSuccess'
+        - $ref: '#/components/schemas/Failure'
+    SubmissionsResponseSuccess:
+      type: object
+      properties:
+        Success:
+          $ref: '#/components/schemas/Submissions'
+      required:
+        - Success
+    Submissions:
+      type: array
+      items:
+        $ref: '#/components/schemas/Submission'
+
+    ProblemResponse:
+      oneOf:
+        - $ref: '#/components/schemas/ProblemResponseSuccess'
+        - $ref: '#/components/schemas/Failure'
+    ProblemResponseSuccess:
+      type: object
+      properties:
+        Success:
+          type: string
+          description: problem definition
+      required:
+        - Success
+
+    Scoreboard:
+      type: object
+      properties:
+        frozen:
+          type: boolean
+          description: hoge
+        scoreboard:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScoreboardItem'
+          description: hoge
+        updated_at:
+          type: string
+          description: hoge
+      required:
+        - frozen
+        - scoreboard
+        - updated_at
+    ScoreboardItem:
+      type: object
+      properties:
+        username:
+          type: string
+          description: hoge
+        score:
+          type: number
+          description: hoge
+      required:
+        - username
+        - score
+
+    UserboardResponse:
+      oneOf:
+        - $ref: '#/components/schemas/UserboardResponseSuccess'
+        - $ref: '#/components/schemas/Failure'
+    UserboardResponseSuccess:
+      type: object
+      properties:
+        problems:
+          type: array
+          items:
+            type: number
+            nullable: true
+      required:
+        - problems
+
+    JWTResponse:
+      type: object
+      properties:
+        Success:
+          type: string
+          description: your JWT access token
+      required:
+        - Success
+
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: hoge
+        email:
+          type: string
+          description: hoge
+        password:
+          type: string
+          description: hoge
+      required:
+        - username
+        - email
+        - password
+    RegisterResponse:
+      oneOf:
+        - $ref: '#/components/schemas/JWTResponse'
+        - $ref: '#/components/schemas/Failure'
+
+    LoginRequest:
+      type: object
+      properties:
+        username_or_email:
+          type: string
+          description: hoge
+        password:
+          type: string
+          description: hoge
+      required:
+        - username_or_email
+        - password
+    LoginResponse:
+      oneOf:
+        - $ref: '#/components/schemas/JWTResponse'
+        - $ref: '#/components/schemas/Failure'
