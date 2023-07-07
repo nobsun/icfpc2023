@@ -12,5 +12,6 @@ saveAnswer :: (Name, SolverF)
            -> IO ()
 saveAnswer (name, solver) probNum = do
   ans <- solve' name solver probNum
-  let path = printf "solutions/name_%03d.json" probNum
+  let path = printf "solutions/%s_%03d.json" name probNum
+  putStrLn $ "writing " ++ path
   B.writeFile path $ encode ans
