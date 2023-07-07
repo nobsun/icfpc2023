@@ -1,11 +1,14 @@
 module Main where
 
 import Test.DocTest
+import System.Directory
+import System.FilePath ((</>))
+
+srcDir :: FilePath
+srcDir = "src"
 
 main :: IO ()
-main = doctest [ "src/Lib.hs"
-               , "src/Problem.hs"
-               , "src/Answer.hs"
-               , "src/Happiness.hs"
-               , "src/Solver.hs"
-               ]
+main = do
+  fs <- listDirectory srcDir
+  doctest $ "-isrc" : map (srcDir </>) fs
+  

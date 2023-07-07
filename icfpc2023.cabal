@@ -104,6 +104,8 @@ test-suite icfpc2023-doctest
     , bytestring
     , containers
     , doctest
+    , directory
+    , filepath
     , icfpc2023
     , time
   default-language: GHC2021
