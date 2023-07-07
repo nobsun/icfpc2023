@@ -12,19 +12,19 @@ type Instrument = Int
 type Like = Float
 
 data Attendee
-  = Attendee { x :: Float
-             , y :: Float
+  = Attendee { x      :: Float
+             , y      :: Float
              , tastes :: [Like]
              }
   deriving (Show, Eq, Generic)
 
 data Problem
-  = Problem { room_width :: Float
-            , room_height :: Float
-            , stage_width :: Float
+  = Problem { room_width   :: Float
+            , room_height  :: Float
+            , stage_width  :: Float
             , stage_height :: Float
-            , musicians :: [Instrument]
-            , attendees :: [Attendee]
+            , musicians    :: [Instrument]
+            , attendees    :: [Attendee]
             }
   deriving (Show, Eq, Generic)
 
