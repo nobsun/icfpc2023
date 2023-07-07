@@ -4,6 +4,7 @@
 module SolverArraying where
 
 import Problem (Problem (..))
+import Solver (SolverF)
 
 type Cord = Float
 
@@ -91,7 +92,8 @@ cordsFromRange Range{..} = map fromIntegral [ rgMin' + 10, rgMin' + 20 .. rgMax'
 ---
 
 -- 室内優先
-getCandidates :: Problem -> Either String [(Cord, Cord)]
+getCandidates :: SolverF
 getCandidates problem = do
   (r0, mr1) <- getRects problem
-  return $ concatMap cordsFromRect $ maybe [r0] (\r1 -> [r0, r1]) mr1
+  let len = length $ musicians problem
+  return $ take len $ concatMap cordsFromRect $ maybe [r0] (\r1 -> [r0, r1]) mr1
