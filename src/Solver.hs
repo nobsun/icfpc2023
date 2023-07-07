@@ -4,6 +4,7 @@ import Data.Aeson
 import Data.ByteString.Lazy as B
 import Problem
 import Answer
+import Happiness
 
 class Solver a where
   apply :: a -> Problem -> Answer
