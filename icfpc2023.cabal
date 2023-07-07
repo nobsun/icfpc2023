@@ -28,6 +28,7 @@ library
       Lib
       Answer
       Problem
+      Solver
   other-modules:
       Paths_icfpc2023
   hs-source-dirs:
