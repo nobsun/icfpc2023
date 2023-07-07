@@ -7,10 +7,6 @@ EOF
 }
 
 
-if [ x"$token" = x ]; then
-    token=$(cat token.txt)
-fi
-
 problem_id="$1"
 
 if [ x"$problem_id" = x ]; then
@@ -18,6 +14,5 @@ if [ x"$problem_id" = x ]; then
     exit 1
 fi
 
-curl -H "Authorization: Bearer ${token}" \
-     https://api.icfpcontest.com/problem'?'problem_id=${problem_id} |
+curl https://api.icfpcontest.com/problem'?'problem_id=${problem_id} | \
     jq -r '.Success'
