@@ -26,10 +26,10 @@ source-repository head
 library
   exposed-modules:
       Answer
-      GenAnswer
       Happiness
       Lib
       Problem
+      Solutions
       Solver
       SolverArraying
   other-modules:

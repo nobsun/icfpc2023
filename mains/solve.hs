@@ -3,7 +3,7 @@ import System.Environment (getArgs)
 
 import Solver (Name, SolverF)
 import qualified SolverArraying as Arraying
-import GenAnswer
+import Solutions
 
 solvers :: [(Name, SolverF)]
 solvers = [ ("arraying", Arraying.getCandidates) ]
