@@ -27,6 +27,7 @@ library
   exposed-modules:
       Lib
       Answer
+      Happiness
       Problem
       Solver
   other-modules:
