@@ -31,6 +31,16 @@ data Problem
             }
   deriving (Show, Eq, Generic)
 
+stage_left :: Problem -> Float
+stage_left Problem{..} = case stage_bottom_left of
+  left : _bottom : _ -> left
+  _ -> error $ "stage_left: unknown stage_bottom_left array: " ++ show stage_bottom_left
+
+stage_bottom :: Problem -> Float
+stage_bottom Problem{..} = case stage_bottom_left of
+  _left : bottom : _ -> bottom
+  _ -> error $ "stage_bottom: unknown stage_bottom_left array: " ++ show stage_bottom_left
+
 instance ToJSON Attendee
 instance FromJSON Attendee
 instance ToJSON Problem
