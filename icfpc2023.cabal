@@ -26,10 +26,12 @@ source-repository head
 library
   exposed-modules:
       Answer
+      GenAnswer
       Happiness
       Lib
       Problem
       Solver
+      SolverArraying
   other-modules:
       Paths_icfpc2023
   hs-source-dirs:
@@ -60,6 +62,33 @@ executable icfpc2023
       Paths_icfpc2023
   hs-source-dirs:
       app
+  default-extensions:
+      LambdaCase
+      MultiWayIf
+      NPlusKPatterns
+      OverloadedStrings
+      NoStarIsType
+      TypeFamilyDependencies
+      DataKinds
+      PolyKinds
+      UndecidableInstances
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts
+  build-depends:
+      aeson
+    , array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , icfpc2023
+    , time
+  default-language: GHC2021
+
+executable solve
+  main-is: solve.hs
+  other-modules:
+      Paths_icfpc2023
+  hs-source-dirs:
+      mains
   default-extensions:
       LambdaCase
       MultiWayIf

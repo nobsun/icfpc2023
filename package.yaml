@@ -61,6 +61,16 @@ executables:
     dependencies:
     - icfpc2023
 
+  solve:
+    main:                solve.hs
+    source-dirs:         mains
+    ghc-options:
+    - -rtsopts
+    # - -threaded
+    # - -with-rtsopts=-N
+    dependencies:
+    - icfpc2023
+
 tests:
   icfpc2023-test:
     main:                spec.hs
