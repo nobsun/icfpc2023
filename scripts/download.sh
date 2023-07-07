@@ -7,5 +7,5 @@ do
     curl -H "Accept: application/json" \
 	 -H "Content-type: application/json" \
 	 -X GET https://api.icfpcontest.com/problem?problem_id=${i} \
-	| jq -r '.Success' | jq -c . > ${PROBLEMS_DIR}/${i}.json
+	| jq -r '.Success' | jq -c . > ${PROBLEMS_DIR}/$(printf "%03d.json" "${i}")
 done
