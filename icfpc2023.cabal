@@ -103,8 +103,8 @@ test-suite icfpc2023-doctest
     , base >=4.7 && <5
     , bytestring
     , containers
-    , doctest
     , directory
+    , doctest
     , filepath
     , icfpc2023
     , time

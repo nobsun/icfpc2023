@@ -86,4 +86,6 @@ tests:
     # - -with-rtsopts=-N
     dependencies:
     - icfpc2023
+    - filepath
+    - directory
     - doctest
