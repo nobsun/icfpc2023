@@ -6,7 +6,7 @@
 module Problem where
 
 import Control.Monad
-import Data.ByteString.Lazy as B
+import qualified Data.ByteString.Lazy as B
 import Data.Aeson
 import Text.Printf (printf)
 import GHC.Generics
@@ -43,24 +43,36 @@ readProblem q = do
   let problem = (decode inp :: Maybe Problem)
   return problem
 
-checkProblem :: Problem -> Either String ()
+checkProblem :: Problem -> Either [String] ()
 checkProblem Problem{..} = do
     (bottom, left) <- case stage_bottom_left of
       bottom : left : _ -> return (bottom, left)
-      _ -> Left $ "unknown stage_bottom_left array: " ++ show stage_bottom_left
+      _ -> Left ["unknown stage_bottom_left array: " ++ show stage_bottom_left]
 
-    when (bottom + stage_height > room_height) $
-      Left $ "bottom + stage_height > room_height: " ++ show (bottom + stage_height) ++ " > " ++ show room_height
+    let errors =
+          [ "left < 0: " ++ show left ++ " < 0" | left < 0 ]
+          ++
+          [ "bottom < 0: " ++ show bottom ++ " < 0" | bottom < 0 ]
+          ++
+          [ "left + stage_width > room_width: " ++ show (left + stage_width) ++ " > " ++ show  room_width
+          | left + stage_width > room_width ]
+          ++
+          [ "bottom + stage_height > room_height: " ++ show (bottom + stage_height) ++ " > " ++ show room_height
+          | bottom + stage_height > room_height ]
 
-    when (left + stage_width > room_width) $
-      Left $ "left + stage_width > room_width: " ++ show (left + stage_width) ++ " > " ++ show  room_width
+    when (length errors > 0) $ Left errors
 
-    return ()
 
 printCheckProblems :: Int -> IO ()
 printCheckProblems n =
     sequence_
-    [ putStrLn . ((show i ++ ": ") ++) =<< getResult
+    [ printResult
     | i <- [1..n]
-    , let getResult = maybe "parse error" (either id (const $ "good") . checkProblem) <$> readProblem i
+    , let getResult = maybe ["parse error"] (either id (const ["good"]) . checkProblem) <$> readProblem i
+          printResult = do
+            ms <- getResult
+            let tag = show i ++ ": "
+                space = replicate (length tag) ' '
+                xs = zipWith (++) (tag : repeat space) ms
+            putStr $ unlines xs
     ]
