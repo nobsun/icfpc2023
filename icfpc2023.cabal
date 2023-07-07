@@ -37,7 +37,8 @@ library
       OverloadedStrings
       NoStarIsType
       TypeFamilyDependencies
-      TypeInType
+      DataKinds
+      PolyKinds
       UndecidableInstances
   ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans
   build-depends:
@@ -61,7 +62,8 @@ executable icfpc2023
       OverloadedStrings
       NoStarIsType
       TypeFamilyDependencies
-      TypeInType
+      DataKinds
+      PolyKinds
       UndecidableInstances
   ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts
   build-depends:
@@ -85,7 +87,8 @@ test-suite icfpc2023-doctest
       OverloadedStrings
       NoStarIsType
       TypeFamilyDependencies
-      TypeInType
+      DataKinds
+      PolyKinds
       UndecidableInstances
   ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans
   build-depends:
