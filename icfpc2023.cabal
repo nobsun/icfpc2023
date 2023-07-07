@@ -128,4 +128,5 @@ test-suite icfpc2023-test
     , icfpc2023
     , main-tester
     , time
+  build-tool-depends: hspec-discover:hspec-discover == 2.*
   default-language: GHC2021
