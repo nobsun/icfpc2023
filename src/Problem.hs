@@ -44,8 +44,8 @@ readProblem q = do
 
 checkProblem :: Problem -> Either [String] ()
 checkProblem Problem{..} = do
-    (bottom, left) <- case stage_bottom_left of
-      bottom : left : _ -> return (bottom, left)
+    (left, bottom) <- case stage_bottom_left of
+      left : bottom : _ -> return (left, bottom)
       _ -> Left ["unknown stage_bottom_left array: " ++ show stage_bottom_left]
 
     let errors =
