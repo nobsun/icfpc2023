@@ -1,8 +1,8 @@
 #! /bin/sh
 
 if [ x"$token" = x ]; then
-    token=$(cat token.txt)
+    API_TOKEN=$(cat token.txt)
 fi
 
-curl -H "Authorization: Bearer ${token}" \
+curl -H "Authorization: Bearer ${API_TOKEN}" \
      https://api.icfpcontest.com/scoreboard

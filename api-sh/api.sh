@@ -2,8 +2,8 @@
 
 
 if [ x"$token" = x ]; then
-    token=$(cat token.txt)
+    API_TOKEN=$(cat token.txt)
 fi
 
 set -x
-curl -H "Authorization: Bearer ${token}" "$@"
+curl -H "Authorization: Bearer ${API_TOKEN}" "$@"

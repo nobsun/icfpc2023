@@ -10,7 +10,7 @@ EOF
 
 
 if [ x"$token" = x ]; then
-    token=$(cat token.txt)
+    API_TOKEN=$(cat token.txt)
 fi
 
 
@@ -34,7 +34,7 @@ show_json() {
 EOF
 }
 
-show_json | curl -H "Authorization: Bearer ${token}" \
+show_json | curl -H "Authorization: Bearer ${API_TOKEN}" \
      -X POST \
      --json @- \
      https://api.icfpcontest.com/submission
