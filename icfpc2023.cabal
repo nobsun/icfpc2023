@@ -25,9 +25,9 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
       Answer
       Happiness
+      Lib
       Problem
       Solver
   other-modules:
@@ -72,7 +72,8 @@ executable icfpc2023
       UndecidableInstances
   ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts
   build-depends:
-      array
+      aeson
+    , array
     , base >=4.7 && <5
     , bytestring
     , containers
@@ -97,7 +98,8 @@ test-suite icfpc2023-doctest
       UndecidableInstances
   ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans
   build-depends:
-      array
+      aeson
+    , array
     , base >=4.7 && <5
     , bytestring
     , containers
@@ -121,11 +123,15 @@ test-suite icfpc2023-test
       OverloadedStrings
       NoStarIsType
       TypeFamilyDependencies
-      TypeInType
+      DataKinds
+      PolyKinds
       UndecidableInstances
   ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans
+  build-tool-depends:
+      hspec-discover:hspec-discover ==2.*
   build-depends:
-      array
+      aeson
+    , array
     , base >=4.7 && <5
     , bytestring
     , containers
@@ -133,5 +139,4 @@ test-suite icfpc2023-test
     , icfpc2023
     , main-tester
     , time
-  build-tool-depends: hspec-discover:hspec-discover == 2.*
   default-language: GHC2021
