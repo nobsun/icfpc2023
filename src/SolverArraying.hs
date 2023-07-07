@@ -30,10 +30,10 @@ ymax = rgMax . rangeY
 -- ステージと部屋の共通部分の長方形と、もしあれば、部屋からはみ出ている長方形を返す
 getRects :: Problem -> Either String (Rect, Maybe Rect)
 getRects Problem{..} = case stage_bottom_left of
-      bottom : left : _ -> result bottom left
+      left : bottom : _ -> result left bottom
       _ -> Left $ "getRects: unknown stage_bottom_left array: " ++ show stage_bottom_left
   where
-    result stage_bottom stage_left
+    result stage_left stage_bottom
       | over_right =
         Right
         ( Rect { rangeX = mkRange stage_left room_width,   rangeY = mkRange stage_bottom stage_top } ,
