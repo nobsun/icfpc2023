@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveGeneric #-}
 module Answer where
@@ -14,7 +13,7 @@ data Placement
               }
   deriving (Show, Eq, Generic)
 
-data Answer
+newtype Answer
   = Answer { placements :: [Placement]
            }
   deriving (Show, Eq, Generic)
