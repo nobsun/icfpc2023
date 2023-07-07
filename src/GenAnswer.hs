@@ -6,12 +6,13 @@ import Data.Aeson (encode)
 import Text.Printf (printf)
 
 import Solver
+import Happiness
 
 saveAnswer :: (Name, SolverF)
            -> Int
            -> IO ()
 saveAnswer (name, solver) probNum = do
-  ans <- solve' name solver probNum
+  (ans, _problem) <- solve' name solver probNum
   let path = printf "solutions/%s_%03d.json" name probNum
-  putStrLn $ "writing " ++ path
+  putStrLn $ "writing " ++ path --- ++ " : happiness: " ++ show (happiness problem ans)
   B.writeFile path $ encode ans
