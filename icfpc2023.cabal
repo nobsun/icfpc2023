@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Lib
+      Answer
       Problem
   other-modules:
       Paths_icfpc2023
