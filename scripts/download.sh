@@ -2,6 +2,7 @@
 
 PROBLEMS_DIR=problems
 
+## problems 1-45
 for i in `seq 1 45`
 do
     curl -H "Accept: application/json" \
