@@ -42,7 +42,8 @@ library
       UndecidableInstances
   ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans
   build-depends:
-      array
+      aeson
+    , array
     , base >=4.7 && <5
     , bytestring
     , containers
