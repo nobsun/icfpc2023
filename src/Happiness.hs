@@ -25,7 +25,9 @@ happiness prob ans = score
         num = 10^6 * (tastes (atnds !! i) !! (musicians prob !! k))
         den = squareDistance (ms !! k) (atnds !! i)
 
--- musician と attendee の直線から 5 以下の距離に blocker がいるかどうか
+-- musician と attendee の直線に blocker が 5 以内にいる
+-- かつ blocker から直線におろした垂線の交点が musician と attendee の間にあること
+-- を判定する
 --   musician (mx, my)
 --   attendee (ax, ay)
 --   blocker  (bx, by)
@@ -42,7 +44,7 @@ isBlock (Placement mx my) (Attendee ax ay _) (Placement bx by)
       where
         k = (a * bx + b * by + c) / (a * a + b * b)
     
-    -- (x1, y1) (x2, y2) を通る直線の方程式
+    -- (x1, y1) (x2, y2) を通る直線の方程式の係数 a, b, c を求める
     -- 傾き a = (y2 - y1) / (x2 - x1) として
     -- y = a * (x - x1) + y1
     line (x1, y1) (x2, y2) = (y2 - y1, x1 - x2, x2 * y1 - x1 * y2)
