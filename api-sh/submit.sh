@@ -9,7 +9,7 @@ EOF
 }
 
 
-if [ x"$token" = x ]; then
+if [ x"${API_TOKEN}" = x ]; then
     API_TOKEN=$(cat token.txt)
 fi
 
