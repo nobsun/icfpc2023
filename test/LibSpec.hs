@@ -10,7 +10,7 @@ import Lib
 
 spec :: Spec
 spec = describe "someFunc" $ do
-  { it "「なんか関数」を標準出力に印字する." $ do
+  { it "print somewhat from someFunc" $ do
     { result <- captureProcessResult Lib.someFunc
     ; prExitCode result `shouldBe` ExitSuccess
     ; prStderr result `shouldSatisfy` B.null

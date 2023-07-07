@@ -26,6 +26,9 @@ source-repository head
 library
   exposed-modules:
       Lib
+      Answer
+      Problem
+      Solver
   other-modules:
       Paths_icfpc2023
   hs-source-dirs:
@@ -42,7 +45,8 @@ library
       UndecidableInstances
   ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans
   build-depends:
-      array
+      aeson
+    , array
     , base >=4.7 && <5
     , bytestring
     , containers
@@ -128,4 +132,5 @@ test-suite icfpc2023-test
     , icfpc2023
     , main-tester
     , time
+  build-tool-depends: hspec-discover:hspec-discover == 2.*
   default-language: GHC2021

@@ -19,6 +19,11 @@ module Lib
     ( someFunc
     ) where
 
+import Data.ByteString.Lazy as B
+import Data.Aeson
+import Text.Printf (printf)
+import GHC.Generics
+
 {- |
 print "some func" to stdout
 >>> someFunc
