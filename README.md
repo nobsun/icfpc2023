@@ -2,6 +2,8 @@
 
 2023-07-07T21:00: JSTより
 
+* username: Team Sampou
+
 # Links
 
 * Contest 2023 page http://icfpcontest2023.github.io/
