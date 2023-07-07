@@ -49,7 +49,10 @@ happiness prob ans = score
 -- False
 --
 isBlock :: Placement -> Attendee -> Placement -> Bool
-isBlock (Placement mx my) (Attendee ax ay _) (Placement bx by)
+isBlock (Placement mx my) (Attendee ax ay _) (Placement bx by) = isBlock' (mx, my) (ax, ay) (bx, by)
+
+isBlock' :: (RealFrac a, Floating a) => (a, a) -> (a, a) -> (a, a) -> Bool
+isBlock' (mx, my) (ax, ay) (bx, by)
   = distance (a, b, c) (bx, by) <= 5.0 &&
     (
       between (mx, my) (p, q) (ax, ay) ||
@@ -81,7 +84,7 @@ isBlock (Placement mx my) (Attendee ax ay _) (Placement bx by)
 -- >>> line (-1.0, 1.0) (0.0, 3.0)
 -- (2.0,-1.0,3.0)
 --
-line :: (Float, Float) -> (Float, Float) -> (Float, Float, Float)
+line :: Num a => (a, a) -> (a, a) -> (a, a, a)
 line (x1, y1) (x2, y2) = (y2 - y1, x1 - x2, x2 * y1 - x1 * y2)
 
 -- | また直線 a * x + b * y + c = 0 と 点 (x0, y0) の距離 d
@@ -93,7 +96,7 @@ line (x1, y1) (x2, y2) = (y2 - y1, x1 - x2, x2 * y1 - x1 * y2)
 -- 0.70710677
 -- >>> distance (1.0, -1.0, 0.0) (1.0, 1.0)
 -- 0.0
-distance :: (Float, Float, Float) -> (Float, Float) -> Float
+distance :: (Fractional a, Floating a) => (a, a, a) -> (a, a) -> a
 distance (a, b, c) (x0, y0) = abs (a * x0 + b * y0 + c) / sqrt (a * a + b * b)
 
 -- | (x0, y0) が (x1, y1) (x2, y2) の間にあるかどうか
@@ -113,6 +116,6 @@ distance (a, b, c) (x0, y0) = abs (a * x0 + b * y0 + c) / sqrt (a * a + b * b)
 -- False
 -- >>> between (0.0, 0.0) (1.0, -0.5) (2.0, 1.0)
 -- False
-between :: (Float, Float) -> (Float, Float) -> (Float, Float) -> Bool
+between :: Real a => (a, a) -> (a, a) -> (a, a) -> Bool
 between (x1, y1) (x0, y0) (x2, y2)
   = (x0 - x1) * (x0 - x2) <= 0 && (y0 - y1) * (y0 - y2) <= 0
