@@ -28,12 +28,12 @@ ymax = rgMax . rangeY
 
 getStageRect :: Problem -> Rect
 getStageRect p@Problem{..} =
-  Rect { rangeX = mkRange stage_left_ stage_right,   rangeY = mkRange stage_bottom_ stage_top }
+  Rect { rangeX = mkRange left right,   rangeY = mkRange bottom top }
   where
-    stage_left_ = stage_left p
-    stage_bottom_ = stage_bottom p
-    stage_right = stage_left_ + stage_width
-    stage_top = stage_bottom_ + stage_height
+    left = stage_left p
+    bottom = stage_bottom p
+    right = left + stage_width
+    top = bottom + stage_height
 
 -- そもそもはみ出るというのは誤解だった - 問題 1 から 問題 55
 -- ステージが部屋からは一方向にしかはみ出ていないという前提
