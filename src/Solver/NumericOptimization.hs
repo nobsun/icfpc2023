@@ -2,6 +2,7 @@ module Solver.NumericOptimization
   ( getCandidates
   ) where
 
+import Control.Monad
 import System.IO.Unsafe
 import qualified System.Random.MWC as Rand
 import qualified System.Random.MWC.Distributions as Rand
@@ -41,18 +42,27 @@ getCandidatesIO problem = do
 
       [bx, by] = stage_bottom_left problem
 
-      bounds = P $ replicate numMusicians $
+      bound@((xl,xu),(yl,yu)) =
         ( (realToFrac (bx + 10), realToFrac (bx + stage_width problem - 10))
         , (realToFrac (by + 10), realToFrac (by + stage_height problem - 10))
         )
 
-      x0_ = P $ replicate numMusicians
-        ( realToFrac (bx + stage_width problem / 2)
-        , realToFrac (bx + stage_height problem / 2)
-        )
+      bounds = P $ replicate numMusicians bound
 
   gen <- Rand.create
-  x0 <- mapM (\x -> (x+) <$> Rand.normal 0 1e-6 gen) x0_
+  x0_ <- replicateM numMusicians $ do
+    let center_x = realToFrac (bx + stage_width problem / 2)
+        center_y = realToFrac (by + stage_height problem / 2)
+    x <- if xl == xu then do
+           return center_x
+         else do
+           (center_x +) <$> Rand.normal 0 1e-6 gen
+    y <- if yl == yu then do
+           return center_y
+         else do
+           (center_y +) <$> Rand.normal 0 1e-6 gen
+    return (x,y)
+  let x0 = P x0_
 
   let params :: Params (P Double)
       params = def
