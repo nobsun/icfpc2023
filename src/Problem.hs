@@ -36,10 +36,16 @@ stage_left Problem{..} = case stage_bottom_left of
   left : _bottom : _ -> left
   _ -> error $ "stage_left: unknown stage_bottom_left array: " ++ show stage_bottom_left
 
+stage_right :: Problem -> Double
+stage_right Problem{..} = stage_left Problem{..} + stage_width
+
 stage_bottom :: Problem -> Double
 stage_bottom Problem{..} = case stage_bottom_left of
   _left : bottom : _ -> bottom
   _ -> error $ "stage_bottom: unknown stage_bottom_left array: " ++ show stage_bottom_left
+
+stage_top :: Problem -> Double
+stage_top Problem{..} = stage_bottom Problem{..} + stage_height
 
 instance ToJSON Attendee
 instance FromJSON Attendee

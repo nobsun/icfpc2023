@@ -32,6 +32,7 @@ library
       Solutions
       Solver
       Solver.Arraying
+      Solver.FrontHeat
       Solver.Genetic
       Solver.NumericOptimization
   other-modules:
