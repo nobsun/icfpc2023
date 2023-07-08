@@ -107,7 +107,7 @@ isBlock' (mx, my) (ax, ay) (bx, by)
         -- a p + b q + c = 0 と
         -- q = (b/a) p + d
         -- の連立方程式を解く
-        p = a / (a^(2::Int) + b^(2::Int)) * (- c - b * by + b^(2::Int) / a * bx)
+        p = a / (a^(2::Int) + b^(2::Int)) * (- c - b * d)
         q = (b / a) * p + d
 
     -- (x2, y2) が (x1, y1) の 5.0 以内にあるかどうか
