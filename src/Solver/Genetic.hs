@@ -103,12 +103,12 @@ isMusicianConflict (x1,y1) (x2,y2) =
 -- embed bs' area(wl,wh,hl,hh) to as
 crossOver :: (Double,Double) -> (Double,Double) -> [Point] -> [Point] -> Maybe [Point]
 crossOver (wl,wh) (hl,hh) as' bs' =
-  case crossOver' [] (zip[1..]as') bs' of
+  case crossOver' [] (zip[0..]as') bs' of
     [] -> Nothing
     rs -> Just rs
   where
     musicians :: [Int]
-    musicians = [i |(i,(x,y))<-zip[1..]bs', wl<=x,x<=wh, hl<=y,y<=hh]
+    musicians = [i |(i,(x,y))<-zip[0..]bs', wl<=x,x<=wh, hl<=y,y<=hh]
 
     crossOver' :: [Point] -> [(Int,Point)] -> [Point] -> [Point]
     crossOver' rs [] _ = reverse rs
