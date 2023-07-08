@@ -77,10 +77,10 @@ happiness prob (P ms) = score
                 , not $ isBlock' (ms !! k) (realToFrac ax, realToFrac ay) (ms !! j)
                 ]
     atnds = attendees prob
-    squareDistance (x1, y1) (x2, y2) = (x1 - x2)^2 + (y1 - y2)^2
+    squareDistance (x1, y1) (x2, y2) = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
     impact i k = num / den
       where
-        num = realToFrac $ 10^6 * (Problem.tastes (atnds !! i) !! (musicians prob !! k))
+        num = realToFrac $ 1e6 * (Problem.tastes (atnds !! i) !! (musicians prob !! k))
         den = squareDistance (ms !! k) (realToFrac ax, realToFrac ay)
         Problem.Attendee{ Problem.x = ax, Problem.y = ay } = atnds !! i
 
