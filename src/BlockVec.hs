@@ -1,9 +1,9 @@
 module BlockVec where
 
 -- |
-isBlock' :: (RealFrac a, Floating a) => (a, a) -> (a, a) -> (a, a) -> Bool
+isBlock' :: (Num a, Ord a) => (a, a) -> (a, a) -> (a, a) -> Bool
 isBlock' m a b =
-  closer seg b 5.0 && cross lv m a ||
+  closer seg b 5 && cross lv m a ||
   square2 (b |-| m) <= 25 ||  {- 線分の端点が半径 5 に含まれる -}
   square2 (b |-| a) <= 25     {- 線分の端点が半径 5 に含まれる -}
   where
