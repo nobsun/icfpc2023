@@ -27,6 +27,16 @@ stageBounds prob = (left, top, right, bottom)
     (left, bottom) =  (stage_left prob, stage_bottom prob)
     (top, right) = (stage_top prob, stage_right prob)
 
+
+-- | ステージ上の立てる場所を優先度順に返す
+standingPositions :: (Double, [Attendee]) -> Problem -> [(Int, (Double, Double))]
+standingPositions (d, atnds) prob = sortBy (\x y -> compare (fst y) (fst x)) res
+  where
+    (w, n, e, s) = stageBounds prob
+    poss = [ (x, y) | x <- [w, w+10 .. e], y <- [n, n-10 .. s]]
+    res = map (\(x, y) -> (length (near (x, y) atnds), (x, y))) poss
+    near (x, y) = filter (\(Attendee x' y' _) -> (x-x')^2 + (y-y')^2 <= d^2)
+
 heatArea :: Double -> Problem -> (Double, Double, Double, Double)
 heatArea d prob = (left, top, right, bottom)
   where
@@ -45,13 +55,12 @@ decideFrontHeat prob = last xs
 
 -- | フロントヒートの好みの楽器を高いものから返す
 --   数値は楽器のインデックス
-tastesOfFrontHeat :: Problem -> [Instrument]
-tastesOfFrontHeat prob = map fst orders
+tastesOfFrontHeat :: [Attendee] -> Problem -> [Instrument]
+tastesOfFrontHeat atnds prob = map fst orders
   where
     ave = map (\i -> average (map (!!i) ts)) [0..n-1]
     orders = sortBy (\x y -> compare (snd y) (snd x)) $ zip [0..] ave
-    (_, attendees) = decideFrontHeat prob
-    ts = map tastes attendees
+    ts = map tastes atnds
     n = length $ head ts
     average xs = sum xs / realToFrac (length xs)
 
@@ -65,10 +74,14 @@ splitWithOrder :: [Instrument] -> [(Int, Instrument)] -> [(Instrument, [Int])]
 splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs
   where
     seed = Map.fromList $ map (,[]) instrs
-    m = foldl (\m (i, instr) -> Map.insertWith (++) instr [i] m) seed ms
+    m = foldl (\m' (i, instr) -> Map.insertWith (++) instr [i] m') seed ms
 
-
-testRun n = do
-  Just prob <- readProblem n
-  let tofh = tastesOfFrontHeat prob
-  return $ popularMusicians prob tofh
+solve :: Problem -> Either String [(Double, Double)]
+solve prob = Right $ map snd res
+  where
+     (d, atnds) = decideFrontHeat prob
+     tofh = tastesOfFrontHeat atnds prob
+     poss = standingPositions (d, atnds) prob
+     ms = concatMap snd $ popularMusicians prob tofh
+     assignment = zipWith (\i (_, pos) -> (i, pos)) ms poss
+     res = sortBy (\x y -> compare (fst x) (fst y)) assignment
