@@ -76,8 +76,8 @@ splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs
     seed = Map.fromList $ map (,[]) instrs
     m = foldl (\m' (i, instr) -> Map.insertWith (++) instr [i] m') seed ms
 
-solve :: Problem -> Either String [(Double, Double)]
-solve prob = Right $ map snd res
+getCandidates :: SolverF
+getCandidates prob = Right $ map snd res
   where
      (d, atnds) = decideFrontHeat prob
      tofh = tastesOfFrontHeat atnds prob
