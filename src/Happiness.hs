@@ -92,11 +92,11 @@ happiness prob ans = score
 -- False
 -- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (-8.0) (-7.0))
 -- False
+-- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
+-- True
 -- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (6.0))
--- True
+-- False
 -- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (7.0))
--- True
--- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (8.0))
 -- False
 --
 isBlock :: Placement -> Attendee -> Placement -> Bool
