@@ -64,6 +64,7 @@ splitBy n [] = []
 splitBy n xs =
   let (as,bs) = splitAt n xs in as : splitBy n bs
 
+-- select top num happiness group
 select :: Int -> Problem -> [[Point]] -> [[Point]]
 select num problem cands =
   take num $ map snd $ sortBy ((flip compare)`on`fst) [(happiness problem c, c) | c<-cands]
@@ -73,6 +74,7 @@ select num problem cands =
 happiness :: Problem -> [Point] -> Double
 happiness problem cands = 1
 
+-- randomly add musicians(targets) to the given placement(initial).
 randomPlace :: RandomGen g => g -> Problem -> [Int] -> [(Int,Point)] -> [Point]
 randomPlace g (Problem{stage_width=w, stage_height=h ,stage_bottom_left=(zw,zh)}) targets initial = do
   map snd $ sortBy(compare`on`fst) $ randomPlace' targets maxRetry initial randws randhs
