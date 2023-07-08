@@ -28,27 +28,24 @@ getCandidates problem = unsafePerformIO (getCandidatesIO problem)
 getCandidatesIO :: Problem -> IO (Either String [Point])
 getCandidatesIO problem@(Problem{stage_width=w, stage_height=h ,stage_bottom_left=[zw,zh], musicians=ms, attendees=atnds}) = do
   g <- getStdGen
-  let initials = take 2 $ repeat $ randomPlace g (w,h,zw,zh) nMusicians
-  children <- go (nMusicians`div`8) initials
+  let initials = take 2 $ repeat $ randomPlace g (w,h,zw,zh) (length ms)
+  children <- go 2 initials
   return $ Right (head children)
   where
-    nMusicians :: Int
-    nMusicians = length ms
-
-    randomMusicians :: RandomGen g => g -> Int -> [[Int]]
-    randomMusicians g n = map nub $ splitBy n $ randomRs (0,nMusicians-1) g
-
-    go :: Int -> [[Point]] -> IO [[Point]]
-    go 0 cands = return cands
-    go size cands = do
+    go :: Double -> [[Point]] -> IO [[Point]]
+    go size cands | size >= 16 = return cands
+                  |otherwise   = do
       putStrLn $ "size: " ++ show size
       children <- genetic size cands
-      go (size`div`2) (select 10 problem children)
+      go (size*2) (select 10 problem children)
 
-    genetic :: Int -> [[Point]] -> IO [[Point]]
+    genetic :: Double -> [[Point]] -> IO [[Point]]
     genetic size cands = do
       g <- getStdGen
-      return $ catMaybes[crossOver ms c d | ([c,d],ms)<-zip (sequence[cands,cands]) (randomMusicians g size)]
+      let dw = w/size
+          dh = h/size
+          rs = [((dw*(i-1)+zw, dw*i+zw),(dh*(j-1)+zh, dh*i+zh)) |[i,j]<-splitBy 2 (randomRs (0,size-1) g)]
+      return $ catMaybes[crossOver u v c d | ([c,d],(u,v))<-zip (sequence[cands,cands]) rs]
 
 
 splitBy :: Int -> [a] -> [[a]]
@@ -91,12 +88,15 @@ isMusicianConflict (x1,y1) (x2,y2) =
   (x1-x2)^2 + (y1-y2)^2 <= 25
 
 
-crossOver :: [Int] -> [Point] -> [Point] -> Maybe [Point]
-crossOver musicians as bs =
-  case crossOver' [] (zip[1..]as) bs of
+crossOver :: (Double,Double) -> (Double,Double) -> [Point] -> [Point] -> Maybe [Point]
+crossOver (wl,wh) (hl,hh) as' bs' =
+  case crossOver' [] (zip[1..]as') bs' of
     [] -> Nothing
     rs -> Just rs
   where
+    musicians :: [Int]
+    musicians = [i |(i,(x,y))<-zip[1..]bs', wl<=x,x<=wh, hl<=y,y<=hh]
+
     crossOver' :: [Point] -> [(Int,Point)] -> [Point] -> [Point]
     crossOver' rs [] _ = reverse rs
     crossOver' rs ((i,a):as) (b:bs) =
