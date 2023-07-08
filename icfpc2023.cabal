@@ -97,7 +97,7 @@ executable draw-problem
   default-language: GHC2021
 
 executable happiness
-  main-is: happiness.hs
+  main-is: happiness_main.hs
   other-modules:
       Paths_icfpc2023
   hs-source-dirs:

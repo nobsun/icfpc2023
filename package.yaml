@@ -76,7 +76,7 @@ executables:
     - icfpc2023
 
   happiness:
-    main:                happiness.hs
+    main:                happiness_main.hs
     source-dirs:         mains
     ghc-options:
     - -rtsopts
