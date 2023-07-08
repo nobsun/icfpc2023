@@ -13,16 +13,16 @@ type Happiness = Integer
 squareDistance :: Placement -> Attendee -> Float
 squareDistance (Placement x1 y1) (Attendee x2 y2 _) = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
 
-weightedAverageAttendee :: Problem -> Answer -> Happiness
-weightedAverageAttendee prob ans = score
+weightedAverageHappiness :: Problem -> Answer -> Happiness
+weightedAverageHappiness prob ans = score
   where
     score = sum [ impact i k
                 | k <- [0..length ms-1], i <- [0..length atnds-1], j <- [0..length ms-1]
                 , i /= j
                 , not $ isBlock (ms !! k) (atnds !! i) (ms !! j)
                 ]
-    atnds = attendees prob
-    ms = [Attendee centerX centerY waTaste]
+    atnds = [Attendee centerX centerY waTaste]
+    ms = placements ans
 
     (centerX, centerY) = centerOfStage prob
     n = length atnds

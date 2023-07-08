@@ -1,4 +1,3 @@
-
 module Solutions where
 
 import qualified Data.ByteString.Lazy as B
@@ -32,4 +31,4 @@ calcHappiness name probNum = do
   answer <- maybe (fail $ "parse error: " ++ probMark) pure =<<readSolution name probNum
   let path = printf "solutions/%s_%03d.json" name probNum
   putStrLn $ "calulating happiness: " ++ path
-  return $! happiness problem answer
+  return $! weightedAverageHappiness problem answer
