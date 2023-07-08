@@ -1,9 +1,6 @@
 #! /bin/sh
 
-problems=$(curl -H "Authorization: Bearer ${API_TOKEN}" \
-                https://api.icfpcontest.com/problems |
-               jq -r '.number_of_problems'
-        )
+problems=$(curl https://api.icfpcontest.com/problems | jq -r '.number_of_problems')
 
 if [ x"$problems" = x ]; then
     problems="$1"
