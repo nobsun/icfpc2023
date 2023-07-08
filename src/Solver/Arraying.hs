@@ -40,8 +40,7 @@ getStageRect p@Problem{..} =
 -- ステージと部屋の共通部分の長方形と、もしあれば、部屋からはみ出ている長方形を返す
 getStageRectsOld :: Problem -> Either String (Rect, Maybe Rect)
 getStageRectsOld Problem{..} = case stage_bottom_left of
-      left : bottom : _ -> result left bottom
-      _ -> Left $ "getRects: unknown stage_bottom_left array: " ++ show stage_bottom_left
+      (left, bottom) -> result left bottom
   where
     result left bottom
       | over_right =

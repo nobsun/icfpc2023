@@ -40,7 +40,7 @@ getCandidatesIO problem = do
         where
           eps = 1e-6
 
-      [bx, by] = stage_bottom_left problem
+      (bx, by) = stage_bottom_left problem
 
       bound@((xl,xu),(yl,yu)) =
         ( (realToFrac (bx + 10), realToFrac (bx + stage_width problem - 10))
