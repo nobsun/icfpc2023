@@ -1,7 +1,9 @@
 {-# LANGUAGE RecordWildCards #-}
 module Happiness where
 
-import Data.Array ((!), listArray)
+import Data.Array (Array)
+import Data.Array.IArray ((!), listArray)
+import Data.Array.Unboxed (UArray)
 import Data.List (delete)
 
 import Problem
@@ -64,9 +66,14 @@ happiness prob ans = score
                 ]
     atnds = attendees prob
     ms = placements ans
+
     {- each tastes times 1,000,000 memos -}
+    million_times_tastes :: Attendee -> UArray Int Double
     million_times_tastes a = listArray (0, length ts - 1) $ map (1e6 *) ts  where ts = tastes a
+
+    million_times_atnds_tastes :: Array Int (UArray Int Double)
     million_times_atnds_tastes = listArray (0, length atnds - 1) $ map million_times_tastes atnds
+
     impact i k = ceiling $  num / den
       where
         num = million_times_atnds_tastes ! i ! (musicians prob !! k)
