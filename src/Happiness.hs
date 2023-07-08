@@ -97,9 +97,19 @@ isBlock' (mx, my) (ax, ay) (bx, by)
     -- この a, b, c を求める
     (a, b, c) = line (mx, my) (ax, ay)
     -- (x1, y1) (x2, y2) を通る直線へ (x0, y0) からおろした垂線の交点を (p, q) とする
-    (p, q) = (a * k + bx, b * k + by)
+    (p, q)
+      | a == 0 = (bx, - c / b)
+      | b == 0 = (- c / a, by)
+      | otherwise = (p, q)
       where
-        k = (a * bx + b * by + c) / (a * a + b * b)
+        -- 垂線の直線は y = (b/a) x + d になる
+        d = by - (b / a) * bx
+        -- a p + b q + c = 0 と
+        -- q = (b/a) p + d
+        -- の連立方程式を解く
+        p = a / (a^(2::Int) + b^(2::Int)) * (- c - b * by + b^(2::Int) / a * bx)
+        q = (b / a) * p + d
+
     -- (x2, y2) が (x1, y1) の 5.0 以内にあるかどうか
     inner (x1, y1) (x2, y2) = sqrt ((x2 - x1)^(2::Int) + (y2 - y1)^(2::Int)) <= 5.0
     
