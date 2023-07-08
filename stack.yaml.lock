@@ -3,7 +3,39 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: numeric-optimization-0.1.1.0@sha256:e341ecfcaee455142c61b856df3bbfcd4f0cfbab2f75c9c5e96cc40134ccf2c2,3928
+    pantry-tree:
+      sha256: c4fa4b4abd2d95230c4a84c2698344286c8b50f4d58839cd7646e8476baaffb2
+      size: 506
+  original:
+    hackage: numeric-optimization-0.1.1.0
+- completed:
+    hackage: numeric-optimization-ad-0.1.0.1@sha256:e03ded25e2b7d0e9baf3067649889cfed54741f0f941933949d9c0b0543ca6fe,3075
+    pantry-tree:
+      sha256: ee22152d859cff4a210a70198279a581d23f46fb441438b5801c24fc21755f75
+      size: 509
+  original:
+    hackage: numeric-optimization-ad-0.1.0.1
+- completed:
+    hackage: l-bfgs-b-0.1.0.1@sha256:baa2aab4eca4ed039379eb76b4e254a5a590b44a5030b017f33e7301f829be2c,3853
+    pantry-tree:
+      sha256: a0fadfc2f9feb76b583acc5d83273f07b8163350ca838d899d7fc8b801091f15
+      size: 358
+  original:
+    hackage: l-bfgs-b-0.1.0.1
+- completed:
+    commit: 700f5a2295ff8a7f2ffb1ef3e9407e2468f683b7
+    git: https://github.com/wavewave/lbfgs-hs.git
+    name: lbfgs
+    pantry-tree:
+      sha256: 138c1bd5ea01895e92076727a064743b49b9a35bf5c1f21e3587ae9fcd47656f
+      size: 987
+    version: '0.1'
+  original:
+    commit: 700f5a2295ff8a7f2ffb1ef3e9407e2468f683b7
+    git: https://github.com/wavewave/lbfgs-hs.git
 snapshots:
 - completed:
     sha256: c4381351ba5837a6356fcc0ebeb7a61fdcaf3a085c903a6f730f56b131d5cb58

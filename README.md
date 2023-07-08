@@ -10,6 +10,15 @@
 * Twitter https://twitter.com/icfpcontest2023
 * Discord https://discord.com/invite/b9Zuy9D2
 
+# ライブラリのインストール
+
+Ubuntuの場合:
+
+```bash
+sudo apt-get install liblbfgsb-dev
+```
+
+https://hackage.haskell.org/package/numeric-optimization-0.1.1.0#installing-prerequisites も参照
 
 # API スクリプトの実行
 
