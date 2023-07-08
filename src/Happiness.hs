@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Happiness where
 
 import Data.List (delete)
@@ -9,6 +10,40 @@ import Control.Concurrent (setNumCapabilities)
 -- | FIXME
 type Happiness = Integer
 
+squareDistance :: Placement -> Attendee -> Float
+squareDistance (Placement x1 y1) (Attendee x2 y2 _) = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
+
+weightedAverageHappiness :: Problem -> Answer -> Happiness
+weightedAverageHappiness prob ans = score
+  where
+    score = sum [ impact i k
+                | k <- [0..length ms-1], i <- [0..length atnds-1], j <- [0..length ms-1]
+                , i /= j
+                , not $ isBlock (ms !! k) (atnds !! i) (ms !! j)
+                ]
+    atnds = [Attendee centerX centerY waTaste]
+    ms = placements ans
+
+    (centerX, centerY) = centerOfStage prob
+    n = length atnds
+    -- 観客の平均位置
+    (attendeeX, attendeeY) = (x / conv n, y / conv n)
+      where
+        conv = fromRational . toRational
+        (x, y) = foldr f (0.0, 0.0) atnds
+          where f (Attendee x y _) (x', y') = (x + x', y + y')
+    -- 観客の平均taste
+    waTaste = foldr f [0.0..] (attendees prob)
+      where
+        f (Attendee x y ts) ts' = zipWith (\t t' -> w * t + t') ts ts'
+          where
+            d2 = (attendeeX - x)^2 + (attendeeY - y)^2
+            w = 1.0 / d2
+    impact i k = ceiling $  num / den
+      where
+        num = 1e6 * (tastes (atnds !! i) !! (musicians prob !! k))
+        den = squareDistance (ms !! k) (atnds !! i)
+
 -- | calculate happiness
 happiness :: Problem -> Answer -> Happiness
 happiness prob ans = score
@@ -19,7 +54,6 @@ happiness prob ans = score
                 ]
     atnds = attendees prob
     ms = placements ans
-    squareDistance (Placement x1 y1) (Attendee x2 y2 _) = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
     impact i k = ceiling $  num / den
       where
         num = 1e6 * (tastes (atnds !! i) !! (musicians prob !! k))

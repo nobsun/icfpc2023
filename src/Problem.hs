@@ -85,3 +85,10 @@ printCheckProblems n =
                 xs = zipWith (++) (tag : repeat space) ms
             putStr $ unlines xs
     ]
+
+centerOfStage :: Problem -> (Float, Float)
+centerOfStage Problem{..} = (left + stage_width / 2, bottom + stage_height / 2)
+  where
+    (left, bottom) = case stage_bottom_left of
+      left : bottom : _ -> (left, bottom)
+      _ -> error "unknown stage_bottom_left array"
