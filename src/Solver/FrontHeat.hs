@@ -1,5 +1,7 @@
 module Solver.FrontHeat where
 
+import Data.List (sortBy)
+
 import Problem
 import Solver (SolverF)
 
@@ -21,6 +23,25 @@ heatArea d prob = (left, top, right, bottom)
   where
     (w, n, e, s) = stageBounds prob
     left = max (w - d) 0
-    top = max (n + d) (stage_height prob)
-    right = min (e + d) (stage_width prob)
-    bottom = min (s - d) 0
+    top = min (n + d) (room_height prob)
+    right = min (e + d) (room_width prob)
+    bottom = max (s - d) 0
+
+decideFrontHeat :: Problem -> (Double, [Attendee])
+decideFrontHeat prob = last xs
+  where
+    n = length (attendees prob)
+    heatNum = ceiling (realToFrac n * 0.1) -- 1割がヒートエリア
+    xs = takeWhile (\(_, xs) -> length xs <= heatNum) $ map (\d -> (d, frontAttendees d prob)) [1..]
+
+-- | フロントヒートの好みの楽器を高いものから返す
+--   数値は楽器のインデックス
+tastesOfFrontHeat :: Problem -> [Int]
+tastesOfFrontHeat prob = map fst orders
+  where
+    ave = map (\i -> average (map (!!i) ts)) [0..n-1]
+    orders = sortBy (\x y -> compare (snd y) (snd x)) $ zip [0..] ave
+    (_, attendees) = decideFrontHeat prob
+    ts = map tastes attendees
+    n = length $ head ts
+    average xs = sum xs / realToFrac (length xs)
