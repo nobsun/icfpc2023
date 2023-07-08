@@ -6,7 +6,7 @@ module Solver.Arraying where
 import Problem
 import Solver (SolverF)
 
-type Coord = Float
+type Coord = Double
 
 data Range = Range { rgMin :: Coord, rgMax :: Coord }
 instance Show Range where show (Range n x) = show (n, x)

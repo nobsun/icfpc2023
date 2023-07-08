@@ -11,32 +11,32 @@ import Text.Printf (printf)
 import GHC.Generics
 
 type Instrument = Int
-type Like = Float
+type Like = Double
 
 data Attendee
-  = Attendee { x      :: Float
-             , y      :: Float
+  = Attendee { x      :: Double
+             , y      :: Double
              , tastes :: [Like]
              }
   deriving (Show, Eq, Generic)
 
 data Problem
-  = Problem { room_width        :: Float
-            , room_height       :: Float
-            , stage_width       :: Float
-            , stage_height      :: Float
-            , stage_bottom_left :: [Float]
+  = Problem { room_width        :: Double
+            , room_height       :: Double
+            , stage_width       :: Double
+            , stage_height      :: Double
+            , stage_bottom_left :: [Double]
             , musicians         :: [Instrument]
             , attendees         :: [Attendee]
             }
   deriving (Show, Eq, Generic)
 
-stage_left :: Problem -> Float
+stage_left :: Problem -> Double
 stage_left Problem{..} = case stage_bottom_left of
   left : _bottom : _ -> left
   _ -> error $ "stage_left: unknown stage_bottom_left array: " ++ show stage_bottom_left
 
-stage_bottom :: Problem -> Float
+stage_bottom :: Problem -> Double
 stage_bottom Problem{..} = case stage_bottom_left of
   _left : bottom : _ -> bottom
   _ -> error $ "stage_bottom: unknown stage_bottom_left array: " ++ show stage_bottom_left
@@ -86,7 +86,7 @@ printCheckProblems n =
             putStr $ unlines xs
     ]
 
-centerOfStage :: Problem -> (Float, Float)
+centerOfStage :: Problem -> (Double, Double)
 centerOfStage Problem{..} = (left + stage_width / 2, bottom + stage_height / 2)
   where
     (left, bottom) = case stage_bottom_left of

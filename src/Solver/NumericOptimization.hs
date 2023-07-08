@@ -21,7 +21,7 @@ getCandidates problem = unsafePerformIO (getCandidatesIO problem)
 data P a = P [(a, a)]
   deriving (Functor, Foldable, Traversable, Show)
 
-getCandidatesIO :: Problem -> IO (Either String [(Float, Float)])
+getCandidatesIO :: Problem -> IO (Either String [(Double, Double)])
 getCandidatesIO problem = do
   let numMusicians = length (musicians problem)
       averageTaste = sum ts / fromIntegral (length ts)

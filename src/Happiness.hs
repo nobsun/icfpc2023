@@ -10,7 +10,7 @@ import Control.Concurrent (setNumCapabilities)
 -- | FIXME
 type Happiness = Integer
 
-squareDistance :: Placement -> Attendee -> Float
+squareDistance :: Placement -> Attendee -> Double
 squareDistance (Placement x1 y1) (Attendee x2 y2 _) = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
 
 weightedAverageHappiness :: Problem -> Answer -> Happiness

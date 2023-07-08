@@ -7,7 +7,7 @@ import Answer
 import Happiness
 
 type Name = String
-type SolverF = Problem -> Either String [(Float, Float)]
+type SolverF = Problem -> Either String [(Double, Double)]
 
 solve' :: Name
        -> SolverF
@@ -20,7 +20,7 @@ solve' solverName solver probNum = do
   return (Answer { placements = [ Placement x y | (x, y) <- cords ] }, problem)
 
 class Solver a where
-  apply :: a -> Problem -> Either String [(Float, Float)]
+  apply :: a -> Problem -> Either String [(Double, Double)]
 
 solve :: Solver a => Name -> a -> Int -> IO ()
 solve name solver pnum = B.putStr . encode . fst =<< solve' name (apply solver) pnum

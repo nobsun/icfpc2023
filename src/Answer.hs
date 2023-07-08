@@ -8,8 +8,8 @@ import Text.Printf (printf)
 import GHC.Generics
 
 data Placement
-  = Placement { x :: Float
-              , y :: Float
+  = Placement { x :: Double
+              , y :: Double
               }
   deriving (Show, Eq, Generic)
 
