@@ -8,6 +8,7 @@ import Data.List (delete, zip3)
 
 import Problem
 import Answer
+import Extra
 import qualified BlockVec
 import Control.Concurrent (setNumCapabilities)
 
@@ -31,7 +32,7 @@ weightedAverageHappiness prob ans = score
   where
     score = sum [ impact 0 k
                 | k <- [0..length ms-1], j <- [0..length ms-1]
-                , not $ isBlock (ms !! k) (atnds !! 0) (ms !! j)
+                , not $ isBlockWith NotIntCompat (ms !! k) (atnds !! 0) (ms !! j)
                 ]
     atnds = [Attendee centerX centerY waTaste]
     ms = placements ans
@@ -60,6 +61,7 @@ weightedAverageHappiness prob ans = score
 happiness :: Problem -> Answer -> Happiness
 happiness prob ans = score
   where
+    isBlock = isBlockWith $ int_compat_happiness $ mkExtra prob ans
     score = sum [ impact (i, a_i) (k, inst_k, p_k)
                 | (k, inst_k, p_k) <- zip3 [0..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
                 , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
@@ -79,6 +81,10 @@ happiness prob ans = score
         num = million_times_atnds_tastes ! i ! inst_k
         den = squareDistance p_k a_i
 
+isBlockWith :: HappinessICompat -> Placement -> Attendee -> Placement -> Bool
+isBlockWith IntCompat     = isBlockInt
+isBlockWith NotIntCompat  = isBlockDouble
+
 -- | musician と attendee の直線に blocker が 5 以内にいる
 --   かつ blocker から直線におろした垂線の交点が musician と attendee の間にあること
 --   を判定する
@@ -86,33 +92,60 @@ happiness prob ans = score
 --     attendee (ax, ay)
 --     blocker  (bx, by)
 --
--- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 2.0 2.0)
+-- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 2.0 2.0)
 -- True
--- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 1.0)
+-- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 1.0)
 -- True
--- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 2.0)
+-- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 2.0)
 -- True
--- >>> isBlock (Placement (-1.0) 1.0) (Attendee 0.0 3.0 []) (Placement 0.0 0.0)
+-- >>> isBlockInt (Placement (-1.0) 1.0) (Attendee 0.0 3.0 []) (Placement 0.0 0.0)
 -- True
--- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 7.0 8.0)
+-- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 7.0 8.0)
 -- False
--- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (-8.0) (-7.0))
+-- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (-8.0) (-7.0))
 -- False
--- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
+-- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
 -- True
--- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (6.0))
+-- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (6.0))
 -- False
--- >>> isBlock (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (7.0))
+-- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (7.0))
 -- False
 --
-isBlock :: Placement -> Attendee -> Placement -> Bool
-isBlock (Placement mx my) (Attendee ax ay _) (Placement bx by) = BlockVec.isBlock' (mx, my) (ax, ay) (bx, by)
+isBlockInt :: Placement -> Attendee -> Placement -> Bool
+isBlockInt (Placement mx my) (Attendee ax ay _) (Placement bx by) =
+  isBlockIntSpecialized (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by)
 
-isBlockViaInt :: (Double, Double) -> (Double, Double) -> (Double, Double) -> Bool
-isBlockViaInt (mx, my) (ax, ay) (bx, by) = isBlockInt (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by)
+isBlockIntSpecialized :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool
+isBlockIntSpecialized = BlockVec.isBlock'
 
-isBlockInt :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool
-isBlockInt = BlockVec.isBlock'
+-- | musician と attendee の直線に blocker が 5 以内にいる
+--   かつ blocker から直線におろした垂線の交点が musician と attendee の間にあること
+--   を判定する
+--     musician (mx, my)
+--     attendee (ax, ay)
+--     blocker  (bx, by)
+--
+-- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 2.0 2.0)
+-- True
+-- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 1.0)
+-- True
+-- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 2.0)
+-- True
+-- >>> isBlockDouble (Placement (-1.0) 1.0) (Attendee 0.0 3.0 []) (Placement 0.0 0.0)
+-- True
+-- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 7.0 8.0)
+-- False
+-- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (-8.0) (-7.0))
+-- False
+-- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
+-- True
+-- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (6.0))
+-- False
+-- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (7.0))
+-- False
+--
+isBlockDouble :: Placement -> Attendee -> Placement -> Bool
+isBlockDouble (Placement mx my) (Attendee ax ay _) (Placement bx by) = BlockVec.isBlock' (mx, my) (ax, ay) (bx, by)
 
 -- |
 --
