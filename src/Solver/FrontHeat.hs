@@ -5,6 +5,14 @@ import Data.List (sortBy)
 import Problem
 import Solver (SolverF)
 
+-- | フロントヒート戦略
+-- Happiness の計算式が距離の2乗に反比例するのでステージに近い人のインパクトがより効きやすい
+-- 遠くの人の場合には効果が薄くなる
+-- ステージ上でも同様に前方(ステージ周囲など観客に近い場所)にミュージシャンはブロックされにくい。
+-- そのため、ステージ周辺から観客の1割が存在するエリアをヒートエリアとして定義し、
+-- ヒートエリアの人の好みの楽器を高い順に並べる
+-- その楽器のミュージシャンを優先的に前方に配置する戦略をとる
+
 -- | d がステージからの距離でどこまでヒートエリアとするかを指定している
 frontAttendees :: Double -> Problem -> [Attendee]
 frontAttendees d prob = filter inHeatArea (attendees prob)
