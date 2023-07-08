@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module Happiness where
 
+import Data.Array ((!), listArray)
 import Data.List (delete)
 
 import Problem
@@ -62,9 +63,13 @@ happiness prob ans = score
                 ]
     atnds = attendees prob
     ms = placements ans
+    {- each tastes times 1,000,000 memos -}
+    million_times_tastes a = listArray (0, length ts - 1) $ map (1e6 *) ts  where ts = tastes a
+    million_times_atnds_tastes = listArray (0, length atnds - 1) $ map million_times_tastes atnds
     impact i k = ceiling $  num / den
       where
-        num = 1e6 * (tastes (atnds !! i) !! (musicians prob !! k))
+        num = million_times_atnds_tastes ! i ! (musicians prob !! k)
+        -- num = 1e6 * (tastes (atnds !! i) !! (musicians prob !! k))
         den = squareDistance (ms !! k) (atnds !! i)
 
 -- | musician と attendee の直線に blocker が 5 以内にいる
