@@ -28,6 +28,7 @@ library
       Answer
       BlockVec
       Happiness
+      IntCompat
       Problem
       Solutions
       Solver
