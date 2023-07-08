@@ -1,6 +1,7 @@
 module Solver.FrontHeat where
 
 import Data.List (sortBy)
+import qualified Data.Map as Map
 
 import Problem
 import Solver (SolverF)
@@ -44,7 +45,7 @@ decideFrontHeat prob = last xs
 
 -- | フロントヒートの好みの楽器を高いものから返す
 --   数値は楽器のインデックス
-tastesOfFrontHeat :: Problem -> [Int]
+tastesOfFrontHeat :: Problem -> [Instrument]
 tastesOfFrontHeat prob = map fst orders
   where
     ave = map (\i -> average (map (!!i) ts)) [0..n-1]
@@ -53,3 +54,21 @@ tastesOfFrontHeat prob = map fst orders
     ts = map tastes attendees
     n = length $ head ts
     average xs = sum xs / realToFrac (length xs)
+
+-- | フロントヒートの好みの楽器を演奏するミュージシャン順に分離しつつ並べる
+popularMusicians :: Problem -> [Instrument] -> [(Instrument, [Int])]
+popularMusicians prob instrs = splitWithOrder instrs ms
+  where
+    ms = zip [0..] (musicians prob)
+
+splitWithOrder :: [Instrument] -> [(Int, Instrument)] -> [(Instrument, [Int])]
+splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs
+  where
+    seed = Map.fromList $ map (,[]) instrs
+    m = foldl (\m (i, instr) -> Map.insertWith (++) instr [i] m) seed ms
+
+
+testRun n = do
+  Just prob <- readProblem n
+  let tofh = tastesOfFrontHeat prob
+  return $ popularMusicians prob tofh
