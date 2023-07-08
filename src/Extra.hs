@@ -3,9 +3,10 @@
 module Extra where
 
 import qualified Data.Set as Set
+import Text.Printf (printf)
 
 import qualified IntCompat
-import Problem (Problem(..), Attendee(..))
+import Problem
 import Answer
 
 data ProblemExtra
@@ -26,6 +27,27 @@ mkProblemExtra Problem{..} =
   where
     is = Set.fromList musicians
     compatA Attendee{..} = IntCompat.double x && IntCompat.double y
+
+showProblemExtra :: Int -> ProblemExtra -> String
+showProblemExtra i ProblemExtra{..} = unlines $ zipWith (++) tags bodies
+  where
+    tag = printf "%3d: " i
+    spc = replicate (length tag) ' '
+    tags = tag : repeat spc
+    bodies =
+      [ "musicians: " ++ show num_musicians
+      , "attendees: " ++ show num_attendees
+      , "instruments: " ++ show num_instruments
+      , "int_compat: " ++ show problem_int_compat
+      ]
+
+printProblemExtras :: Int -> IO ()
+printProblemExtras n =
+  sequence_
+  [ printExtra =<< readProblem i
+  | i <- [1..n]
+  , let printExtra = putStr . maybe ("parse error") (showProblemExtra i . mkProblemExtra)
+  ]
 
 data Extra
   = Extra { answer_valid :: Bool
