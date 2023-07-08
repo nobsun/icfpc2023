@@ -4,12 +4,14 @@ import System.Environment (getArgs)
 import Solver (Name, SolverF)
 import qualified Solver.Arraying as Arraying
 import qualified Solver.NumericOptimization as NumericOptimization
+import qualified Solver.Genetic as Genetic
 import Solutions
 
 solvers :: [(Name, SolverF)]
 solvers =
   [ ("arraying", Arraying.getCandidates)
   , ("numeric-optimization", NumericOptimization.getCandidates)
+  , ("genetic", Genetic.getCandidates)
   ]
 
 main :: IO ()
