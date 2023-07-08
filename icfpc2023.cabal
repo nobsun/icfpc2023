@@ -28,7 +28,6 @@ library
       Answer
       BlockVec
       Happiness
-      Lib
       Problem
       Solutions
       Solver
@@ -260,7 +259,6 @@ test-suite icfpc2023-test
   main-is: spec.hs
   other-modules:
       HappinessSpec
-      LibSpec
       Paths_icfpc2023
   hs-source-dirs:
       test
