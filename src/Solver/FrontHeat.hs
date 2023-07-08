@@ -29,6 +29,7 @@ stageBounds prob = (left, top, right, bottom)
 
 
 -- | ステージ上の立てる場所を優先度順に返す
+-- TODO: 人数ではなく好みの点数の合計でソートしたい
 standingPositions :: (Double, [Attendee]) -> Problem -> [(Int, (Double, Double))]
 standingPositions (d, atnds) prob = sortBy (\x y -> compare (fst y) (fst x)) res
   where
