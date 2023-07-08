@@ -6,6 +6,7 @@ import Text.Printf (printf)
 
 import Answer
 import Problem
+import Extra
 import Solver
 import Happiness
 
@@ -30,5 +31,7 @@ calcHappiness name probNum strategy = do
   problem <- maybe (fail $ "parse error: " ++ probMark) pure =<< readProblem probNum
   answer <- maybe (fail $ "parse error: " ++ probMark) pure =<<readSolution name probNum
   let path = printf "solutions/%s_%03d.json" name probNum
-  putStrLn $ "calulating " ++ show strategy ++ " happiness: " ++ path
-  return $! applyHappiness strategy problem answer
+      extra = mkExtra problem answer
+      icompat = int_compat_happiness extra
+  putStrLn $ unwords ["calulating", show strategy, show icompat, "happiness:", path]
+  return $! Happiness.applyStrategy strategy extra problem answer
