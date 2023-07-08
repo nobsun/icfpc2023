@@ -10,6 +10,15 @@ import Control.Concurrent (setNumCapabilities)
 -- | FIXME
 type Happiness = Integer
 
+data HaStrategy
+  = Naive
+  | WeightedAverage
+  deriving (Eq, Show)
+
+applyHappiness :: HaStrategy -> Problem -> Answer -> Happiness
+applyHappiness Naive = happiness
+applyHappiness WeightedAverage = weightedAverageHappiness
+
 squareDistance :: Placement -> Attendee -> Double
 squareDistance (Placement x1 y1) (Attendee x2 y2 _) = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
 
@@ -102,7 +111,7 @@ isBlock' (mx, my) (ax, ay) (bx, by)
         k = (a * bx + b * by + c) / (a * a + b * b)
     -- (x2, y2) が (x1, y1) の 5.0 以内にあるかどうか
     inner (x1, y1) (x2, y2) = sqrt ((x2 - x1)^(2::Int) + (y2 - y1)^(2::Int)) <= 5.0
-    
+
 -- | (x1, y1) (x2, y2) を通る直線の方程式の係数 a, b, c を求める
 --   傾き a = (y2 - y1) / (x2 - x1) として
 --   y = a * (x - x1) + y1

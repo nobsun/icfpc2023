@@ -24,11 +24,11 @@ readSolution name probNum = do
   inp <- B.readFile path
   return $ decode inp
 
-calcHappiness :: Name -> Int -> IO Happiness
-calcHappiness name probNum = do
+calcHappiness :: Name -> Int -> HaStrategy -> IO Happiness
+calcHappiness name probNum strategy = do
   let probMark = "problem " ++ show probNum
   problem <- maybe (fail $ "parse error: " ++ probMark) pure =<< readProblem probNum
   answer <- maybe (fail $ "parse error: " ++ probMark) pure =<<readSolution name probNum
   let path = printf "solutions/%s_%03d.json" name probNum
-  putStrLn $ "calulating happiness: " ++ path
-  return $! weightedAverageHappiness problem answer
+  putStrLn $ "calulating " ++ show strategy ++ " happiness: " ++ path
+  return $! applyHappiness strategy problem answer
