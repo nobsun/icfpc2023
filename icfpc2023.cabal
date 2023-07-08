@@ -31,6 +31,7 @@ library
       Problem
       Solutions
       Solver
+      Solver.NumericOptimization
       SolverArraying
   other-modules:
       Paths_icfpc2023
@@ -53,6 +54,9 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
+    , mwc-random
+    , numeric-optimization ==0.1.1.0
+    , numeric-optimization-ad ==0.1.0.1
     , time
   default-language: GHC2021
 
@@ -80,6 +84,9 @@ executable happiness
     , bytestring
     , containers
     , icfpc2023
+    , mwc-random
+    , numeric-optimization ==0.1.1.0
+    , numeric-optimization-ad ==0.1.0.1
     , time
   default-language: GHC2021
 
@@ -107,6 +114,9 @@ executable icfpc2023
     , bytestring
     , containers
     , icfpc2023
+    , mwc-random
+    , numeric-optimization ==0.1.1.0
+    , numeric-optimization-ad ==0.1.0.1
     , time
   default-language: GHC2021
 
@@ -134,6 +144,9 @@ executable solve
     , bytestring
     , containers
     , icfpc2023
+    , mwc-random
+    , numeric-optimization ==0.1.1.0
+    , numeric-optimization-ad ==0.1.0.1
     , time
   default-language: GHC2021
 
@@ -163,6 +176,9 @@ test-suite icfpc2023-doctest
     , doctest
     , filepath
     , icfpc2023
+    , mwc-random
+    , numeric-optimization ==0.1.1.0
+    , numeric-optimization-ad ==0.1.0.1
     , time
   default-language: GHC2021
 
@@ -196,5 +212,8 @@ test-suite icfpc2023-test
     , hspec
     , icfpc2023
     , main-tester
+    , mwc-random
+    , numeric-optimization ==0.1.1.0
+    , numeric-optimization-ad ==0.1.0.1
     , time
   default-language: GHC2021

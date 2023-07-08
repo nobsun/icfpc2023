@@ -3,10 +3,14 @@ import System.Environment (getArgs)
 
 import Solver (Name, SolverF)
 import qualified SolverArraying as Arraying
+import qualified Solver.NumericOptimization as NumericOptimization
 import Solutions
 
 solvers :: [(Name, SolverF)]
-solvers = [ ("arraying", Arraying.getCandidates) ]
+solvers =
+  [ ("arraying", Arraying.getCandidates)
+  , ("numeric-optimization", NumericOptimization.getCandidates)
+  ]
 
 main :: IO ()
 main = do

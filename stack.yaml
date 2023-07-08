@@ -2,3 +2,15 @@ resolver: lts-21.1
 
 packages:
 - .
+
+extra-deps:
+- numeric-optimization-0.1.1.0
+- numeric-optimization-ad-0.1.0.1
+- l-bfgs-b-0.1.0.1
+- git: https://github.com/wavewave/lbfgs-hs.git
+  commit: 700f5a2295ff8a7f2ffb1ef3e9407e2468f683b7
+
+flags:
+  numeric-optimization:
+    with-lbfgs: false
+    with-lbfgsb: true
