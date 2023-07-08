@@ -43,7 +43,7 @@ main = do
   Just prob <- readProblem (optProblemNo opt)
   img <- createMutableImage (ceiling (room_width prob) + 1) (ceiling (room_height prob) + 1) (PixelRGB8 255 255 255)
 
-  let [x0, y0] = stage_bottom_left prob
+  let (x0, y0) = stage_bottom_left prob
   -- stage
   forM_ [floor x0 .. ceiling (x0 + stage_width prob)] $ \x ->
     forM_ [floor y0 .. ceiling (y0 + stage_height prob)] $ \y ->

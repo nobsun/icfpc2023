@@ -26,7 +26,7 @@ getCandidates :: SolverF
 getCandidates problem = unsafePerformIO (getCandidatesIO problem)
 
 getCandidatesIO :: Problem -> IO (Either String [Point])
-getCandidatesIO problem@(Problem{stage_width=w, stage_height=h ,stage_bottom_left=[zw,zh], musicians=ms, attendees=atnds}) = do
+getCandidatesIO problem@(Problem{stage_width=w, stage_height=h ,stage_bottom_left=(zw,zh), musicians=ms, attendees=atnds}) = do
   g <- getStdGen
   let initials = take 2 $ repeat $ randomPlace g (w,h,zw,zh) (length ms)
   children <- go 2 initials

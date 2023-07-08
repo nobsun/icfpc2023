@@ -25,7 +25,7 @@ data Problem
             , room_height       :: Double
             , stage_width       :: Double
             , stage_height      :: Double
-            , stage_bottom_left :: [Double]
+            , stage_bottom_left :: (Double, Double)
             , musicians         :: [Instrument]
             , attendees         :: [Attendee]
             }
@@ -33,13 +33,11 @@ data Problem
 
 stage_left :: Problem -> Double
 stage_left Problem{..} = case stage_bottom_left of
-  left : _bottom : _ -> left
-  _ -> error $ "stage_left: unknown stage_bottom_left array: " ++ show stage_bottom_left
+  (left, _bottom) -> left
 
 stage_bottom :: Problem -> Double
 stage_bottom Problem{..} = case stage_bottom_left of
-  _left : bottom : _ -> bottom
-  _ -> error $ "stage_bottom: unknown stage_bottom_left array: " ++ show stage_bottom_left
+  (_left, bottom) -> bottom
 
 instance ToJSON Attendee
 instance FromJSON Attendee
@@ -54,9 +52,7 @@ readProblem q = do
 
 checkProblem :: Problem -> Either [String] ()
 checkProblem Problem{..} = do
-    (left, bottom) <- case stage_bottom_left of
-      left : bottom : _ -> return (left, bottom)
-      _ -> Left ["unknown stage_bottom_left array: " ++ show stage_bottom_left]
+    let (left, bottom) = stage_bottom_left
 
     let errors =
           [ "left < 0: " ++ show left ++ " < 0" | left < 0 ]
@@ -89,6 +85,4 @@ printCheckProblems n =
 centerOfStage :: Problem -> (Double, Double)
 centerOfStage Problem{..} = (left + stage_width / 2, bottom + stage_height / 2)
   where
-    (left, bottom) = case stage_bottom_left of
-      left : bottom : _ -> (left, bottom)
-      _ -> error "unknown stage_bottom_left array"
+    (left, bottom) = stage_bottom_left
