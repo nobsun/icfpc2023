@@ -6,6 +6,7 @@ module Problem where
 
 import Control.Monad
 import qualified Data.ByteString.Lazy as B
+import qualified Data.Set as Set
 import Data.Aeson
 import Text.Printf (printf)
 import GHC.Generics
@@ -70,6 +71,9 @@ checkProblem Problem{..} = do
           ++
           [ "bottom + stage_height > room_height: " ++ show (bottom + stage_height) ++ " > " ++ show room_height
           | bottom + stage_height > room_height ]
+          ++
+          [ "instruments id set inconsistent: " ++ show (Set.size is) ++ " /= " ++ show (maximum (0 : musicians) + 1)
+          | let is = Set.fromList musicians, Set.size is /= maximum (0 : musicians) + 1 ]
 
     when (length errors > 0) $ Left errors
 

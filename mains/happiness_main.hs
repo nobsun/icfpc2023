@@ -9,13 +9,17 @@ import Solutions
 main :: IO ()
 main = do
   args <- getArgs
-  (name, pnum, stgy) <- case args of
-    name : pnum : stgy : _ -> (,,) name <$> readIO pnum <*> getStrategy stgy
-    name : pnum : _ -> (,,) name <$> readIO pnum <*> pure Naive
-    _               -> fail "NAME and PROBLEM_ID required."
+  (path, pnum, stgy) <- case args of
+    path : pnum : stgy : _ -> (,,) path <$> readIO pnum <*> getStrategy stgy
+    path : pnum : _ -> (,,) path <$> readIO pnum <*> pure Naive
+    _               -> do
+      putStr $ unlines
+        [ "Usage: happiness FILENAME PROBLEM_ID"
+        , "" ]
+      fail "FILENAME and PROBLEM_ID required."
 
-  h <- calcHappiness name pnum stgy
-  putStrLn $ name ++ " " ++ show pnum ++ ": " ++ show h
+  h <- calcHappiness path pnum stgy
+  putStrLn $ path ++ " " ++ show pnum ++ ": " ++ show h
 
 getStrategy :: String -> IO HaStrategy
 getStrategy s =

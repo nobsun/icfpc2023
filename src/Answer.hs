@@ -4,6 +4,7 @@ module Answer
   ( Placement (..)
   , Answer (..)
   , isValidAnswer
+  , isIntCompatAnswer
   ) where
 
 import qualified Data.ByteString.Lazy as B
@@ -11,6 +12,7 @@ import Data.Aeson
 import Text.Printf (printf)
 import GHC.Generics
 
+import qualified IntCompat
 import Problem hiding (x, y)
 
 data Placement
@@ -49,3 +51,7 @@ isValidAnswer Problem{ stage_bottom_left = (x0,y0), stage_width = w, stage_heigh
 pairs' :: [a] -> [(a,a)]
 pairs' [] = []
 pairs' (x:xs) = [(x,y) | y <- xs] ++ pairs' xs
+
+isIntCompatAnswer :: Answer -> Bool
+isIntCompatAnswer ans = all compatP $ placements ans
+  where compatP pl = IntCompat.double (x pl) && IntCompat.double (y pl)
