@@ -6,6 +6,7 @@ import Data.List (delete)
 
 import Problem
 import Answer
+import qualified BlockVec
 import Control.Concurrent (setNumCapabilities)
 
 -- | FIXME
@@ -99,7 +100,7 @@ happiness prob ans = score
 -- False
 --
 isBlock :: Placement -> Attendee -> Placement -> Bool
-isBlock (Placement mx my) (Attendee ax ay _) (Placement bx by) = isBlock' (mx, my) (ax, ay) (bx, by)
+isBlock (Placement mx my) (Attendee ax ay _) (Placement bx by) = BlockVec.isBlock' (mx, my) (ax, ay) (bx, by)
 
 isBlock' :: (RealFrac a, Floating a) => (a, a) -> (a, a) -> (a, a) -> Bool
 isBlock' (mx, my) (ax, ay) (bx, by)
