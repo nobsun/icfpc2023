@@ -34,9 +34,13 @@ standingPositions :: (Double, [Attendee]) -> Problem -> [(Int, (Double, Double))
 standingPositions (d, atnds) prob = sortBy (\x y -> compare (fst y) (fst x)) res
   where
     (w, n, e, s) = stageBounds prob
-    poss = [ (x, y) | x <- [w+10, w+20 .. e-10], y <- [n-10, n-20 .. s+10]]
+    poss = [ (x, y)
+           | x <- [w+10.0, w+20.0 .. e-10.0]
+           , y <- [s+10.0, s+20.0 .. n-10.0]
+           , x <= e-10.0 && y <= n-10.0 -- Double なのでこれがないと誤差でステージに近すぎる場合が出る
+           ]
     res = map (\(x, y) -> (length (near (x, y) atnds), (x, y))) poss
-    near (x, y) = filter (\(Attendee x' y' _) -> (x-x')^2 + (y-y')^2 <= d^2)
+    near (x, y) = filter (\(Attendee x' y' _) -> (x-x')^2 + (y-y')^2 <= (d+10)^2)
 
 heatArea :: Double -> Problem -> (Double, Double, Double, Double)
 heatArea d prob = (left, top, right, bottom)
