@@ -18,3 +18,7 @@ spec = describe "happiness" $ do
     Just prob <- readProblem 22
     Just (ans :: Answer) <- decode <$> BL.readFile "solutions/submission-p22-2023-07-08T02_25_50.863957478Z.json"
     happiness prob ans `shouldBe` 23370633
+  it "compute correct happiness for arraying_026.json" $ do
+    Just prob <- readProblem 26
+    Just (ans :: Answer) <- decode <$> BL.readFile "solutions/arraying_026.json"
+    happiness prob ans `shouldBe` 55122290
