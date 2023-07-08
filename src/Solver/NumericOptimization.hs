@@ -43,16 +43,16 @@ getCandidatesIO problem = do
       (bx, by) = stage_bottom_left problem
 
       bound@((xl,xu),(yl,yu)) =
-        ( (realToFrac (bx + 10), realToFrac (bx + stage_width problem - 10))
-        , (realToFrac (by + 10), realToFrac (by + stage_height problem - 10))
+        ( (bx + 10, bx + stage_width problem - 10)
+        , (by + 10, by + stage_height problem - 10)
         )
 
       bounds = P $ replicate numMusicians bound
 
   gen <- Rand.create
   x0_ <- replicateM numMusicians $ do
-    let center_x = realToFrac (bx + stage_width problem / 2)
-        center_y = realToFrac (by + stage_height problem / 2)
+    let center_x = bx + stage_width problem / 2
+        center_y = by + stage_height problem / 2
     x <- if xl == xu then do
            return center_x
          else do
@@ -71,7 +71,7 @@ getCandidatesIO problem = do
 
   if resultSuccess result || resultMessage result == "The number of steps exceeded the user's request." then do
     let P ms = resultSolution result
-    return $ Right [(realToFrac x, realToFrac y) | (x,y) <- ms]
+    return $ Right ms
   else
     return $ Left (resultMessage result)
 
