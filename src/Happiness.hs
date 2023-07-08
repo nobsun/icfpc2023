@@ -4,7 +4,7 @@ module Happiness where
 import Data.Array (Array)
 import Data.Array.IArray ((!), listArray)
 import Data.Array.Unboxed (UArray)
-import Data.List (delete)
+import Data.List (delete, zip3)
 
 import Problem
 import Answer
@@ -60,9 +60,9 @@ weightedAverageHappiness prob ans = score
 happiness :: Problem -> Answer -> Happiness
 happiness prob ans = score
   where
-    score = sum [ impact i k
-                | k <- [0..length ms-1], i <- [0..length atnds-1]
-                , and [not $ isBlock (ms !! k) (atnds !! i) (ms !! j) | j <- [0..length ms-1], k /= j]
+    score = sum [ impact (i, a_i) (k, inst_k, p_k)
+                | (k, inst_k, p_k) <- zip3 [0..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
+                , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
                 ]
     atnds = attendees prob
     ms = placements ans
@@ -74,11 +74,10 @@ happiness prob ans = score
     million_times_atnds_tastes :: Array Int (UArray Int Double)
     million_times_atnds_tastes = listArray (0, length atnds - 1) $ map million_times_tastes atnds
 
-    impact i k = ceiling $  num / den
+    impact (i, a_i) (k, inst_k, p_k) = ceiling $ num / den
       where
-        num = million_times_atnds_tastes ! i ! (musicians prob !! k)
-        -- num = 1e6 * (tastes (atnds !! i) !! (musicians prob !! k))
-        den = squareDistance (ms !! k) (atnds !! i)
+        num = million_times_atnds_tastes ! i ! inst_k
+        den = squareDistance p_k a_i
 
 -- | musician と attendee の直線に blocker が 5 以内にいる
 --   かつ blocker から直線におろした垂線の交点が musician と attendee の間にあること
