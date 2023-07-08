@@ -98,7 +98,7 @@ randomPlace (Problem{stage_width=w, stage_height=h ,stage_bottom_left=(zw,zh)}) 
 
 isMusicianConflict :: Point -> Point -> Bool
 isMusicianConflict (x1,y1) (x2,y2) =
-  (x1-x2)^2 + (y1-y2)^2 <= 25
+  (x1-x2)^2 + (y1-y2)^2 <= 100
 
 -- embed bs' area(wl,wh,hl,hh) to as
 crossOver :: (Double,Double) -> (Double,Double) -> [Point] -> [Point] -> IO (Maybe [Point])
