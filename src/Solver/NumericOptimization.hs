@@ -81,10 +81,9 @@ happiness :: (RealFrac a, Floating a) => Problem -> P a -> a
 happiness prob (P ms) = score
   where
     score = sum [ impact i k
-                | k <- [0..length ms-1], i <- [0..length atnds-1], j <- [0..length ms-1]
-                , i /= j
+                | k <- [0..length ms-1], i <- [0..length atnds-1]
                 , let Problem.Attendee{ Problem.x = ax, Problem.y = ay } = atnds !! i
-                , not $ isBlock' (ms !! k) (realToFrac ax, realToFrac ay) (ms !! j)
+                , and [not $ isBlock' (ms !! k) (realToFrac ax, realToFrac ay) (ms !! j) | j <- [0..length ms-1], k /= j]
                 ]
     atnds = attendees prob
     squareDistance (x1, y1) (x2, y2) = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)

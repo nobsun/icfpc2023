@@ -14,9 +14,8 @@ happiness :: Problem -> Answer -> Happiness
 happiness prob ans = score
   where
     score = sum [ impact i k
-                | k <- [0..length ms-1], i <- [0..length atnds-1], j <- [0..length ms-1]
-                , i /= j
-                , not $ isBlock (ms !! k) (atnds !! i) (ms !! j)
+                | k <- [0..length ms-1], i <- [0..length atnds-1]
+                , and [not $ isBlock (ms !! k) (atnds !! i) (ms !! j) | j <- [0..length ms-1], k /= j]
                 ]
     atnds = attendees prob
     ms = placements ans
