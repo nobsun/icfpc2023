@@ -96,6 +96,15 @@ executables:
     - optparse-applicative
     - primitive
 
+  eval:
+    main:                eval.hs
+    source-dirs:         mains
+    ghc-options:
+    - -rtsopts
+    dependencies:
+    - icfpc2023
+    - optparse-applicative
+
 tests:
   icfpc2023-test:
     main:                spec.hs
