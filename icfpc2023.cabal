@@ -31,8 +31,8 @@ library
       Problem
       Solutions
       Solver
+      Solver.Arraying
       Solver.NumericOptimization
-      SolverArraying
   other-modules:
       Paths_icfpc2023
   hs-source-dirs:

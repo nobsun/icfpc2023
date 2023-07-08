@@ -1,7 +1,7 @@
 {-# LANGUAGE NoOverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module SolverArraying where
+module Solver.Arraying where
 
 import Problem
 import Solver (SolverF)

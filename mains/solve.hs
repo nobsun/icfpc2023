@@ -2,7 +2,7 @@
 import System.Environment (getArgs)
 
 import Solver (Name, SolverF)
-import qualified SolverArraying as Arraying
+import qualified Solver.Arraying as Arraying
 import qualified Solver.NumericOptimization as NumericOptimization
 import Solutions
 
