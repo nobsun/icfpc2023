@@ -32,6 +32,7 @@ library
       Solutions
       Solver
       Solver.Arraying
+      Solver.Genetic
       Solver.NumericOptimization
   other-modules:
       Paths_icfpc2023
@@ -57,6 +58,7 @@ library
     , mwc-random
     , numeric-optimization ==0.1.1.0
     , numeric-optimization-ad ==0.1.0.1
+    , random
     , time
   default-language: GHC2021
 
@@ -90,6 +92,7 @@ executable draw-problem
     , numeric-optimization-ad ==0.1.0.1
     , optparse-applicative
     , primitive
+    , random
     , time
   default-language: GHC2021
 
@@ -120,6 +123,7 @@ executable happiness
     , mwc-random
     , numeric-optimization ==0.1.1.0
     , numeric-optimization-ad ==0.1.0.1
+    , random
     , time
   default-language: GHC2021
 
@@ -150,6 +154,7 @@ executable icfpc2023
     , mwc-random
     , numeric-optimization ==0.1.1.0
     , numeric-optimization-ad ==0.1.0.1
+    , random
     , time
   default-language: GHC2021
 
@@ -180,6 +185,7 @@ executable solve
     , mwc-random
     , numeric-optimization ==0.1.1.0
     , numeric-optimization-ad ==0.1.0.1
+    , random
     , time
   default-language: GHC2021
 
@@ -212,6 +218,7 @@ test-suite icfpc2023-doctest
     , mwc-random
     , numeric-optimization ==0.1.1.0
     , numeric-optimization-ad ==0.1.0.1
+    , random
     , time
   default-language: GHC2021
 
@@ -249,5 +256,6 @@ test-suite icfpc2023-test
     , mwc-random
     , numeric-optimization ==0.1.1.0
     , numeric-optimization-ad ==0.1.0.1
+    , random
     , time
   default-language: GHC2021
