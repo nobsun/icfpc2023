@@ -102,6 +102,31 @@ happiness prob ans = score
 isBlock :: Placement -> Attendee -> Placement -> Bool
 isBlock (Placement mx my) (Attendee ax ay _) (Placement bx by) = BlockVec.isBlock' (mx, my) (ax, ay) (bx, by)
 
+-- |
+--
+-- >>> isBlock' (0.0, 0.0) (1.0, 1.0) (2.0, 2.0)
+-- True
+-- >>> isBlock' (0.0, 0.0) (1.0, 1.0) (1.0, 1.0)
+-- True
+-- >>> isBlock' (0.0, 0.0) (1.0, 1.0) (1.0, 2.0)
+-- True
+-- >>> isBlock' (-1.0, 1.0) (0.0, 3.0) (0.0, 0.0)
+-- True
+-- >>> isBlock' (0.0, 0.0) (1.0, 1.0) (7.0, 8.0)
+-- False
+-- >>> isBlock' (0.0, 0.0) (1.0, 1.0) (-8.0, -7.0)
+-- False
+-- >>> isBlock' (0.0, 0.0) (1.0, 1.0) ((0.0), (5.0))
+-- True
+-- >>> isBlock' (0.0, 0.0) (1.0, 1.0) ((0.0), (8.0))
+-- False
+--
+{-
+-- NOT PASS -- >>> isBlock' (0.0, 0.0) (1.0, 1.0) ((0.0), (6.0))
+-- NOT PASS -- False
+-- NOT PASS -- >>> isBlock' (0.0, 0.0) (1.0, 1.0) ((0.0), (7.0))
+-- NOT PASS -- False
+ -}
 isBlock' :: (RealFrac a, Floating a) => (a, a) -> (a, a) -> (a, a) -> Bool
 isBlock' (mx, my) (ax, ay) (bx, by)
   = distance (a, b, c) (bx, by) <= 5.0 &&
