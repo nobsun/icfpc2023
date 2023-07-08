@@ -3,7 +3,7 @@
 
 module SolverArraying where
 
-import Problem (Problem (..))
+import Problem
 import Solver (SolverF)
 
 type Cord = Float
@@ -26,10 +26,20 @@ ymax = rgMax . rangeY
 
 ---
 
+getStageRect :: Problem -> Rect
+getStageRect p@Problem{..} =
+  Rect { rangeX = mkRange stage_left_ stage_right,   rangeY = mkRange stage_bottom_ stage_top }
+  where
+    stage_left_ = stage_left p
+    stage_bottom_ = stage_bottom p
+    stage_right = stage_left_ + stage_width
+    stage_top = stage_bottom_ + stage_height
+
+-- そもそもはみ出るというのは誤解だった - 問題 1 から 問題 55
 -- ステージが部屋からは一方向にしかはみ出ていないという前提
 -- ステージと部屋の共通部分の長方形と、もしあれば、部屋からはみ出ている長方形を返す
-getRects :: Problem -> Either String (Rect, Maybe Rect)
-getRects Problem{..} = case stage_bottom_left of
+getStageRectsOld :: Problem -> Either String (Rect, Maybe Rect)
+getStageRectsOld Problem{..} = case stage_bottom_left of
       left : bottom : _ -> result left bottom
       _ -> Left $ "getRects: unknown stage_bottom_left array: " ++ show stage_bottom_left
   where
@@ -91,9 +101,14 @@ cordsFromRange Range{..} = map fromIntegral [ rgMin' + 10, rgMin' + 20 .. rgMax'
 
 ---
 
--- 室内優先
 getCandidates :: SolverF
-getCandidates problem = do
-  (r0, mr1) <- getRects problem
+getCandidates problem = Right $ take len $ cordsFromRect stage
+  where
+    len = length $ musicians problem
+    stage = getStageRect problem
+
+getCandidatesOld :: SolverF
+getCandidatesOld problem = do
+  (r0, mr1) <- getStageRectsOld problem
   let len = length $ musicians problem
   return $ take len $ concatMap cordsFromRect $ maybe [r0] (\r1 -> [r0, r1]) mr1
