@@ -108,6 +108,12 @@ happiness prob ans = score
 isBlock :: Placement -> Attendee -> Placement -> Bool
 isBlock (Placement mx my) (Attendee ax ay _) (Placement bx by) = BlockVec.isBlock' (mx, my) (ax, ay) (bx, by)
 
+isBlockViaInt :: (Double, Double) -> (Double, Double) -> (Double, Double) -> Bool
+isBlockViaInt (mx, my) (ax, ay) (bx, by) = isBlockInt (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by)
+
+isBlockInt :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool
+isBlockInt = BlockVec.isBlock'
+
 -- |
 --
 -- >>> isBlock' (0.0, 0.0) (1.0, 1.0) (2.0, 2.0)
