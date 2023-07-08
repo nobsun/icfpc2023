@@ -67,13 +67,13 @@ getCandidatesIO problem = do
   let params :: Params (P Double)
       params = def
       -- params = def{ paramsMaxIters=Just 10 }
-  sol <- minimize LBFGSB params f (Just bounds) [] x0
+  result <- minimize LBFGSB params f (Just bounds) [] x0
 
-  if resultSuccess sol then do
-    let P ms = resultSolution sol
+  if resultSuccess result || resultMessage result == "The number of steps exceeded the user's request." then do
+    let P ms = resultSolution result
     return $ Right [(realToFrac x, realToFrac y) | (x,y) <- ms]
   else
-    return $ Left (resultMessage sol)
+    return $ Left (resultMessage result)
 
 
 -- | calculate happiness
