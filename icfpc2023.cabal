@@ -27,6 +27,7 @@ library
   exposed-modules:
       Answer
       BlockVec
+      Extra
       Happiness
       IntCompat
       Problem
