@@ -43,41 +43,41 @@ getStageRectsOld Problem{..} = case stage_bottom_left of
       left : bottom : _ -> result left bottom
       _ -> Left $ "getRects: unknown stage_bottom_left array: " ++ show stage_bottom_left
   where
-    result stage_left stage_bottom
+    result left bottom
       | over_right =
         Right
-        ( Rect { rangeX = mkRange stage_left room_width,   rangeY = mkRange stage_bottom stage_top } ,
+        ( Rect { rangeX = mkRange left room_width,   rangeY = mkRange bottom top } ,
           Just $
-          Rect { rangeX = mkRange room_width stage_right,  rangeY = mkRange stage_bottom stage_top } )
+          Rect { rangeX = mkRange room_width right,  rangeY = mkRange bottom top } )
       | over_top =
         Right
-        ( Rect { rangeX = mkRange stage_left stage_right,  rangeY = mkRange stage_bottom room_height } ,
+        ( Rect { rangeX = mkRange left right,  rangeY = mkRange bottom room_height } ,
           Just $
-          Rect { rangeX = mkRange stage_left stage_right,  rangeY = mkRange room_height stage_top } )
+          Rect { rangeX = mkRange left right,  rangeY = mkRange room_height top } )
       | over_left =  {- いまのところ負の left は無さそうだが念のため -}
         Right
-        ( Rect { rangeX = mkRange 0 stage_right,  rangeY = mkRange stage_bottom stage_top } ,
+        ( Rect { rangeX = mkRange 0 right,  rangeY = mkRange bottom top } ,
           Just $
-          Rect { rangeX = mkRange stage_left 0,   rangeY = mkRange stage_bottom stage_top } )
+          Rect { rangeX = mkRange left 0,   rangeY = mkRange bottom top } )
       | over_bottom =  {- いまのところ負の bottom は無さそうだが念のため -}
         Right
-        ( Rect { rangeX = mkRange stage_left stage_right,  rangeY = mkRange 0 stage_top } ,
+        ( Rect { rangeX = mkRange left right,  rangeY = mkRange 0 top } ,
           Just $
-          Rect { rangeX = mkRange stage_left stage_right,  rangeY = mkRange stage_bottom 0 } )
+          Rect { rangeX = mkRange left right,  rangeY = mkRange bottom 0 } )
       | and $ map (not . fst) overs =
         Right
-        ( Rect { rangeX = mkRange stage_left stage_right,  rangeY = mkRange stage_bottom stage_top } ,
+        ( Rect { rangeX = mkRange left right,  rangeY = mkRange bottom top } ,
           Nothing )
       | otherwise =
         Left $ "getRects: not simple case, overs: " ++ showOvers
       where
-        stage_right = stage_left + stage_width
-        stage_top = stage_bottom + stage_height
+        right = left + stage_width
+        top = bottom + stage_height
 
-        over_right = stage_right > room_width
-        over_top = stage_top > room_height
-        over_left = stage_left < 0
-        over_bottom = stage_bottom < 0
+        over_right = right > room_width
+        over_top = top > room_height
+        over_left = left < 0
+        over_bottom = bottom < 0
 
         overs =
           [ (over_right, "right")
