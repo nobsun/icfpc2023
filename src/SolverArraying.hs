@@ -6,17 +6,17 @@ module SolverArraying where
 import Problem
 import Solver (SolverF)
 
-type Cord = Float
+type Coord = Float
 
-data Range = Range { rgMin :: Cord, rgMax :: Cord }
+data Range = Range { rgMin :: Coord, rgMax :: Coord }
 instance Show Range where show (Range n x) = show (n, x)
 
-mkRange :: Cord -> Cord -> Range
+mkRange :: Coord -> Coord -> Range
 mkRange a b = Range (min a b) (max a b)
 
 data Rect = Rect { rangeX :: Range, rangeY :: Range } deriving Show
 
-xmin, xmax, ymin, ymax :: Rect -> Cord
+xmin, xmax, ymin, ymax :: Rect -> Coord
 
 xmin = rgMin . rangeX
 xmax = rgMax . rangeX
@@ -90,10 +90,10 @@ getStageRectsOld Problem{..} = case stage_bottom_left of
 
 ---
 
-cordsFromRect :: Rect -> [(Cord, Cord)]
+cordsFromRect :: Rect -> [(Coord, Coord)]
 cordsFromRect Rect{..} = [ (x, y) | x <- cordsFromRange rangeX, y <- cordsFromRange rangeY ]
 
-cordsFromRange :: Range -> [Cord]
+cordsFromRange :: Range -> [Coord]
 cordsFromRange Range{..} = map fromIntegral [ rgMin' + 10, rgMin' + 20 .. rgMax' - 10 ]
   where
     rgMin' = round rgMin :: Int
