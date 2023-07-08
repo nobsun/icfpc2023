@@ -20,15 +20,18 @@ data HaStrategy
   | WeightedAverage
   deriving (Eq, Show)
 
-applyHappiness :: HaStrategy -> Problem -> Answer -> Happiness
-applyHappiness Naive = happiness
-applyHappiness WeightedAverage = weightedAverageHappiness
+applyStrategy :: HaStrategy -> Extra -> Problem -> Answer -> Happiness
+applyStrategy Naive = naive
+applyStrategy WeightedAverage = weightedAverage
 
 squareDistance :: Placement -> Attendee -> Double
 squareDistance (Placement x1 y1) (Attendee x2 y2 _) = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
 
 weightedAverageHappiness :: Problem -> Answer -> Happiness
-weightedAverageHappiness prob ans = score
+weightedAverageHappiness prob ans = weightedAverage (mkExtra prob ans) prob ans
+
+weightedAverage :: Extra -> Problem -> Answer -> Happiness
+weightedAverage _extra prob ans = score
   where
     score = sum [ impact 0 k
                 | k <- [0..length ms-1], j <- [0..length ms-1]
@@ -57,11 +60,14 @@ weightedAverageHappiness prob ans = score
         num = 1e6 * (tastes (atnds !! i) !! (musicians prob !! k))
         den = squareDistance (ms !! k) (atnds !! i)
 
--- | calculate happiness
 happiness :: Problem -> Answer -> Happiness
-happiness prob ans = score
+happiness prob ans = naive (mkExtra prob ans) prob ans
+
+-- | calculate happiness along with spec
+naive :: Extra -> Problem -> Answer -> Happiness
+naive extra prob ans = score
   where
-    isBlock = isBlockWith $ int_compat_happiness $ mkExtra prob ans
+    isBlock = isBlockWith $ int_compat_happiness extra
     score = sum [ impact (i, a_i) (k, inst_k, p_k)
                 | (k, inst_k, p_k) <- zip3 [0..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
                 , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
