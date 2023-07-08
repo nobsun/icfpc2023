@@ -28,18 +28,22 @@ getCandidates problem = unsafePerformIO (getCandidatesIO problem)
 getCandidatesIO :: Problem -> IO (Either String [Point])
 getCandidatesIO problem@(Problem{stage_width=w, stage_height=h ,stage_bottom_left=(zw,zh), musicians=ms}) = do
   g <- getStdGen
+  -- generate initial placement randomly
   let initials = take 2 $ repeat $ randomPlace g problem [0..nMusician-1] []
-  children <- go 2 initials
-  return $ Right (head children)
+  descendant <- go 2 initials
+  -- descendant is sorted desc by happiness
+  return $ Right (head descendant)
   where
     nMusician :: Int
     nMusician = length ms
-    
+
     go :: Double -> [[Point]] -> IO [[Point]]
     go count cands | count >= 16 = return cands
                    | otherwise  = do
       putStrLn $ "count: " ++ show count
+      -- create children
       children <- genetic count cands
+      -- select top happiness group and go to the next generation
       go (count+2) (select 10 problem children)
 
     genetic :: Double -> [[Point]] -> IO [[Point]]
@@ -49,7 +53,9 @@ getCandidatesIO problem@(Problem{stage_width=w, stage_height=h ,stage_bottom_lef
           dh = h/count
           rs = [((dw*(i-1)+zw, dw*i+zw),(dh*(j-1)+zh, dh*i+zh)) |[i,j]<-splitBy 2 (randomRs (0,count-1) g)]
       return $ catMaybes
+        -- crossover c and d by area
         $ [crossOver u v c d | ([c,d],(u,v))<-zip (sequence[cands,cands]) rs]
+        -- replace n musicians randomly
         ++[mutation g problem n c | let n=nMusician`div`(truncate count), c<-cands]
 
 
@@ -92,7 +98,7 @@ isMusicianConflict :: Point -> Point -> Bool
 isMusicianConflict (x1,y1) (x2,y2) =
   (x1-x2)^2 + (y1-y2)^2 <= 25
 
-
+-- embed bs' area(wl,wh,hl,hh) to as
 crossOver :: (Double,Double) -> (Double,Double) -> [Point] -> [Point] -> Maybe [Point]
 crossOver (wl,wh) (hl,hh) as' bs' =
   case crossOver' [] (zip[1..]as') bs' of
@@ -111,6 +117,7 @@ crossOver (wl,wh) (hl,hh) as' bs' =
         (_,False) -> crossOver' (b:rs) as bs
         _         -> []
 
+-- replace n musicians in as randomly
 mutation :: RandomGen g => g -> Problem-> Int -> [Point] -> Maybe [Point]
 mutation g problem@(Problem{musicians=ms}) n as =
   Just $ randomPlace g problem targets [(i,a)|(i,a)<-zip[0..]as, i`notElem`targets]
