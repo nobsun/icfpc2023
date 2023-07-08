@@ -10,10 +10,12 @@ isBlock' m a b =
     seg@(snv, _) = line2 m a  {- 音楽家と聴衆を結ぶ線分の直線 -}
     lv = along snv b {- ブロッカー b を通る垂線 -}
 {-# SPECIALIZE isBlock' :: (Double, Double) -> (Double, Double) -> (Double, Double) -> Bool #-}
+{-# SPECIALIZE isBlock' :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool #-}
 
 normal :: Num a => (a, a) -> (a, a)
 normal (vx, vy) = (-vy, vx)  {- 法線ベクトル: xy を入れ替えて片方の符号を反転 -}
 {-# SPECIALIZE normal :: (Double, Double) -> (Double, Double) #-}
+{-# SPECIALIZE normal :: (Int, Int) -> (Int, Int) #-}
 
 -- |
 -- (・) は内積
@@ -27,6 +29,7 @@ normal (vx, vy) = (-vy, vx)  {- 法線ベクトル: xy を入れ替えて片方�
 along :: Num a => (a, a) -> (a, a) -> ((a, a), (a, a))
 along v q = (normal v, q)
 {-# SPECIALIZE along :: (Double, Double) -> (Double, Double) -> ((Double, Double), (Double, Double)) #-}
+{-# SPECIALIZE along :: (Int, Int) -> (Int, Int) -> ((Int, Int), (Int, Int)) #-}
 
 -- |
 -- (・) は内積
@@ -45,6 +48,7 @@ line2 :: Num a => (a, a) -> (a, a) -> ((a, a), (a, a))
 line2 m@(mx, my) (ax, ay) = along v m
   where v = (mx - ax, my - ay)
 {-# SPECIALIZE line2 :: (Double, Double) -> (Double, Double) -> ((Double, Double), (Double, Double)) #-}
+{-# SPECIALIZE line2 :: (Int, Int) -> (Int, Int) -> ((Int, Int), (Int, Int)) #-}
 
 -- |
 -- (・) は内積
@@ -56,6 +60,7 @@ closer (nv, p) q t = lhs <= rhs
     lhs = square ( nv |.| (p |-| q) )
     rhs = square2 nv * t * t
 {-# SPECIALIZE closer :: ((Double, Double), (Double, Double)) -> (Double, Double) -> Double -> Bool #-}
+{-# SPECIALIZE closer :: ((Int, Int), (Int, Int)) -> (Int, Int) -> Int -> Bool #-}
 {--
    | nv ・ (p - q) | ==
      {- 内積 -}
@@ -86,6 +91,7 @@ cross (nv, b) m a =
    -}
   where dp = nv |.| b
 {-# SPECIALIZE cross :: ((Double, Double), (Double, Double)) -> (Double, Double) -> (Double, Double) -> Bool #-}
+{-# SPECIALIZE cross :: ((Int, Int), (Int, Int)) -> (Int, Int) -> (Int, Int) -> Bool #-}
 
 infixl 6 |-|
 infix 7 |.|
@@ -93,16 +99,20 @@ infix 7 |.|
 (|-|) :: Num a => (a, a) -> (a, a) -> (a, a)
 (px, py) |-| (qx, qy) = (px - qx, py - qy)
 {-# SPECIALIZE (|-|) :: (Double, Double) -> (Double, Double) -> (Double, Double) #-}
+{-# SPECIALIZE (|-|) :: (Int, Int) -> (Int, Int) -> (Int, Int) #-}
 
 (|.|) :: Num a => (a, a) -> (a, a) -> a
 (px, py) |.| (qx, qy) = px * qx + py * qy
 {-# SPECIALIZE (|.|) :: (Double, Double) -> (Double, Double) -> Double #-}
+{-# SPECIALIZE (|.|) :: (Int, Int) -> (Int, Int) -> Int #-}
 
 square :: Num a => a -> a
 square x = x * x
 {-# SPECIALIZE square :: Double -> Double #-}
+{-# SPECIALIZE square :: Int -> Int #-}
 
 -- | 長さの二乗
 square2 :: Num a => (a, a) -> a
 square2 (x, y) = x * x + y * y
 {-# SPECIALIZE square2 :: (Double, Double) -> Double #-}
+{-# SPECIALIZE square2 :: (Int, Int) -> Int #-}
