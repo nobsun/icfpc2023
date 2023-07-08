@@ -60,6 +60,39 @@ library
     , time
   default-language: GHC2021
 
+executable draw-problem
+  main-is: draw-problem.hs
+  other-modules:
+      Paths_icfpc2023
+  hs-source-dirs:
+      mains
+  default-extensions:
+      LambdaCase
+      MultiWayIf
+      NPlusKPatterns
+      OverloadedStrings
+      NoStarIsType
+      TypeFamilyDependencies
+      DataKinds
+      PolyKinds
+      UndecidableInstances
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts
+  build-depends:
+      JuicyPixels
+    , aeson
+    , array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , icfpc2023
+    , mwc-random
+    , numeric-optimization ==0.1.1.0
+    , numeric-optimization-ad ==0.1.0.1
+    , optparse-applicative
+    , primitive
+    , time
+  default-language: GHC2021
+
 executable happiness
   main-is: happiness.hs
   other-modules:

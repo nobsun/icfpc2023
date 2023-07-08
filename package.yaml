@@ -84,6 +84,17 @@ executables:
     dependencies:
     - icfpc2023
 
+  draw-problem:
+    main:                draw-problem.hs
+    source-dirs:         mains
+    ghc-options:
+    - -rtsopts
+    dependencies:
+    - icfpc2023
+    - JuicyPixels
+    - optparse-applicative
+    - primitive
+
 tests:
   icfpc2023-test:
     main:                spec.hs
