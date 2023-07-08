@@ -34,7 +34,7 @@ standingPositions :: (Double, [Attendee]) -> Problem -> [(Int, (Double, Double))
 standingPositions (d, atnds) prob = sortBy (\x y -> compare (fst y) (fst x)) res
   where
     (w, n, e, s) = stageBounds prob
-    poss = [ (x, y) | x <- [w, w+10 .. e], y <- [n, n-10 .. s]]
+    poss = [ (x, y) | x <- [w+10, w+20 .. e-10], y <- [n-10, n-20 .. s+10]]
     res = map (\(x, y) -> (length (near (x, y) atnds), (x, y))) poss
     near (x, y) = filter (\(Attendee x' y' _) -> (x-x')^2 + (y-y')^2 <= d^2)
 
