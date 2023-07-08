@@ -35,9 +35,15 @@ stage_left :: Problem -> Double
 stage_left Problem{..} = case stage_bottom_left of
   (left, _bottom) -> left
 
+stage_right :: Problem -> Double
+stage_right Problem{..} = stage_left Problem{..} + stage_width
+
 stage_bottom :: Problem -> Double
 stage_bottom Problem{..} = case stage_bottom_left of
   (_left, bottom) -> bottom
+
+stage_top :: Problem -> Double
+stage_top Problem{..} = stage_bottom Problem{..} + stage_height
 
 instance ToJSON Attendee
 instance FromJSON Attendee
