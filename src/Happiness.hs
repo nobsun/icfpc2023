@@ -24,9 +24,12 @@ data HaStrategy
   deriving (Eq, Show)
 
 applyStrategy :: HaStrategy -> Extra -> Problem -> Answer -> IO Happiness
-applyStrategy Naive e p a = pure $ naive e p a
-applyStrategy Parallel e p a = withQueue e p a
-applyStrategy WeightedAverage e p a = pure $ weightedAverage e p a
+applyStrategy s e p a = (pure $!) =<< applyStrategyZ s e p a
+
+applyStrategyZ :: HaStrategy -> Extra -> Problem -> Answer -> IO Happiness
+applyStrategyZ Naive e p a = pure $ naive e p a
+applyStrategyZ Parallel e p a = withQueue e p a
+applyStrategyZ WeightedAverage e p a = pure $ weightedAverage e p a
 
 squareDistance :: Placement -> Attendee -> Double
 squareDistance (Placement x1 y1) (Attendee x2 y2 _) = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
