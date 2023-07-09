@@ -37,6 +37,7 @@ usage = do
     , "first check FILENAME, when not exist, try solusions/{SOLVER_NAME}_nnn.json"
     , ""
     , "supported strategies:"
+    , "  para - Parallel strategy (Naive with parallel execution)"
     , "  naive - Naive strategy"
     , "  wa | weighted-avg - WeightedAverage strategy"
     ]
@@ -46,6 +47,7 @@ getStrategy s =
   maybe (fail $ "unknown happiness-strategy " ++ s) pure $
   lookup (map toLower s)
   [ ("naive", Naive)
+  , ("para", Parallel)
   , ("wa", WeightedAverage)
   , ("weighted-avg", WeightedAverage)
   ]
