@@ -12,13 +12,18 @@ isBlock' m a b =
 {-# SPECIALIZE isBlock' :: (Double, Double) -> (Double, Double) -> (Double, Double) -> Bool #-}
 {-# SPECIALIZE isBlock' :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool #-}
 
+-- |
+-- normal v は v の法線ベクトル nv を返す
 normal :: Num a => (a, a) -> (a, a)
 normal (vx, vy) = (-vy, vx)  {- 法線ベクトル: xy を入れ替えて片方の符号を反転 -}
 {-# SPECIALIZE normal :: (Double, Double) -> (Double, Double) #-}
 {-# SPECIALIZE normal :: (Int, Int) -> (Int, Int) #-}
 
+{- 以下、(nv, p) を、
+   法線ベクトル nv を持ち、点 p を通る直線とする -}
+
 -- |
--- (・) は内積
+-- along v q は
 -- ベクトル v に沿った点 q を通る直線の
 -- 法線ベクトル nv と直線上の点 q を返す
 --
@@ -32,7 +37,7 @@ along v q = (normal v, q)
 {-# SPECIALIZE along :: (Int, Int) -> (Int, Int) -> ((Int, Int), (Int, Int)) #-}
 
 -- |
--- (・) は内積
+-- line2 (mx, my) (ax, ay) は
 -- 2点 (mx, my) と (ax, ay) を通る直線の
 -- 法線ベクトル nv と直線上の点 (mx, my) を返す
 --
@@ -51,9 +56,9 @@ line2 m@(mx, my) (ax, ay) = along v m
 {-# SPECIALIZE line2 :: (Int, Int) -> (Int, Int) -> ((Int, Int), (Int, Int)) #-}
 
 -- |
--- (・) は内積
--- 直線の法線ベクトルを nv 直線上の点を p とする.
--- 直線と点 q の距離が t 以下であることを判定
+-- closer (nv, p) q t は
+-- 法線ベクトルを nv を持ち点 p を通る直線と、
+-- 点 q の距離が t 以下であることを判定
 closer :: (Num a, Ord a) => ((a, a), (a, a)) -> (a, a) -> a -> Bool
 closer (nv, p) q t = lhs <= rhs
   where
@@ -61,7 +66,9 @@ closer (nv, p) q t = lhs <= rhs
     rhs = square2 nv * t * t
 {-# SPECIALIZE closer :: ((Double, Double), (Double, Double)) -> (Double, Double) -> Double -> Bool #-}
 {-# SPECIALIZE closer :: ((Int, Int), (Int, Int)) -> (Int, Int) -> Int -> Bool #-}
-{--
+{-
+   以下 (・) は内積
+
    | nv ・ (p - q) | ==
      {- 内積 -}
    |nv| * |p - q| * |cons α| ==
@@ -84,7 +91,10 @@ closer (nv, p) q t = lhs <= rhs
 cross :: (Num a, Ord a) => ((a, a), (a, a)) -> (a, a) -> (a, a) -> Bool
 cross (nv, b) m a =
   (dp - nv |.| m) * (dp - nv |.| a) <= 0
-  {- 音楽家と聴衆が垂線の両側. 内積値の符号が反転
+  {-
+     以下 (・) は内積
+
+     音楽家と聴衆が垂線の両側. 内積値の符号が反転
      nv |.| (b |-| m) * nv |.| (b |-| a) <= 0
      nv |.| (b |-| m) == nv |.| b - nv |.| m
      nv |.| (b |-| a) == nv |.| b - nv |.| a
