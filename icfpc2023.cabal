@@ -38,6 +38,7 @@ library
       Solver.FrontHeat
       Solver.Genetic
       Solver.NumericOptimization
+      Submit
   other-modules:
       Paths_icfpc2023
   hs-source-dirs:
