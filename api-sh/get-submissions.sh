@@ -24,5 +24,7 @@ if [ x"$2" != x ]; then
     limit=$2
 fi
 
-curl -H "Authorization: Bearer ${API_TOKEN}" \
+CURL_SILENT=-s
+
+curl $CURL_SILENT -H "Authorization: Bearer ${API_TOKEN}" \
      https://api.icfpcontest.com/submissions"?offset=0&limit=${limit}&problem_id=${problem_id}"
