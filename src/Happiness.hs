@@ -54,7 +54,7 @@ weightedAverage extra prob ans = score
       where
         conv = fromRational . toRational
         (x, y) = foldr f (0.0, 0.0) atnds
-          where f (Attendee x y _) (x', y') = (x + x', y + y')
+          where f (Attendee x_ y_ _) (x', y') = (x_ + x', y_ + y')
     -- 観客の平均taste
     waTaste = foldr f [0.0..] (attendees prob)
       where
@@ -317,15 +317,15 @@ isBlock' (mx, my) (ax, ay) (bx, by)
     (p, q)
       | a == 0 = (bx, - c / b)
       | b == 0 = (- c / a, by)
-      | otherwise = (p, q)
+      | otherwise = (p_, q_)
       where
         -- 垂線の直線は y = (b/a) x + d になる
         d = by - (b / a) * bx
         -- a p + b q + c = 0 と
         -- q = (b/a) p + d
         -- の連立方程式を解く
-        p = a / (a^(2::Int) + b^(2::Int)) * (- c - b * d)
-        q = (b / a) * p + d
+        p_ = a / (a^(2::Int) + b^(2::Int)) * (- c - b * d)
+        q_ = (b / a) * p + d
 
     -- (x2, y2) が (x1, y1) の 5.0 以内にあるかどうか
     inner (x1, y1) (x2, y2) = sqrt ((x2 - x1)^(2::Int) + (y2 - y1)^(2::Int)) <= 5.0
