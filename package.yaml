@@ -25,6 +25,8 @@ dependencies:
 - time
 - array
 - containers
+- filepath
+- directory
 - random
 - aeson
 
@@ -131,6 +133,4 @@ tests:
     # - -with-rtsopts=-N
     dependencies:
     - icfpc2023
-    - filepath
-    - directory
     - doctest

@@ -58,6 +58,8 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
+    , directory
+    , filepath
     , mwc-random
     , numeric-optimization ==0.1.1.0
     , numeric-optimization-ad ==0.1.0.1
@@ -89,6 +91,8 @@ executable draw-problem
     , base >=4.7 && <5
     , bytestring
     , containers
+    , directory
+    , filepath
     , icfpc2023
     , optparse-applicative
     , primitive
@@ -119,6 +123,8 @@ executable eval
     , base >=4.7 && <5
     , bytestring
     , containers
+    , directory
+    , filepath
     , icfpc2023
     , optparse-applicative
     , random
@@ -148,6 +154,8 @@ executable happiness
     , base >=4.7 && <5
     , bytestring
     , containers
+    , directory
+    , filepath
     , icfpc2023
     , random
     , time
@@ -176,6 +184,8 @@ executable icfpc2023
     , base >=4.7 && <5
     , bytestring
     , containers
+    , directory
+    , filepath
     , icfpc2023
     , random
     , time
@@ -204,6 +214,8 @@ executable solve
     , base >=4.7 && <5
     , bytestring
     , containers
+    , directory
+    , filepath
     , icfpc2023
     , random
     , time
@@ -266,6 +278,8 @@ test-suite icfpc2023-test
     , base >=4.7 && <5
     , bytestring
     , containers
+    , directory
+    , filepath
     , hspec
     , icfpc2023
     , main-tester
