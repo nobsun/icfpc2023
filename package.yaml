@@ -27,6 +27,7 @@ dependencies:
 - containers
 - filepath
 - directory
+- process
 - random
 - aeson
 
