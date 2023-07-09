@@ -41,7 +41,7 @@ standingPositions (d, atnds) prob = map (\pos -> (pos, preferedInstrs (near pos 
     near (x, y) = filter (\(Attendee x' y' _) -> (x-x')^2 + (y-y')^2 <= (d+10)^2)
     preferedInstrs = map fst . sortBy descByLike . zip [0..] . summary
       where descByLike x y = compare (snd y) (snd x)
-            summary = foldr (\(Attendee _ _ ts) acc -> zipWith (+) acc ts) [0 ..]
+            summary = foldr (\(Attendee _ _ ts) acc -> zipWith (+) acc ts) (repeat 0.0)
 
 heatArea :: Double -> Problem -> (Double, Double, Double, Double)
 heatArea d prob = (left, top, right, bottom)
