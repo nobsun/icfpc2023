@@ -4,7 +4,7 @@ import Data.Aeson
 import Data.ByteString.Lazy as B
 import Problem
 import Answer
-import Happiness
+-- import Happiness
 
 type Name = String
 type SolverF = Problem -> Either String [(Double, Double)]
