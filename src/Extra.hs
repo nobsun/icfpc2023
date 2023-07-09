@@ -67,9 +67,9 @@ data Extra
 mkExtra' :: Problem -> ProblemExtra -> Answer -> Extra
 mkExtra' problem pextra answer =
   Extra
-  { answer_valid = isValidAnswer problem answer
+  { problem_extra = pextra
+  , answer_valid = isValidAnswer problem answer
   , answer_int_compat = isIntCompatAnswer answer
-  , problem_extra = pextra
   }
 
 mkExtra :: Problem -> Answer -> Extra
