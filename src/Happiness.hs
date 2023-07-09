@@ -7,6 +7,7 @@ import Data.Array (Array)
 import Data.Array.IArray ((!), listArray)
 import Data.Array.Unboxed (UArray)
 import Data.List (delete, zip3)
+import Data.List.Split (chunksOf)
 
 import Problem
 import Answer
@@ -91,7 +92,13 @@ naive extra prob ans = score
 
 withQueue :: Extra -> Problem -> Answer -> IO Happiness
 withQueue extra prob ans = do
-  let jobs = zipWith3 unit_score [0 :: Int ..] (musicians prob) ms
+  nthread <- getNumCapabilities
+
+  let inputs = zip3 [0 :: Int ..] (musicians prob) ms
+      jobs = map chunk_score $ chunksOf chunkSize inputs
+        where
+          chunkSize = 1 `max` (length inputs `quot` chunks)
+          chunks = nthread * 160
       size = length jobs
 
   inputQ <- newChan
@@ -103,17 +110,17 @@ withQueue extra prob ans = do
                 thunk `seq` writeChan resultQ thunk
                 loop
 
-  nthread <- getNumCapabilities
   () <$ replicateM nthread (forkIO consumeJob)
 
   mapM_  (writeChan inputQ) jobs  {- enqueue all jobs -}
   sum <$> replicateM size (readChan resultQ)  {- dequeue all results and sum of them -}
   where
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
-    unit_score k inst_k p_k =
+    chunk_score triple_chunk =
       sum
       [ impact (i, a_i) (k, inst_k, p_k)
-      | (i, a_i) <- zip [0..] atnds
+      | (k, inst_k, p_k) <- triple_chunk
+      , (i, a_i) <- zip [0..] atnds
       , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
       ]
 
