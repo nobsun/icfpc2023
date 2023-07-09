@@ -9,7 +9,7 @@ module Answer
 
 import qualified Data.ByteString.Lazy as B
 import Data.Aeson
-import Text.Printf (printf)
+-- import Text.Printf (printf)
 import GHC.Generics
 
 import qualified IntCompat
@@ -32,8 +32,8 @@ instance ToJSON Answer
 instance FromJSON Answer
 
 
-test :: B.ByteString
-test = encode ans
+_test :: B.ByteString
+_test = encode ans
   where ans = Answer { placements = [ Placement {x = 10.0, y = 20.0}
                                     , Placement {x = 30.0, y = 40.0}
                                     ]
