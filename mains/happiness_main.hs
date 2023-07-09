@@ -13,7 +13,7 @@ main = do
   args <- getArgs
   (name, pnum, stgy) <- case args of
     name : pnum : stgy : _ -> (,,) name <$> readIO pnum <*> getStrategy stgy
-    name : pnum : _ -> (,,) name <$> readIO pnum <*> pure Naive
+    name : pnum : _ -> (,,) name <$> readIO pnum <*> pure Parallel
     _               -> do
       usage
       putStrLn ""
