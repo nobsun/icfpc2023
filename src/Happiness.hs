@@ -123,7 +123,7 @@ isBlockInt (Placement mx my) (Attendee ax ay _) (Placement bx by) =
   isBlockIntSpecialized (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by)
 
 isBlockIntSpecialized :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool
-isBlockIntSpecialized = BlockVec.isBlock'
+isBlockIntSpecialized = BlockVec.isBlockWithoutValid
 
 -- | musician と attendee の直線に blocker が 5 以内にいる
 --   かつ blocker から直線におろした垂線の交点が musician と attendee の間にあること
@@ -152,7 +152,8 @@ isBlockIntSpecialized = BlockVec.isBlock'
 -- False
 --
 isBlockDouble :: Placement -> Attendee -> Placement -> Bool
-isBlockDouble (Placement mx my) (Attendee ax ay _) (Placement bx by) = BlockVec.isBlock' (mx, my) (ax, ay) (bx, by)
+isBlockDouble (Placement mx my) (Attendee ax ay _) (Placement bx by) =
+  BlockVec.isBlockWithoutValid (mx, my) (ax, ay) (bx, by)
 
 -- |
 --
