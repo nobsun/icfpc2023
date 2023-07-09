@@ -6,7 +6,6 @@ import Control.Monad
 import Data.Array (Array)
 import Data.Array.IArray ((!), listArray)
 import Data.Array.Unboxed (UArray)
-import Data.List (delete, zip3)
 import Data.List.Split (chunksOf)
 
 import Problem
@@ -61,7 +60,7 @@ weightedAverage extra prob ans = score
       where
         f (Attendee x y ts) ts' = zipWith (\t t' -> w * t + t') ts ts'
           where
-            d2 = (attendeeX - x)^2 + (attendeeY - y)^2
+            d2 = (attendeeX - x)^(2::Int) + (attendeeY - y)^(2::Int)
             w = 1.0 / d2
     impact i k = ceiling $  num / den
       where
@@ -354,19 +353,21 @@ isBlock2 (Placement mx my) (Attendee ax ay _) (Placement bx by) =
   inTriangle ml mr al (bx,by) || inTriangle al ar mr (bx,by)
   where
     r = -(mx-ax)/(ay-ay)
-    dx = 5/sqrt(1+r^2)
+    dx = 5/sqrt(1+r^(2::Int))
     dy = r*dx
 
     (ml,mr) = ((mx+dx,my+dy) , (mx-dx,my-dy))
     (al,ar) = ((ax+dx,ay+dy) , (ax-dx,ay-dy))
 
 -- p is in traiangle (a,b,c)?
+inTriangle :: (Ord a, Num a) => (a, a) -> (a, a) -> (a, a) -> (a, a) -> Bool
 inTriangle a b c p =
   and(map(>0)zs) || and(map(<0)zs)
   where
     zs = map (crossz p) [a,b,c]
 
 -- z of cross product
+crossz :: Num a => (a, a) -> (a, a) -> a
 crossz (a1,a2) (b1,b2) =
   a1*b2 - a2*b1
 
