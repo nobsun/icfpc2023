@@ -70,7 +70,7 @@ naive extra prob ans = score
   where
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
     score = sum [ impact (i, a_i) (k, inst_k, p_k)
-                | (k, inst_k, p_k) <- zip3 [0..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
+                | (k, inst_k, p_k) <- zip3 [0 :: Int ..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
                 , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
                 ]
     atnds = attendees prob
@@ -83,7 +83,7 @@ naive extra prob ans = score
     million_times_atnds_tastes :: Array Int (UArray Int Double)
     million_times_atnds_tastes = listArray (0, length atnds - 1) $ map million_times_tastes atnds
 
-    impact (i, a_i) (k, inst_k, p_k) = ceiling $ num / den
+    impact (i, a_i) (_k, inst_k, p_k) = ceiling $ num / den
       where
         num = million_times_atnds_tastes ! i ! inst_k
         den = squareDistance p_k a_i
