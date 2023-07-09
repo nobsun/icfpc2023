@@ -14,37 +14,21 @@ import Solver (SolverF)
 -- ヒートエリアの人の好みの楽器を高い順に並べる
 -- その楽器のミュージシャンを優先的に前方に配置する戦略をとる
 
+-- | rate は観客の何割を意識するか
+-- rate [ 0.1 .. 0.9 ] で試してみると良い
+decideFrontHeat :: Double -> Problem -> (Double, [Attendee])
+decideFrontHeat rate prob = last xs
+  where
+    n = length (attendees prob)
+    heatNum = ceiling (realToFrac n * rate) -- 1割がヒートエリア
+    xs = takeWhile (\(_, xs) -> length xs <= heatNum) $ map (\d -> (d, frontAttendees d prob)) [1..]
+
 -- | d がステージからの距離でどこまでヒートエリアとするかを指定している
 frontAttendees :: Double -> Problem -> [Attendee]
 frontAttendees d prob = filter inHeatArea (attendees prob)
   where
     inHeatArea (Attendee x y _) = w <= x && x <= e && s <= y && y <= n
     (w, n, e, s) = heatArea d prob
-
-stageBounds :: Problem -> (Double, Double, Double, Double)
-stageBounds prob = (left, top, right, bottom)
-  where
-    (left, bottom) =  (stage_left prob, stage_bottom prob)
-    (top, right) = (stage_top prob, stage_right prob)
-
-
--- | ステージ上の立てる場所とその場所の楽器の優先度リストとを返す
-standingPositions :: (Double, [Attendee]) -> Problem -> [((Double, Double), [Instrument])]
-standingPositions (d, atnds) prob = map (\pos -> (pos, preferedInstrs pos (near pos atnds))) poss
-  where
-    (w, n, e, s) = stageBounds prob
-    poss = [ (x, y)
-           | x <- [w+10.0, w+20.0 .. e-10.0]
-           , y <- [s+10.0, s+20.0 .. n-10.0]
-           , x <= e-10.0 && y <= n-10.0 -- Double なのでこれがないと誤差でステージに近すぎる場合が出る
-           ]
-    near (x, y) = filter (\(Attendee x' y' _) -> (x-x')^2 + (y-y')^2 <= (d+10)^2)
-    preferedInstrs (x, y) = map fst . sortBy descByLike . zip [0..] . summary
-      where descByLike x y = compare (snd y) (snd x)
-            summary = foldr (\(Attendee x' y' ts) acc -> zipWith (calc x' y') acc ts) (repeat 0.0)
-              where
-                calc :: Double -> Double -> Double -> Double -> Double
-                calc x' y' acc t = acc + t / ((x-x')^2 + (y-y')^2)
 
 heatArea :: Double -> Problem -> (Double, Double, Double, Double)
 heatArea d prob = (left, top, right, bottom)
@@ -55,14 +39,36 @@ heatArea d prob = (left, top, right, bottom)
     right = min (e + d) (room_width prob)
     bottom = max (s - d) 0
 
--- | rate は観客の何割を意識するか
--- rate [ 0.1 .. 0.9 ] で試してみると良い
-decideFrontHeat :: Double -> Problem -> (Double, [Attendee])
-decideFrontHeat rate prob = last xs
+stageBounds :: Problem -> (Double, Double, Double, Double)
+stageBounds prob = (left, top, right, bottom)
   where
-    n = length (attendees prob)
-    heatNum = ceiling (realToFrac n * rate) -- 1割がヒートエリア
-    xs = takeWhile (\(_, xs) -> length xs <= heatNum) $ map (\d -> (d, frontAttendees d prob)) [1..]
+    (left, bottom) =  (stage_left prob, stage_bottom prob)
+    (top, right) = (stage_top prob, stage_right prob)
+
+
+-- | ステージ上の立てる場所を返す
+--   それぞれの場所について、その場所にいる人たちの好みの楽器を高い順に並べる
+--   Like がインパクトなので、Like が高い楽器を優先的に配置したい
+standingPositions :: (Double, [Attendee]) -> Problem -> [((Double, Double), [(Instrument, Like)])]
+standingPositions (d, atnds) prob = map (\pos -> (pos, preferedInstrs pos (near pos atnds))) poss
+  where
+    (w, n, e, s) = stageBounds prob
+    poss = [ (x, y)
+           | x <- [w+10.0, w+20.0 .. e-10.0]
+           , y <- [s+10.0, s+20.0 .. n-10.0]
+           , x <= e-10.0 && y <= n-10.0 -- Double なのでこれがないと誤差でステージに近すぎる場合が出る
+           ]
+    near (x, y) = filter (\(Attendee x' y' _) -> (x-x')^2 + (y-y')^2 <= (d+10)^2)
+    preferedInstrs :: (Double, Double) -> [Attendee] -> [(Instrument, Like)]
+    preferedInstrs (x, y) = sortBy descByLike . zip [0..] . summary
+      where descByLike x y = compare (snd y) (snd x)
+            summary :: [Attendee] -> [Like] -- この場所で期待できる楽器ごとのインパクト
+            summary = foldr (\(Attendee x' y' ts) acc -> zipWith (calc x' y') acc ts) (repeat 0.0)
+              where
+                calc :: Double -> Double -> Double -> Double -> Double
+                calc x' y' acc t = acc + t / ((x-x')^2 + (y-y')^2)
+
+{--
 
 -- | フロントヒートの好みの楽器を高いものから返す
 --   数値は楽器のインデックス
@@ -90,13 +96,17 @@ splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs
 matching :: [(Instrument, [Int])] -> [((Double, Double), [Instrument])] -> [(Int, (Double, Double))]
 matching ms poss = zipWith (\i (pos, _) -> (i, pos)) (concatMap snd ms) poss
 
-
 getCandidates :: SolverF
-getCandidates prob = Right $ map snd res
+getCandidates prob = undefined
   where
      (d, atnds) = decideFrontHeat 0.3 prob
+     
      tofh = tastesOfFrontHeat atnds prob
      poss = standingPositions (d, atnds) prob
      ms = popularMusicians prob tofh
      assignment = matching ms poss
      res = sortBy (\x y -> compare (fst x) (fst y)) assignment
+--}
+
+getCandidates :: SolverF
+getCandidates prob = undefined
