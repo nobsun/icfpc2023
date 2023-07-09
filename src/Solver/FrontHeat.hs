@@ -50,7 +50,9 @@ stageBounds prob = (left, top, right, bottom)
 --   それぞれの場所について、その場所にいる人たちの好みの楽器を高い順に並べる
 --   Like がインパクトなので、Like が高い楽器を優先的に配置したい
 standingPositions :: (Double, [Attendee]) -> Problem -> [((Double, Double), [(Instrument, Like)])]
-standingPositions (d, atnds) prob = map (\pos -> (pos, preferedInstrs pos (near pos atnds))) poss
+standingPositions (d, atnds) prob
+  = sortBy (\(_, (_, l1):_) (_, (_, l2):_) -> compare l2 l1)
+    $ map (\pos -> (pos, preferedInstrs pos (near pos atnds))) poss
   where
     (w, n, e, s) = stageBounds prob
     poss = [ (x, y)
