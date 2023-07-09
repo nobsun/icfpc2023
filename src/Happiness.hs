@@ -15,7 +15,7 @@ import Extra
 import qualified BlockVec
 
 -- | FIXME
-type Happiness = Integer
+type Happiness = Int
 
 data HaStrategy
   = Naive
