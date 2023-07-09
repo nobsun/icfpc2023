@@ -2,7 +2,6 @@
 -- extra metadata for Problem and Answer
 module Extra where
 
-import qualified Data.Set as Set
 import Text.Printf (printf)
 
 import qualified IntCompat
@@ -21,11 +20,10 @@ mkProblemExtra Problem{..} =
   ProblemExtra
   { num_musicians = length musicians
   , num_attendees = length attendees
-  , num_instruments = Set.size is
+  , num_instruments = maximum (0 : musicians) + 1
   , attendees_int_compat = all compatA attendees
   }
   where
-    is = Set.fromList musicians
     compatA Attendee{..} = IntCompat.double x && IntCompat.double y
 
 pprProblemExtraShort :: ProblemExtra -> String
@@ -58,17 +56,22 @@ printProblemExtras n =
   , let printExtra = putStr . maybe ("parse error") (pprProblemExtra i . mkProblemExtra)
   ]
 
+data AnswerCheck
+  = Valid
+  | Invalid
+  deriving Show
+
 data Extra
-  = Extra { answer_valid :: Bool
+  = Extra { problem_extra :: ProblemExtra
+          , answer_valid :: AnswerCheck
           , answer_int_compat :: Bool
-          , problem_extra :: ProblemExtra
           }
 
 mkExtra' :: Problem -> ProblemExtra -> Answer -> Extra
 mkExtra' problem pextra answer =
   Extra
   { problem_extra = pextra
-  , answer_valid = isValidAnswer problem answer
+  , answer_valid = if isValidAnswer problem answer then Valid else Invalid
   , answer_int_compat = isIntCompatAnswer answer
   }
 
@@ -89,7 +92,7 @@ pprExtraShort :: Extra -> String
 pprExtraShort e@Extra{..} =
   unwords
   [ pprProblemExtraShort problem_extra
-  , "answer:" ++ if answer_valid then "valid" else "invalid"
+  , "answer:" ++ show answer_valid
   , "answer-int:" ++ if answer_int_compat then "compat" else "not-compat"
   , "blocktest:" ++ show (int_compat_blocktest e)
   ]
