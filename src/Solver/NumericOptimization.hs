@@ -51,17 +51,16 @@ getCandidatesIO problem = do
 
   gen <- Rand.create
   x0_ <- replicateM numMusicians $ do
+{-
     let center_x = bx + stage_width problem / 2
         center_y = by + stage_height problem / 2
-    x <- if xl == xu then do
-           return center_x
-         else do
-           (center_x +) <$> Rand.normal 0 1e-6 gen
-    y <- if yl == yu then do
-           return center_y
-         else do
-           (center_y +) <$> Rand.normal 0 1e-6 gen
-    return (x,y)
+    dx <- Rand.normal 0 1e-1 gen
+    dy <- Rand.normal 0 1e-1 gen
+    return (clamp xl xu (center_x + dx), clamp yl yu (center_y + dy))
+-}
+    x <- Rand.uniformR (xl, xu) gen
+    y <- Rand.uniformR (yl, yu) gen
+    return (x, y)
   let x0 = P x0_
 
   let params :: Params (P Double)
@@ -97,3 +96,10 @@ happiness prob (P ms) = score
 pairs :: [a] -> [(a,a)]
 pairs [] = []
 pairs (x:xs) = [(x,y) | y <- xs] ++ pairs xs
+
+
+clamp :: Ord a => a -> a -> a -> a
+clamp lo hi x
+  | x < lo = lo
+  | hi < x = hi
+  | otherwise = x
