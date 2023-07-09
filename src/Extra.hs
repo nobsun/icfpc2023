@@ -59,9 +59,9 @@ printProblemExtras n =
   ]
 
 data Extra
-  = Extra { answer_valid :: Bool
+  = Extra { problem_extra :: ProblemExtra
+          , answer_valid :: Bool
           , answer_int_compat :: Bool
-          , problem_extra :: ProblemExtra
           }
 
 mkExtra' :: Problem -> ProblemExtra -> Answer -> Extra
