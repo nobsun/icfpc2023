@@ -13,6 +13,8 @@ import qualified Problem
 import Happiness hiding (happiness)
 import Solver (SolverF)
 
+import Debug.Trace
+
 
 getCandidates :: SolverF
 getCandidates problem = unsafePerformIO (getCandidatesIO problem)
@@ -29,7 +31,11 @@ getCandidatesIO problem = do
           ts = [abs (realToFrac like :: Double) | attendee <- Problem.attendees problem, like <- Problem.tastes attendee]
 
   let f :: (RealFrac a, Floating a, Show a) => P a -> a
-      f x = - happiness problem x + penalty x
+      f x = traceShow (y1,y2,y) $ y
+        where
+          y = y1 + y2
+          y1 = - happiness problem x
+          y2 = penalty x
 
       penalty :: (RealFrac a, Floating a) => P a -> a
       penalty (P ms) = sum
