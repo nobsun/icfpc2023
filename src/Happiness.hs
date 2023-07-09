@@ -33,7 +33,7 @@ weightedAverageHappiness prob ans = weightedAverage (mkExtra prob ans) prob ans
 weightedAverage :: Extra -> Problem -> Answer -> Happiness
 weightedAverage extra prob ans = score
   where
-    isBlock = isBlockWith $ int_compat_blocktest extra
+    isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
     score = sum [ impact 0 k
                 | k <- [0..length ms-1], j <- [0..length ms-1]
                 , not $ isBlock (ms !! k) (atnds !! 0) (ms !! j)
@@ -68,7 +68,7 @@ happiness prob ans = naive (mkExtra prob ans) prob ans
 naive :: Extra -> Problem -> Answer -> Happiness
 naive extra prob ans = score
   where
-    isBlock = isBlockWith $ int_compat_blocktest extra
+    isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
     score = sum [ impact (i, a_i) (k, inst_k, p_k)
                 | (k, inst_k, p_k) <- zip3 [0..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
                 , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
@@ -88,71 +88,134 @@ naive extra prob ans = score
         num = million_times_atnds_tastes ! i ! inst_k
         den = squareDistance p_k a_i
 
-isBlockWith :: BlockTestICompat -> Placement -> Attendee -> Placement -> Bool
-isBlockWith IntCompat     = isBlockInt
-isBlockWith NotIntCompat  = isBlockDouble
+isBlockWith :: BlockTestICompat -> AnswerCheck -> Placement -> Attendee -> Placement -> Bool
+isBlockWith IntCompat    _  = isBlockIntInvalid
+isBlockWith NotIntCompat _  = isBlockDoubleInvalid
 
--- | musician と attendee の直線に blocker が 5 以内にいる
---   かつ blocker から直線におろした垂線の交点が musician と attendee の間にあること
+-- | isBlockInt
+--   musician と attendee の直線に blocker が距離 5 以内にいる
+--   かつ
+--   blocker から直線におろした垂線の交点が musician と attendee の間にあること
 --   を判定する
 --     musician (mx, my)
 --     attendee (ax, ay)
 --     blocker  (bx, by)
 --
--- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 2.0 2.0)
+-- 線分の端点が一致した場合は垂線が通る
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 0.0 0.0)
 -- True
--- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 1.0)
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 1.0)
 -- True
--- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 2.0)
--- True
--- >>> isBlockInt (Placement (-1.0) 1.0) (Attendee 0.0 3.0 []) (Placement 0.0 0.0)
--- True
--- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 7.0 8.0)
+--
+-- 距離が 5 より離れている
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 7.0 8.0)
 -- False
--- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (-8.0) (-7.0))
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (-8.0) (-7.0))
 -- False
--- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (6.0))
+-- False
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (7.0))
+-- False
+--
+-- (4.0, 6.0) までそれぞれ、 4, 5, 6
+-- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 []) (Placement 4.0 2.0)
 -- True
--- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (6.0))
+-- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 []) (Placement 4.0 1.0)
+-- True
+-- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 []) (Placement 4.0 0.0)
 -- False
--- >>> isBlockInt (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (7.0))
+--
+-- 斜辺の真ん中までそれぞれ、 3√2, 5, 5, 4√2
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 1.0 1.0)
+-- True
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 1.0 0.0)
+-- True
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 0.0 1.0)
+-- True
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 0.0 0.0)
 -- False
 --
 isBlockInt :: Placement -> Attendee -> Placement -> Bool
 isBlockInt (Placement mx my) (Attendee ax ay _) (Placement bx by) =
-  isBlockIntSpecialized (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by)
+  isBlockInt' (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by)
 
-isBlockIntSpecialized :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool
-isBlockIntSpecialized = BlockVec.isBlockWithoutValid
+isBlockInt' :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool
+isBlockInt' = BlockVec.isBlock
 
--- | musician と attendee の直線に blocker が 5 以内にいる
---   かつ blocker から直線におろした垂線の交点が musician と attendee の間にあること
---   を判定する
---     musician (mx, my)
---     attendee (ax, ay)
---     blocker  (bx, by)
+-- | isBlockDouble
+--   isBlockInt の Int には特化していないバージョン
 --
--- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 2.0 2.0)
+-- 線分の端点が一致した場合は垂線が通る
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 0.0 0.0)
 -- True
--- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 1.0)
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 1.0)
 -- True
--- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 2.0)
--- True
--- >>> isBlockDouble (Placement (-1.0) 1.0) (Attendee 0.0 3.0 []) (Placement 0.0 0.0)
--- True
--- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 7.0 8.0)
+--
+-- 距離が 5 より離れている
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 7.0 8.0)
 -- False
--- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (-8.0) (-7.0))
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (-8.0) (-7.0))
 -- False
--- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (6.0))
+-- False
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (7.0))
+-- False
+--
+-- (4.0, 6.0) までそれぞれ、 4, 5, 6
+-- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 []) (Placement 4.0 2.0)
 -- True
--- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (6.0))
+-- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 []) (Placement 4.0 1.0)
+-- True
+-- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 []) (Placement 4.0 0.0)
 -- False
--- >>> isBlockDouble (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (7.0))
+--
+-- 斜辺の真ん中までそれぞれ、 3√2, 5, 5, 4√2
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 1.0 1.0)
+-- True
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 1.0 0.0)
+-- True
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 0.0 1.0)
+-- True
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 0.0 0.0)
 -- False
 --
 isBlockDouble :: Placement -> Attendee -> Placement -> Bool
 isBlockDouble (Placement mx my) (Attendee ax ay _) (Placement bx by) =
+  BlockVec.isBlock (mx, my) (ax, ay) (bx, by)
+
+-- | isBlockIntInvalid
+--   isBlockInt の valid でない answer に対応したバージョン
+--
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 2.0 2.0)
+-- True
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 2.0)
+-- True
+-- >>> isBlockIntInvalid (Placement (-1.0) 1.0) (Attendee 0.0 3.0 []) (Placement 0.0 0.0)
+-- True
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
+-- True
+--
+isBlockIntInvalid :: Placement -> Attendee -> Placement -> Bool
+isBlockIntInvalid (Placement mx my) (Attendee ax ay _) (Placement bx by) =
+  isBlockIntInvalid' (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by)
+
+isBlockIntInvalid' :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool
+isBlockIntInvalid' = BlockVec.isBlockWithoutValid
+
+-- | isBlockIntInvalid
+--   isBlockDouble の valid でない answer に対応したバージョン
+--
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 2.0 2.0)
+-- True
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 2.0)
+-- True
+-- >>> isBlockIntInvalid (Placement (-1.0) 1.0) (Attendee 0.0 3.0 []) (Placement 0.0 0.0)
+-- True
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
+-- True
+--
+isBlockDoubleInvalid :: Placement -> Attendee -> Placement -> Bool
+isBlockDoubleInvalid (Placement mx my) (Attendee ax ay _) (Placement bx by) =
   BlockVec.isBlockWithoutValid (mx, my) (ax, ay) (bx, by)
 
 -- |
