@@ -74,13 +74,16 @@ happiness prob ans = naive (mkExtra prob ans) prob ans
 naive :: Extra -> Problem -> Answer -> Happiness
 naive extra prob ans = score
   where
+    isBlock :: Obstacle o => Placement -> Attendee -> o -> Bool
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
     score = sum [ impact (i, a_i) (k, inst_k, p_k)
                 | (k, inst_k, p_k) <- zip3 [0 :: Int ..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
                 , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
+                , and [not $ isBlock p_k a_i pl | pl <- plrs]
                 ]
     atnds = attendees prob
     ms = placements ans
+    plrs = pillars prob
 
     {- each tastes times 1,000,000 memos -}
     million_times_tastes :: Attendee -> UArray Int Double
@@ -119,6 +122,7 @@ withQueue extra prob ans = do
   mapM_  (writeChan inputQ) jobs  {- enqueue all jobs -}
   sum <$> replicateM size (readChan resultQ)  {- dequeue all results and sum of them -}
   where
+    isBlock :: Obstacle o => Placement -> Attendee -> o -> Bool
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
     chunk_score triple_chunk =
       sum
@@ -126,10 +130,12 @@ withQueue extra prob ans = do
       | (k, inst_k, p_k) <- triple_chunk
       , (i, a_i) <- zip [0..] atnds
       , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
+      , and [not $ isBlock p_k a_i pl | pl <- plrs]
       ]
 
     atnds = attendees prob
     ms = placements ans
+    plrs = pillars prob
 
     {- each tastes times 1,000,000 memos -}
     million_times_tastes :: Attendee -> UArray Int Double
