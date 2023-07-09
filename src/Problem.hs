@@ -21,6 +21,12 @@ data Attendee
              }
   deriving (Show, Eq, Generic)
 
+data Pillar
+  = Pillar { center :: (Double, Double)
+           , radius :: Double
+           }
+  deriving (Show, Eq, Generic)
+
 data Problem
   = Problem { room_width        :: Double
             , room_height       :: Double
@@ -29,6 +35,7 @@ data Problem
             , stage_bottom_left :: (Double, Double)
             , musicians         :: [Instrument]
             , attendees         :: [Attendee]
+            , pillars           :: [Pillar]
             }
   deriving (Show, Eq, Generic)
 
@@ -48,6 +55,8 @@ stage_top Problem{..} = stage_bottom Problem{..} + stage_height
 
 instance ToJSON Attendee
 instance FromJSON Attendee
+instance ToJSON Pillar
+instance FromJSON Pillar
 instance ToJSON Problem
 instance FromJSON Problem
 
