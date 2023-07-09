@@ -30,7 +30,7 @@ stageBounds prob = (left, top, right, bottom)
 
 -- | ステージ上の立てる場所とその場所の楽器の優先度リストとを返す
 standingPositions :: (Double, [Attendee]) -> Problem -> [((Double, Double), [Instrument])]
-standingPositions (d, atnds) prob = map (\pos -> (pos, preferedInstrs (near pos atnds))) poss
+standingPositions (d, atnds) prob = map (\pos -> (pos, preferedInstrs pos (near pos atnds))) poss
   where
     (w, n, e, s) = stageBounds prob
     poss = [ (x, y)
@@ -39,9 +39,12 @@ standingPositions (d, atnds) prob = map (\pos -> (pos, preferedInstrs (near pos 
            , x <= e-10.0 && y <= n-10.0 -- Double なのでこれがないと誤差でステージに近すぎる場合が出る
            ]
     near (x, y) = filter (\(Attendee x' y' _) -> (x-x')^2 + (y-y')^2 <= (d+10)^2)
-    preferedInstrs = map fst . sortBy descByLike . zip [0..] . summary
+    preferedInstrs (x, y) = map fst . sortBy descByLike . zip [0..] . summary
       where descByLike x y = compare (snd y) (snd x)
-            summary = foldr (\(Attendee _ _ ts) acc -> zipWith (+) acc ts) (repeat 0.0)
+            summary = foldr (\(Attendee x' y' ts) acc -> zipWith (calc x' y') acc ts) (repeat 0.0)
+              where
+                calc :: Double -> Double -> Double -> Double -> Double
+                calc x' y' acc t = acc + t / ((x-x')^2 + (y-y')^2)
 
 heatArea :: Double -> Problem -> (Double, Double, Double, Double)
 heatArea d prob = (left, top, right, bottom)
