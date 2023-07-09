@@ -13,7 +13,7 @@ data ProblemExtra
   = ProblemExtra { num_musicians :: Int
                  , num_attendees :: Int
                  , num_instruments :: Int
-                 , problem_int_compat :: Bool
+                 , attendees_int_compat :: Bool
                  } deriving Show
 
 mkProblemExtra :: Problem -> ProblemExtra
@@ -22,7 +22,7 @@ mkProblemExtra Problem{..} =
   { num_musicians = length musicians
   , num_attendees = length attendees
   , num_instruments = Set.size is
-  , problem_int_compat = all compatA attendees
+  , attendees_int_compat = all compatA attendees
   }
   where
     is = Set.fromList musicians
@@ -34,7 +34,7 @@ pprProblemExtraShort ProblemExtra{..} =
   [ "musicians:" ++ show num_musicians
   , "attendees:" ++ show num_attendees
   , "instruments:" ++ show num_instruments
-  , "int_compat:" ++ show problem_int_compat
+  , "attendees_int_compat:" ++ show attendees_int_compat
   ]
 
 pprProblemExtra :: Int -> ProblemExtra -> String
@@ -47,7 +47,7 @@ pprProblemExtra i ProblemExtra{..} = unlines $ zipWith (++) tags bodies
       [ "musicians: " ++ show num_musicians
       , "attendees: " ++ show num_attendees
       , "instruments: " ++ show num_instruments
-      , "int_compat: " ++ show problem_int_compat
+      , "attendees_int_compat: " ++ show attendees_int_compat
       ]
 
 printProblemExtras :: Int -> IO ()
@@ -82,7 +82,7 @@ data BlockTestICompat
 
 int_compat_blocktest :: Extra -> BlockTestICompat
 int_compat_blocktest Extra{..}
-  | answer_int_compat && problem_int_compat problem_extra  =  IntCompat
+  | answer_int_compat && attendees_int_compat problem_extra  =  IntCompat
   | otherwise                                              =  NotIntCompat
 
 pprExtraShort :: Extra -> String
