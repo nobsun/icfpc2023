@@ -65,6 +65,7 @@ library
     , numeric-optimization-ad ==0.1.0.1
     , random
     , time
+    , vector
   default-language: GHC2021
 
 executable draw-problem
