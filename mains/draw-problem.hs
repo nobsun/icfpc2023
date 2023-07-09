@@ -61,9 +61,9 @@ main = do
   forM_ (pillars prob) $ \Pillar{ center = (x, y), radius = r } -> do
     forM_ [max 0 (x - r) .. min (room_width prob) (x + r)] $ \x' -> do
       forM_ [max 0 (y - r) .. min (room_height prob) (y + r)] $ \y' -> do
-        if (x' - x) ^ 2 + (y' - y) ^ 2 <= r ^ 2
-          then writePixelBT img (round x') (round y') (PixelRGBA8 139 125 106 255)
-          else writePixelBT img (round x') (round y') (PixelRGBA8 255 255 255 255)
+        writePixelBT img (round x') (round y') $ if (x'-x)^(2::Int)+(y'-y)^(2::Int) <= r^(2::Int)
+                                                 then (PixelRGBA8 139 125 106 255)
+                                                 else (PixelRGBA8 255 255 255 255)
 
   writePng (optOutput opt) =<< freezeImage img
 
