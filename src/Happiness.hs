@@ -1,28 +1,32 @@
 {-# LANGUAGE RecordWildCards #-}
 module Happiness where
 
+import Control.Concurrent (newChan, writeChan, readChan, forkIO, getNumCapabilities)
+import Control.Monad
 import Data.Array (Array)
 import Data.Array.IArray ((!), listArray)
 import Data.Array.Unboxed (UArray)
 import Data.List (delete, zip3)
+import Data.List.Split (chunksOf)
 
 import Problem
 import Answer
 import Extra
 import qualified BlockVec
-import Control.Concurrent (setNumCapabilities)
 
 -- | FIXME
 type Happiness = Integer
 
 data HaStrategy
   = Naive
+  | Parallel
   | WeightedAverage
   deriving (Eq, Show)
 
-applyStrategy :: HaStrategy -> Extra -> Problem -> Answer -> Happiness
-applyStrategy Naive = naive
-applyStrategy WeightedAverage = weightedAverage
+applyStrategy :: HaStrategy -> Extra -> Problem -> Answer -> IO Happiness
+applyStrategy Naive e p a = pure $ naive e p a
+applyStrategy Parallel e p a = withQueue e p a
+applyStrategy WeightedAverage e p a = pure $ weightedAverage e p a
 
 squareDistance :: Placement -> Attendee -> Double
 squareDistance (Placement x1 y1) (Attendee x2 y2 _) = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
@@ -73,6 +77,55 @@ naive extra prob ans = score
                 | (k, inst_k, p_k) <- zip3 [0 :: Int ..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
                 , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
                 ]
+    atnds = attendees prob
+    ms = placements ans
+
+    {- each tastes times 1,000,000 memos -}
+    million_times_tastes :: Attendee -> UArray Int Double
+    million_times_tastes a = listArray (0, length ts - 1) $ map (1e6 *) ts  where ts = tastes a
+
+    million_times_atnds_tastes :: Array Int (UArray Int Double)
+    million_times_atnds_tastes = listArray (0, length atnds - 1) $ map million_times_tastes atnds
+
+    impact (i, a_i) (_k, inst_k, p_k) = ceiling $ num / den
+      where
+        num = million_times_atnds_tastes ! i ! inst_k
+        den = squareDistance p_k a_i
+
+withQueue :: Extra -> Problem -> Answer -> IO Happiness
+withQueue extra prob ans = do
+  nthread <- getNumCapabilities
+
+  let inputs = zip3 [0 :: Int ..] (musicians prob) ms
+      jobs = map chunk_score $ chunksOf chunkSize inputs
+        where
+          chunkSize = 1 `max` (length inputs `quot` chunks)
+          chunks = nthread * 160
+      size = length jobs
+
+  inputQ <- newChan
+  resultQ <- newChan
+
+  let consumeJob = loop
+        where loop = do
+                thunk <- readChan inputQ
+                thunk `seq` writeChan resultQ thunk
+                loop
+
+  () <$ replicateM nthread (forkIO consumeJob)
+
+  mapM_  (writeChan inputQ) jobs  {- enqueue all jobs -}
+  sum <$> replicateM size (readChan resultQ)  {- dequeue all results and sum of them -}
+  where
+    isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
+    chunk_score triple_chunk =
+      sum
+      [ impact (i, a_i) (k, inst_k, p_k)
+      | (k, inst_k, p_k) <- triple_chunk
+      , (i, a_i) <- zip [0..] atnds
+      , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
+      ]
+
     atnds = attendees prob
     ms = placements ans
 

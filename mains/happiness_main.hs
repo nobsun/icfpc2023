@@ -13,7 +13,7 @@ main = do
   args <- getArgs
   (name, pnum, stgy) <- case args of
     name : pnum : stgy : _ -> (,,) name <$> readIO pnum <*> getStrategy stgy
-    name : pnum : _ -> (,,) name <$> readIO pnum <*> pure Naive
+    name : pnum : _ -> (,,) name <$> readIO pnum <*> pure Parallel
     _               -> do
       usage
       putStrLn ""
@@ -37,6 +37,7 @@ usage = do
     , "first check FILENAME, when not exist, try solusions/{SOLVER_NAME}_nnn.json"
     , ""
     , "supported strategies:"
+    , "  para - Parallel strategy (Naive with parallel execution)"
     , "  naive - Naive strategy"
     , "  wa | weighted-avg - WeightedAverage strategy"
     ]
@@ -46,6 +47,7 @@ getStrategy s =
   maybe (fail $ "unknown happiness-strategy " ++ s) pure $
   lookup (map toLower s)
   [ ("naive", Naive)
+  , ("para", Parallel)
   , ("wa", WeightedAverage)
   , ("weighted-avg", WeightedAverage)
   ]
