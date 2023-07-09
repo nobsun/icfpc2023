@@ -143,7 +143,7 @@ withQueue extra prob ans = do
         num = million_times_atnds_tastes ! i ! inst_k
         den = squareDistance p_k a_i
 
-isBlockWith :: BlockTestICompat -> AnswerCheck -> Placement -> Attendee -> Placement -> Bool
+isBlockWith :: Obstacle o => BlockTestICompat -> AnswerCheck -> Placement -> Attendee -> o -> Bool
 isBlockWith IntCompat    Valid    = isBlockInt
 isBlockWith NotIntCompat Valid    = isBlockDouble
 isBlockWith IntCompat    Invalid  = isBlockIntInvalid
@@ -192,11 +192,14 @@ isBlockWith NotIntCompat Invalid  = isBlockDoubleInvalid
 -- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 0.0 0.0)
 -- False
 --
-isBlockInt :: Placement -> Attendee -> Placement -> Bool
-isBlockInt (Placement mx my) (Attendee ax ay _) (Placement bx by) =
-  isBlockInt' (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by)
+isBlockInt :: Obstacle o => Placement -> Attendee -> o -> Bool
+isBlockInt (Placement mx my) (Attendee ax ay _) obs =
+  isBlockInt' (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by) (floor br)
+  where
+    (bx,by) = obCenter obs
+    br = obRadius obs
 
-isBlockInt' :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool
+isBlockInt' :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Int -> Bool
 isBlockInt' = BlockVec.isBlock
 
 -- | isBlockDouble
@@ -236,9 +239,12 @@ isBlockInt' = BlockVec.isBlock
 -- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 0.0 0.0)
 -- False
 --
-isBlockDouble :: Placement -> Attendee -> Placement -> Bool
-isBlockDouble (Placement mx my) (Attendee ax ay _) (Placement bx by) =
-  BlockVec.isBlock (mx, my) (ax, ay) (bx, by)
+isBlockDouble :: Obstacle o => Placement -> Attendee -> o -> Bool
+isBlockDouble (Placement mx my) (Attendee ax ay _) obs =
+  BlockVec.isBlock (mx, my) (ax, ay) (bx, by) br
+  where
+    (bx,by) = obCenter obs
+    br = obRadius obs
 
 -- | isBlockIntInvalid
 --   isBlockInt の valid でない answer に対応したバージョン
@@ -252,11 +258,14 @@ isBlockDouble (Placement mx my) (Attendee ax ay _) (Placement bx by) =
 -- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
 -- True
 --
-isBlockIntInvalid :: Placement -> Attendee -> Placement -> Bool
-isBlockIntInvalid (Placement mx my) (Attendee ax ay _) (Placement bx by) =
-  isBlockIntInvalid' (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by)
+isBlockIntInvalid :: Obstacle o => Placement -> Attendee -> o -> Bool
+isBlockIntInvalid (Placement mx my) (Attendee ax ay _) obs =
+  isBlockIntInvalid' (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by) (floor br)
+  where
+    (bx,by) = obCenter obs
+    br = obRadius obs
 
-isBlockIntInvalid' :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool
+isBlockIntInvalid' :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Int -> Bool
 isBlockIntInvalid' = BlockVec.isBlockWithoutValid
 
 -- | isBlockIntInvalid
@@ -271,9 +280,12 @@ isBlockIntInvalid' = BlockVec.isBlockWithoutValid
 -- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
 -- True
 --
-isBlockDoubleInvalid :: Placement -> Attendee -> Placement -> Bool
-isBlockDoubleInvalid (Placement mx my) (Attendee ax ay _) (Placement bx by) =
-  BlockVec.isBlockWithoutValid (mx, my) (ax, ay) (bx, by)
+isBlockDoubleInvalid :: Obstacle o => Placement -> Attendee -> o -> Bool
+isBlockDoubleInvalid (Placement mx my) (Attendee ax ay _) obs =
+  BlockVec.isBlockWithoutValid (mx, my) (ax, ay) (bx, by) br
+  where
+    (bx,by) = obCenter obs
+    br = obRadius obs
 
 -- |
 --

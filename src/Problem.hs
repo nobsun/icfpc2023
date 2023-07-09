@@ -27,6 +27,14 @@ data Pillar
            }
   deriving (Show, Eq, Generic)
 
+class Obstacle a where
+  obCenter :: a -> (Double, Double)
+  obRadius :: a -> Double
+
+instance Obstacle Pillar where
+  obCenter = center
+  obRadius = radius
+
 pillar_center_x :: Pillar -> Double
 pillar_center_x Pillar{..} = case center of
   (x, _y) -> x

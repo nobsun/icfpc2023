@@ -2,24 +2,25 @@ module BlockVec where
 
 -- |
 -- isValidAnswer が通っていることを想定. 線分の端点を検査しない.
-isBlock :: (Num a, Ord a) => (a, a) -> (a, a) -> (a, a) -> Bool
-isBlock m a b =
-  closer seg b 5 && cross lv m a
+isBlock :: (Num a, Ord a) => (a, a) -> (a, a) -> (a, a) -> a -> Bool
+isBlock m a b r =
+  closer seg b r && cross lv m a
   where
     seg@(snv, _) = line2 m a  {- 音楽家と聴衆を結ぶ線分の直線 -}
     lv = along snv b {- ブロッカー b を通る垂線 -}
-{-# SPECIALIZE isBlock :: (Double, Double) -> (Double, Double) -> (Double, Double) -> Bool #-}
-{-# SPECIALIZE isBlock :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool #-}
+{-# SPECIALIZE isBlock :: (Double, Double) -> (Double, Double) -> (Double, Double) -> Double -> Bool #-}
+{-# SPECIALIZE isBlock :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Int -> Bool #-}
 
 -- |
 -- invalid である answer 用に、線分の端点も検査する
-isBlockWithoutValid :: (Num a, Ord a) => (a, a) -> (a, a) -> (a, a) -> Bool
-isBlockWithoutValid m a b =
-  isBlock m a b ||
-  square2 (b |-| m) <= 25 ||  {- 線分の端点が半径 5 に含まれる -}
-  square2 (b |-| a) <= 25     {- 線分の端点が半径 5 に含まれる -}
-{-# SPECIALIZE isBlockWithoutValid :: (Double, Double) -> (Double, Double) -> (Double, Double) -> Bool #-}
-{-# SPECIALIZE isBlockWithoutValid :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool #-}
+isBlockWithoutValid :: (Num a, Ord a) => (a, a) -> (a, a) -> (a, a) -> a -> Bool
+isBlockWithoutValid m a b r =
+  isBlock m a b r ||
+  square2 (b |-| m) <= r*r ||  {- 線分の端点が半径 5 に含まれる -}
+  square2 (b |-| a) <= r*r     {- 線分の端点が半径 5 に含まれる -}
+{-# SPECIALIZE isBlockWithoutValid :: (Double, Double) -> (Double, Double) -> (Double, Double) -> Double -> Bool #-}
+{-# SPECIALIZE isBlockWithoutValid :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Int -> Bool #-}
+
 
 -- |
 -- normal v は v の法線ベクトル nv を返す

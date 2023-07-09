@@ -21,6 +21,10 @@ data Placement
               }
   deriving (Show, Eq, Generic)
 
+instance Obstacle Placement where
+  obCenter a = (x a, y a)
+  obRadius _ = 5
+
 newtype Answer
   = Answer { placements :: [Placement]
            }
