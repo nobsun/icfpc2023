@@ -148,7 +148,7 @@ executable happiness
       DataKinds
       PolyKinds
       UndecidableInstances
-  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts -threaded -with-rtsopts=-qg -with-rtsopts=-N4
   build-depends:
       aeson
     , array
