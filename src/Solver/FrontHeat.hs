@@ -28,10 +28,9 @@ stageBounds prob = (left, top, right, bottom)
     (top, right) = (stage_top prob, stage_right prob)
 
 
--- | ステージ上の立てる場所を優先度順に返す
--- TODO: 人数ではなく好みの点数の合計でソートしたい
-standingPositions :: (Double, [Attendee]) -> Problem -> [(Int, (Double, Double))]
-standingPositions (d, atnds) prob = sortBy (\x y -> compare (fst y) (fst x)) res
+-- | ステージ上の立てる場所とその場所の楽器の優先度リストとを返す
+standingPositions :: (Double, [Attendee]) -> Problem -> [((Double, Double), [Instrument])]
+standingPositions (d, atnds) prob = map (\pos -> (pos, preferedInstrs pos (near pos atnds))) poss
   where
     (w, n, e, s) = stageBounds prob
     poss = [ (x, y)
@@ -39,8 +38,13 @@ standingPositions (d, atnds) prob = sortBy (\x y -> compare (fst y) (fst x)) res
            , y <- [s+10.0, s+20.0 .. n-10.0]
            , x <= e-10.0 && y <= n-10.0 -- Double なのでこれがないと誤差でステージに近すぎる場合が出る
            ]
-    res = map (\(x, y) -> (length (near (x, y) atnds), (x, y))) poss
     near (x, y) = filter (\(Attendee x' y' _) -> (x-x')^2 + (y-y')^2 <= (d+10)^2)
+    preferedInstrs (x, y) = map fst . sortBy descByLike . zip [0..] . summary
+      where descByLike x y = compare (snd y) (snd x)
+            summary = foldr (\(Attendee x' y' ts) acc -> zipWith (calc x' y') acc ts) (repeat 0.0)
+              where
+                calc :: Double -> Double -> Double -> Double -> Double
+                calc x' y' acc t = acc + t / ((x-x')^2 + (y-y')^2)
 
 heatArea :: Double -> Problem -> (Double, Double, Double, Double)
 heatArea d prob = (left, top, right, bottom)
@@ -51,11 +55,13 @@ heatArea d prob = (left, top, right, bottom)
     right = min (e + d) (room_width prob)
     bottom = max (s - d) 0
 
-decideFrontHeat :: Problem -> (Double, [Attendee])
-decideFrontHeat prob = last xs
+-- | rate は観客の何割を意識するか
+-- rate [ 0.1 .. 0.9 ] で試してみると良い
+decideFrontHeat :: Double -> Problem -> (Double, [Attendee])
+decideFrontHeat rate prob = last xs
   where
     n = length (attendees prob)
-    heatNum = ceiling (realToFrac n * 0.1) -- 1割がヒートエリア
+    heatNum = ceiling (realToFrac n * rate) -- 1割がヒートエリア
     xs = takeWhile (\(_, xs) -> length xs <= heatNum) $ map (\d -> (d, frontAttendees d prob)) [1..]
 
 -- | フロントヒートの好みの楽器を高いものから返す
@@ -64,7 +70,7 @@ tastesOfFrontHeat :: [Attendee] -> Problem -> [Instrument]
 tastesOfFrontHeat atnds prob = map fst orders
   where
     ave = map (\i -> average (map (!!i) ts)) [0..n-1]
-    orders = sortBy (\x y -> compare (snd y) (snd x)) $ zip (repeat 0) ave
+    orders = sortBy (\x y -> compare (snd y) (snd x)) $ zip [0..] ave
     ts = map tastes atnds
     n = length $ head ts
     average xs = sum xs / realToFrac (length xs)
@@ -81,12 +87,16 @@ splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs
     seed = Map.fromList $ map (,[]) instrs
     m = foldl (\m' (i, instr) -> Map.insertWith (++) instr [i] m') seed ms
 
+matching :: [(Instrument, [Int])] -> [((Double, Double), [Instrument])] -> [(Int, (Double, Double))]
+matching ms poss = zipWith (\i (pos, _) -> (i, pos)) (concatMap snd ms) poss
+
+
 getCandidates :: SolverF
 getCandidates prob = Right $ map snd res
   where
-     (d, atnds) = decideFrontHeat prob
+     (d, atnds) = decideFrontHeat 0.3 prob
      tofh = tastesOfFrontHeat atnds prob
      poss = standingPositions (d, atnds) prob
-     ms = concatMap snd $ popularMusicians prob tofh
-     assignment = zipWith (\i (_, pos) -> (i, pos)) ms poss
+     ms = popularMusicians prob tofh
+     assignment = matching ms poss
      res = sortBy (\x y -> compare (fst x) (fst y)) assignment
