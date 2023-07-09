@@ -1,5 +1,6 @@
 module Solutions where
 
+import Control.Concurrent (getNumCapabilities)
 import qualified Data.ByteString.Lazy as B
 import Data.Aeson (encode, decode)
 import Text.Printf (printf)
@@ -36,5 +37,6 @@ calcHappiness path probNum strategy = do
   answer <- maybe (fail $ "parse error: " ++ probMark) pure =<< readSolutionFile path
   let extra = mkExtra problem answer
       einfo = pprExtraShort extra
-  putStrLn $ unwords [path ++ ":", "calulating", show strategy, "happiness:", einfo ]
-  return $! Happiness.applyStrategy strategy extra problem answer
+  nthread <- getNumCapabilities
+  putStrLn $ unwords [path ++ ":", "calulating", show strategy, "happiness:", "threads:" ++ show nthread, einfo ]
+  (pure $!) =<< Happiness.applyStrategy strategy extra problem answer

@@ -64,6 +64,7 @@ library
     , numeric-optimization ==0.1.1.0
     , numeric-optimization-ad ==0.1.0.1
     , random
+    , split
     , time
   default-language: GHC2021
 
@@ -147,7 +148,7 @@ executable happiness
       DataKinds
       PolyKinds
       UndecidableInstances
-  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts -threaded -with-rtsopts=-qg -with-rtsopts=-N4
   build-depends:
       aeson
     , array

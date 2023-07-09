@@ -53,6 +53,7 @@ ghc-options:
 library:
   source-dirs: src
   dependencies:
+  - split
   - mwc-random
   - numeric-optimization ==0.1.1.0
   - numeric-optimization-ad ==0.1.0.1
@@ -83,8 +84,9 @@ executables:
     source-dirs:         mains
     ghc-options:
     - -rtsopts
-    # - -threaded
-    # - -with-rtsopts=-N
+    - -threaded
+    - -with-rtsopts=-qg
+    - -with-rtsopts=-N4
     dependencies:
     - icfpc2023
 
