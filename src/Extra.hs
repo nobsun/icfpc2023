@@ -66,12 +66,12 @@ mkExtra' problem pextra answer =
 mkExtra :: Problem -> Answer -> Extra
 mkExtra problem = mkExtra' problem (mkProblemExtra problem)
 
-data HappinessICompat
+data BlockTestICompat
   = IntCompat
   | NotIntCompat
   deriving Show
 
-int_compat_happiness :: Extra -> HappinessICompat
-int_compat_happiness Extra{..}
+int_compat_blocktest :: Extra -> BlockTestICompat
+int_compat_blocktest Extra{..}
   | answer_int_compat && problem_int_compat problem_extra  =  IntCompat
   | otherwise                                              =  NotIntCompat

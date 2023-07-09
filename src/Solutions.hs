@@ -35,6 +35,6 @@ calcHappiness path probNum strategy = do
   problem <- maybe (fail $ "parse error: " ++ probMark) pure =<< readProblem probNum
   answer <- maybe (fail $ "parse error: " ++ probMark) pure =<< readSolutionFile path
   let extra = mkExtra problem answer
-      icompat = int_compat_happiness extra
+      icompat = int_compat_blocktest extra
   putStrLn $ unwords ["calulating", show strategy, show icompat, "happiness:", path]
   return $! Happiness.applyStrategy strategy extra problem answer

@@ -67,7 +67,7 @@ happiness prob ans = naive (mkExtra prob ans) prob ans
 naive :: Extra -> Problem -> Answer -> Happiness
 naive extra prob ans = score
   where
-    isBlock = isBlockWith $ int_compat_happiness extra
+    isBlock = isBlockWith $ int_compat_blocktest extra
     score = sum [ impact (i, a_i) (k, inst_k, p_k)
                 | (k, inst_k, p_k) <- zip3 [0..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
                 , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
@@ -87,7 +87,7 @@ naive extra prob ans = score
         num = million_times_atnds_tastes ! i ! inst_k
         den = squareDistance p_k a_i
 
-isBlockWith :: HappinessICompat -> Placement -> Attendee -> Placement -> Bool
+isBlockWith :: BlockTestICompat -> Placement -> Attendee -> Placement -> Bool
 isBlockWith IntCompat     = isBlockInt
 isBlockWith NotIntCompat  = isBlockDouble
 
