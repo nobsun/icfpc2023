@@ -1,6 +1,6 @@
 module Solver.FrontHeat where
 
-import Data.List (sortBy)
+import Data.List (sortBy, foldl')
 import qualified Data.Map as Map
 
 import Problem
@@ -62,30 +62,26 @@ standingPositions (d, atnds) prob = map (\pos -> (pos, preferedInstrs pos (near 
     preferedInstrs :: (Double, Double) -> [Attendee] -> [(Instrument, Like)]
     preferedInstrs (x, y) = sortBy descByLike . zip [0..] . summary
       where descByLike x y = compare (snd y) (snd x)
+            n = length (tastes (head (attendees prob)))
             summary :: [Attendee] -> [Like] -- この場所で期待できる楽器ごとのインパクト
-            summary = foldr (\(Attendee x' y' ts) acc -> zipWith (calc x' y') acc ts) (repeat 0.0)
+            summary = foldr (\(Attendee x' y' ts) acc -> zipWith (calc x' y') acc ts) (replicate n 0.0)
               where
                 calc :: Double -> Double -> Double -> Double -> Double
                 calc x' y' acc t = acc + t / ((x-x')^2 + (y-y')^2)
 
-{--
+-- | とりあえず Instrument と Like のリストを全部は使いこなせないので先頭だけ使うバージョン
+--  Like で昇順ソートするので foldr で右から処理する想定
+simpleStandingPositions ::  (Double, [Attendee]) -> Problem -> [((Double, Double), Instrument, Like)]
+simpleStandingPositions xs prob
+  = sortBy (\(_,_,l1) (_,_,l2) -> compare l1 l2) $ map (\(pos, (i, l):_) -> (pos, i, l)) res
+  where res = standingPositions xs prob
 
--- | フロントヒートの好みの楽器を高いものから返す
---   数値は楽器のインデックス
-tastesOfFrontHeat :: [Attendee] -> Problem -> [Instrument]
-tastesOfFrontHeat atnds prob = map fst orders
-  where
-    ave = map (\i -> average (map (!!i) ts)) [0..n-1]
-    orders = sortBy (\x y -> compare (snd y) (snd x)) $ zip [0..] ave
-    ts = map tastes atnds
-    n = length $ head ts
-    average xs = sum xs / realToFrac (length xs)
-
--- | フロントヒートの好みの楽器を演奏するミュージシャン順に分離しつつ並べる
-popularMusicians :: Problem -> [Instrument] -> [(Instrument, [Int])]
-popularMusicians prob instrs = splitWithOrder instrs ms
+musicianDictionary :: Problem -> Map.Map Instrument [Int]
+musicianDictionary prob = Map.fromList $ splitWithOrder instrs ms
   where
     ms = zip [0..] (musicians prob)
+    instrs = [0..n-1]
+    n = length (tastes (head (attendees prob)))
 
 splitWithOrder :: [Instrument] -> [(Int, Instrument)] -> [(Instrument, [Int])]
 splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs
@@ -93,6 +89,7 @@ splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs
     seed = Map.fromList $ map (,[]) instrs
     m = foldl (\m' (i, instr) -> Map.insertWith (++) instr [i] m') seed ms
 
+{--
 matching :: [(Instrument, [Int])] -> [((Double, Double), [Instrument])] -> [(Int, (Double, Double))]
 matching ms poss = zipWith (\i (pos, _) -> (i, pos)) (concatMap snd ms) poss
 
@@ -109,4 +106,22 @@ getCandidates prob = undefined
 --}
 
 getCandidates :: SolverF
-getCandidates prob = undefined
+getCandidates prob = if Map.null ms'
+                     then Right . map snd . sortBy (\x y -> compare (fst x) (fst y)) . Map.toList $ resp
+                     else Left $ "error" ++ show (Map.elems ms')
+  where
+    (d, atnds) = decideFrontHeat 0.1 prob
+    poss = standingPositions (d, atnds) prob
+    ms = musicianDictionary prob
+    (ms', resp) = foldr f (ms, Map.empty) poss
+      where
+        f :: ((Double, Double), [(Instrument, Like)])
+          -> (Map.Map Instrument [Int], Map.Map Int (Double, Double))
+          -> (Map.Map Instrument [Int], Map.Map Int (Double, Double))
+        f (pos, (i, _):is) (ms, rs)
+          | Map.null ms = (ms, rs)
+          | otherwise = case ms Map.!? i of
+              Nothing -> f (pos, is) (ms, rs)
+              Just [] -> f (pos, is) (ms, rs)
+              Just (j:[]) -> (Map.delete i ms,    Map.insert j pos rs)
+              Just (j:js) -> (Map.insert i js ms, Map.insert j pos rs)
