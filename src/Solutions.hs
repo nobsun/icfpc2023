@@ -39,4 +39,4 @@ calcHappiness path probNum strategy = do
       einfo = pprExtraShort extra
   nthread <- getNumCapabilities
   putStrLn $ unwords [path ++ ":", "calulating", show strategy, "happiness:", "threads:" ++ show nthread, einfo ]
-  (pure $!) =<< Happiness.applyStrategy strategy extra problem answer
+  Happiness.applyStrategy strategy extra problem answer
