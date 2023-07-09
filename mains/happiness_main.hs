@@ -2,6 +2,8 @@
 import System.Environment (getArgs)
 
 import Data.Char (toLower)
+import Text.Printf (printf)
+import System.Directory
 
 import Happiness (HaStrategy (..))
 import Solutions
@@ -9,13 +11,18 @@ import Solutions
 main :: IO ()
 main = do
   args <- getArgs
-  (path, pnum, stgy) <- case args of
-    path : pnum : stgy : _ -> (,,) path <$> readIO pnum <*> getStrategy stgy
-    path : pnum : _ -> (,,) path <$> readIO pnum <*> pure Naive
+  (name, pnum, stgy) <- case args of
+    name : pnum : stgy : _ -> (,,) name <$> readIO pnum <*> getStrategy stgy
+    name : pnum : _ -> (,,) name <$> readIO pnum <*> pure Naive
     _               -> do
       usage
       putStrLn ""
-      fail "FILENAME and PROBLEM_ID required."
+      fail "NAME and PROBLEM_ID required."
+
+  isFileName <- doesFileExist name
+  let path
+        | isFileName  =  name
+        | otherwise   =  printf "solutions/%s_%03d.json" name pnum
 
   h <- calcHappiness path pnum stgy
   putStrLn $ path ++ " " ++ show pnum ++ ": " ++ show h
@@ -24,6 +31,10 @@ usage :: IO ()
 usage = do
   putStr $ unlines
     [ "Usage: happiness FILENAME PROBLEM_ID [STRATEGY_NAME]"
+    , ""
+    , "       happiness SOLVER_NAME PROBLEM_ID [STRATEGY_NAME]"
+    , ""
+    , "first check FILENAME, when not exist, try solusions/{SOLVER_NAME}_nnn.json"
     , ""
     , "supported strategies:"
     , "  naive - Naive strategy"
