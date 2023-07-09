@@ -87,12 +87,16 @@ splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs
     seed = Map.fromList $ map (,[]) instrs
     m = foldl (\m' (i, instr) -> Map.insertWith (++) instr [i] m') seed ms
 
+matching :: [(Instrument, [Int])] -> [((Double, Double), [Instrument])] -> [(Int, (Double, Double))]
+matching ms poss = zipWith (\i (pos, _) -> (i, pos)) (concatMap snd ms) poss
+
+
 getCandidates :: SolverF
 getCandidates prob = Right $ map snd res
   where
      (d, atnds) = decideFrontHeat 0.3 prob
      tofh = tastesOfFrontHeat atnds prob
      poss = standingPositions (d, atnds) prob
-     ms = concatMap snd $ popularMusicians prob tofh
-     assignment = zipWith (\i (pos, _) -> (i, pos)) ms poss
+     ms = popularMusicians prob tofh
+     assignment = matching ms poss
      res = sortBy (\x y -> compare (fst x) (fst y)) assignment
