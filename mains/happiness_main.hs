@@ -13,13 +13,22 @@ main = do
     path : pnum : stgy : _ -> (,,) path <$> readIO pnum <*> getStrategy stgy
     path : pnum : _ -> (,,) path <$> readIO pnum <*> pure Naive
     _               -> do
-      putStr $ unlines
-        [ "Usage: happiness FILENAME PROBLEM_ID"
-        , "" ]
+      usage
+      putStrLn ""
       fail "FILENAME and PROBLEM_ID required."
 
   h <- calcHappiness path pnum stgy
   putStrLn $ path ++ " " ++ show pnum ++ ": " ++ show h
+
+usage :: IO ()
+usage = do
+  putStr $ unlines
+    [ "Usage: happiness FILENAME PROBLEM_ID [STRATEGY_NAME]"
+    , ""
+    , "supported strategies:"
+    , "  naive - Naive strategy"
+    , "  wa | weighted-avg - WeightedAverage strategy"
+    ]
 
 getStrategy :: String -> IO HaStrategy
 getStrategy s =
