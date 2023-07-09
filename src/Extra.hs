@@ -28,8 +28,17 @@ mkProblemExtra Problem{..} =
     is = Set.fromList musicians
     compatA Attendee{..} = IntCompat.double x && IntCompat.double y
 
-showProblemExtra :: Int -> ProblemExtra -> String
-showProblemExtra i ProblemExtra{..} = unlines $ zipWith (++) tags bodies
+pprProblemExtraShort :: ProblemExtra -> String
+pprProblemExtraShort ProblemExtra{..} =
+  unwords
+  [ "musicians:" ++ show num_musicians
+  , "attendees:" ++ show num_attendees
+  , "instruments:" ++ show num_instruments
+  , "int_compat:" ++ show problem_int_compat
+  ]
+
+pprProblemExtra :: Int -> ProblemExtra -> String
+pprProblemExtra i ProblemExtra{..} = unlines $ zipWith (++) tags bodies
   where
     tag = printf "%3d: " i
     spc = replicate (length tag) ' '
@@ -46,7 +55,7 @@ printProblemExtras n =
   sequence_
   [ printExtra =<< readProblem i
   | i <- [1..n]
-  , let printExtra = putStr . maybe ("parse error") (showProblemExtra i . mkProblemExtra)
+  , let printExtra = putStr . maybe ("parse error") (pprProblemExtra i . mkProblemExtra)
   ]
 
 data Extra
@@ -75,3 +84,12 @@ int_compat_blocktest :: Extra -> BlockTestICompat
 int_compat_blocktest Extra{..}
   | answer_int_compat && problem_int_compat problem_extra  =  IntCompat
   | otherwise                                              =  NotIntCompat
+
+pprExtraShort :: Extra -> String
+pprExtraShort e@Extra{..} =
+  unwords
+  [ pprProblemExtraShort problem_extra
+  , "answer_valid:" ++ show answer_valid
+  , "answer_int_compat:" ++ show answer_int_compat
+  , "int_compat_blocktest:" ++ show (int_compat_blocktest e)
+  ]
