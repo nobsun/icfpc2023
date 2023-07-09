@@ -34,7 +34,7 @@ pprProblemExtraShort ProblemExtra{..} =
   [ "musicians:" ++ show num_musicians
   , "attendees:" ++ show num_attendees
   , "instruments:" ++ show num_instruments
-  , "attendees_int_compat:" ++ show attendees_int_compat
+  , "attendee-int:" ++ if attendees_int_compat then "compat" else "not-compat"
   ]
 
 pprProblemExtra :: Int -> ProblemExtra -> String
@@ -47,7 +47,7 @@ pprProblemExtra i ProblemExtra{..} = unlines $ zipWith (++) tags bodies
       [ "musicians: " ++ show num_musicians
       , "attendees: " ++ show num_attendees
       , "instruments: " ++ show num_instruments
-      , "attendees_int_compat: " ++ show attendees_int_compat
+      , "attendee-int:" ++ if attendees_int_compat then "compat" else "not-compat"
       ]
 
 printProblemExtras :: Int -> IO ()
@@ -89,7 +89,7 @@ pprExtraShort :: Extra -> String
 pprExtraShort e@Extra{..} =
   unwords
   [ pprProblemExtraShort problem_extra
-  , "answer_valid:" ++ show answer_valid
-  , "answer_int_compat:" ++ show answer_int_compat
-  , "int_compat_blocktest:" ++ show (int_compat_blocktest e)
+  , "answer:" ++ if answer_valid then "valid" else "invalid"
+  , "answer-int:" ++ if answer_int_compat then "compat" else "not-compat"
+  , "blocktest:" ++ show (int_compat_blocktest e)
   ]
