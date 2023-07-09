@@ -27,6 +27,14 @@ data Pillar
            }
   deriving (Show, Eq, Generic)
 
+pillar_center_x :: Pillar -> Double
+pillar_center_x Pillar{..} = case center of
+  (x, _y) -> x
+
+pillar_center_y :: Pillar -> Double
+pillar_center_y Pillar{..} = case center of
+  (_x, y) -> y
+
 data Problem
   = Problem { room_width        :: Double
             , room_height       :: Double
