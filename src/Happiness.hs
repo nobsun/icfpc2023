@@ -89,8 +89,10 @@ naive extra prob ans = score
         den = squareDistance p_k a_i
 
 isBlockWith :: BlockTestICompat -> AnswerCheck -> Placement -> Attendee -> Placement -> Bool
-isBlockWith IntCompat    _  = isBlockIntInvalid
-isBlockWith NotIntCompat _  = isBlockDoubleInvalid
+isBlockWith IntCompat    Valid    = isBlockInt
+isBlockWith NotIntCompat Valid    = isBlockDouble
+isBlockWith IntCompat    Invalid  = isBlockIntInvalid
+isBlockWith NotIntCompat Invalid  = isBlockDoubleInvalid
 
 -- | isBlockInt
 --   musician と attendee の直線に blocker が距離 5 以内にいる
