@@ -45,6 +45,23 @@ stageBounds prob = (left, top, right, bottom)
     (left, bottom) =  (stage_left prob, stage_bottom prob)
     (top, right) = (stage_top prob, stage_right prob)
 
+-- | ステージ上の立ち位置を返す
+--   (width, height)      ステージのサイズ
+--   (setbackX, setbackY) ステージ端から離れる必要のある距離
+--   (offsetX, offsetY)   ステージの左下の座標
+makePos :: (Double, Double) -> (Double, Double) -> (Double, Double) -> [(Double, Double)]
+makePos (width, height) (setbackX, setbackY) (offsetX, offsetY)
+  = map (\(x, y) -> (x + offsetX, y + offsetY)) $ filter inRange pos
+  where
+    inRange (x, y) = setbackX <= x && x <= width - setbackX && setbackY <= y && y <= height - setbackY
+    hs, ws :: Int
+    hs = round $ (height - 2 * setbackY) / 5.0
+    ws = round $ (width - 2 * setbackX) / (10 * sqrt 3)
+    pos = [conv (x, y) | x <- [0..ws], y <- [0..hs]]
+      where
+        -- sqrt 3 だと誤差のためミュージシャンが too closed になるので sqrt 3.1 にしている
+        conv (x, y) = ( setbackX + 10 * sqrt 3.1 * fromIntegral x + if odd y then 5 * sqrt 3.1 else 0
+                      , setbackY + 5 * fromIntegral y)
 
 -- | ステージ上の立てる場所を返す
 --   それぞれの場所について、その場所にいる人たちの好みの楽器を高い順に並べる
@@ -55,11 +72,7 @@ standingPositions (d, atnds) prob
     $ map (\pos -> (pos, preferedInstrs pos (near pos atnds))) poss
   where
     (w, n, e, s) = stageBounds prob
-    poss = [ (x, y)
-           | x <- [w+10.0, w+20.0 .. e-10.0]
-           , y <- [s+10.0, s+20.0 .. n-10.0]
-           , x <= e-10.0 && y <= n-10.0 -- Double なのでこれがないと誤差でステージに近すぎる場合が出る
-           ]
+    poss = makePos (e-w, n-s) (10.0, 10.0) (w, s)
     near (x, y) = filter (\(Attendee x' y' _) -> (x-x')^2 + (y-y')^2 <= (d+10)^2)
     preferedInstrs :: (Double, Double) -> [Attendee] -> [(Instrument, Like)]
     preferedInstrs (x, y) = sortBy descByLike . zip [0..] . summary
