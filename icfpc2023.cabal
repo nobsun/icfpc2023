@@ -63,6 +63,7 @@ library
     , mwc-random
     , numeric-optimization ==0.1.1.0
     , numeric-optimization-ad ==0.1.0.1
+    , process
     , random
     , split
     , time
@@ -97,6 +98,7 @@ executable draw-problem
     , icfpc2023
     , optparse-applicative
     , primitive
+    , process
     , random
     , time
   default-language: GHC2021
@@ -128,6 +130,7 @@ executable eval
     , filepath
     , icfpc2023
     , optparse-applicative
+    , process
     , random
     , time
   default-language: GHC2021
@@ -158,6 +161,7 @@ executable happiness
     , directory
     , filepath
     , icfpc2023
+    , process
     , random
     , time
   default-language: GHC2021
@@ -188,6 +192,7 @@ executable icfpc2023
     , directory
     , filepath
     , icfpc2023
+    , process
     , random
     , time
   default-language: GHC2021
@@ -218,6 +223,7 @@ executable solve
     , directory
     , filepath
     , icfpc2023
+    , process
     , random
     , time
   default-language: GHC2021
@@ -248,6 +254,7 @@ test-suite icfpc2023-doctest
     , doctest
     , filepath
     , icfpc2023
+    , process
     , random
     , time
   default-language: GHC2021
@@ -284,6 +291,7 @@ test-suite icfpc2023-test
     , hspec
     , icfpc2023
     , main-tester
+    , process
     , random
     , time
   default-language: GHC2021
