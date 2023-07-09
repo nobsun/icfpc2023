@@ -70,7 +70,7 @@ tastesOfFrontHeat :: [Attendee] -> Problem -> [Instrument]
 tastesOfFrontHeat atnds prob = map fst orders
   where
     ave = map (\i -> average (map (!!i) ts)) [0..n-1]
-    orders = sortBy (\x y -> compare (snd y) (snd x)) $ zip (repeat 0) ave
+    orders = sortBy (\x y -> compare (snd y) (snd x)) $ zip [0..] ave
     ts = map tastes atnds
     n = length $ head ts
     average xs = sum xs / realToFrac (length xs)
@@ -90,7 +90,7 @@ splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs
 getCandidates :: SolverF
 getCandidates prob = Right $ map snd res
   where
-     (d, atnds) = decideFrontHeat 0.1 prob
+     (d, atnds) = decideFrontHeat 0.3 prob
      tofh = tastesOfFrontHeat atnds prob
      poss = standingPositions (d, atnds) prob
      ms = concatMap snd $ popularMusicians prob tofh
