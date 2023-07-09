@@ -4,7 +4,7 @@ module Happiness where
 import Control.Concurrent (newChan, writeChan, readChan, forkIO, getNumCapabilities)
 import Control.Monad
 import Data.Array (Array)
-import Data.Array.IArray ((!), listArray)
+import Data.Array.IArray ((!))
 import Data.Array.Unboxed (UArray)
 import Data.List.Split (chunksOf)
 
@@ -26,18 +26,20 @@ applyStrategy :: HaStrategy -> Extra -> Problem -> Answer -> IO Happiness
 applyStrategy s e p a = (pure $!) =<< applyStrategyZ s e p a
 
 applyStrategyZ :: HaStrategy -> Extra -> Problem -> Answer -> IO Happiness
-applyStrategyZ Naive e p a = pure $ naive e p a
+applyStrategyZ Naive e p a = naive e p a
 applyStrategyZ Parallel e p a = withQueue e p a
-applyStrategyZ WeightedAverage e p a = pure $ weightedAverage e p a
+applyStrategyZ WeightedAverage e p a = weightedAverage e p a
 
 squareDistance :: Placement -> Attendee -> Double
 squareDistance (Placement x1 y1) (Attendee x2 y2 _) = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
 
-weightedAverageHappiness :: Problem -> Answer -> Happiness
-weightedAverageHappiness prob ans = weightedAverage (mkExtra prob ans) prob ans
+weightedAverageHappiness :: Problem -> Answer -> IO Happiness
+weightedAverageHappiness prob ans = do
+  extra <- mkExtra prob ans
+  weightedAverage extra prob ans
 
-weightedAverage :: Extra -> Problem -> Answer -> Happiness
-weightedAverage extra prob ans = score
+weightedAverage :: Extra -> Problem -> Answer -> IO Happiness
+weightedAverage extra prob ans = pure score
   where
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
     score = sum [ impact 0 k
@@ -67,12 +69,14 @@ weightedAverage extra prob ans = score
         num = 1e6 * (tastes (atnds !! i) !! (musicians prob !! k))
         den = squareDistance (ms !! k) (atnds !! i)
 
-happiness :: Problem -> Answer -> Happiness
-happiness prob ans = naive (mkExtra prob ans) prob ans
+happiness :: Problem -> Answer -> IO Happiness
+happiness prob ans = do
+  extra <- mkExtra prob ans
+  naive extra prob ans
 
 -- | calculate happiness along with spec
-naive :: Extra -> Problem -> Answer -> Happiness
-naive extra prob ans = score
+naive :: Extra -> Problem -> Answer -> IO Happiness
+naive extra prob ans = pure score
   where
     isBlock :: Obstacle o => Placement -> Attendee -> o -> Bool
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
@@ -85,16 +89,9 @@ naive extra prob ans = score
     ms = placements ans
     plrs = pillars prob
 
-    {- each tastes times 1,000,000 memos -}
-    million_times_tastes :: Attendee -> UArray Int Double
-    million_times_tastes a = listArray (0, length ts - 1) $ map (1e6 *) ts  where ts = tastes a
-
-    million_times_atnds_tastes :: Array Int (UArray Int Double)
-    million_times_atnds_tastes = listArray (0, length atnds - 1) $ map million_times_tastes atnds
-
     impact (i, a_i) (_k, inst_k, p_k) = ceiling $ num / den
       where
-        num = million_times_atnds_tastes ! i ! inst_k
+        num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
         den = squareDistance p_k a_i
 
 withQueue :: Extra -> Problem -> Answer -> IO Happiness
@@ -137,16 +134,9 @@ withQueue extra prob ans = do
     ms = placements ans
     plrs = pillars prob
 
-    {- each tastes times 1,000,000 memos -}
-    million_times_tastes :: Attendee -> UArray Int Double
-    million_times_tastes a = listArray (0, length ts - 1) $ map (1e6 *) ts  where ts = tastes a
-
-    million_times_atnds_tastes :: Array Int (UArray Int Double)
-    million_times_atnds_tastes = listArray (0, length atnds - 1) $ map million_times_tastes atnds
-
     impact (i, a_i) (_k, inst_k, p_k) = ceiling $ num / den
       where
-        num = million_times_atnds_tastes ! i ! inst_k
+        num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
         den = squareDistance p_k a_i
 
 isBlockWith :: Obstacle o => BlockTestICompat -> AnswerCheck -> Placement -> Attendee -> o -> Bool

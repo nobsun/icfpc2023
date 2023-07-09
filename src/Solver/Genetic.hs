@@ -13,7 +13,8 @@ import Debug.Trace
 
 import Problem (Problem(..), Attendee(..))
 import Answer (Answer(..), Placement(..))
-import Happiness (Happiness, weightedAverageHappiness)
+import Extra
+import Happiness (Happiness, weightedAverage)
 import Solver (SolverF)
 
 
@@ -32,24 +33,26 @@ getCandidatesIO problem@(Problem{stage_width=w, stage_height=h ,stage_bottom_lef
   putStrLn $ "stage-width: "++show w++", stage_height: "++show h++", musicians: "++show nMusician
   putStrLn $ "generating initial placement randomly"
   initials <- sequence $ take 2 $ repeat $ randomPlace problem (zip[0..nMusician-1](repeat undefined)) []
-  print (initials!!0 == initials!!1)
-  putStrLn $ "happiness: "++ show[happiness problem i | i<-initials]
-  descendant <- go 2 initials
+  extra <- mkExtra problem (toAnswer (initials!!0))
+  initHappiness <- sequence[happiness extra problem i | i<-initials]
+  putStrLn $ "happiness: "++ show initHappiness
+  descendant <- go 2 extra initials
   -- descendant is sorted desc by happiness
   return $ Right (head descendant)
   where
     nMusician :: Int
     nMusician = length ms
 
-    go :: Double -> [[Point]] -> IO [[Point]]
-    go count cands | count >= 16 = return cands
-                   | otherwise  = do
+    go :: Double -> Extra -> [[Point]] -> IO [[Point]]
+    go count extra cands | count >= 16 = return cands
+                         | otherwise  = do
       putStrLn $ "count: " ++ show count
       putStrLn "creating children..."
       children <- genetic count cands
-      let hchildren = sortBy (flip compare`on`fst)[(happiness problem c, c) | c<-children]
+      happy <- sequence[happiness extra problem c | c<-children]
+      let hchildren = sortBy (flip compare`on`fst) (zip happy children)
       putStrLn $ "happiness: "++show (map fst hchildren)
-      go (count+2) (map snd $ take 2 hchildren)
+      go (count+2) extra (map snd $ take 2 hchildren)
 
     genetic :: Double -> [[Point]] -> IO [[Point]]
     genetic count cands = do
@@ -69,11 +72,15 @@ splitBy _ [] = []
 splitBy n xs =
   let (as,bs) = splitAt n xs in as : splitBy n bs
 
-happiness :: Problem -> [Point] -> Happiness
-happiness problem cands =
-  weightedAverageHappiness problem answer
+toAnswer :: [Point] -> Answer
+toAnswer ms = Answer{placements=[Placement x y |(x,y)<-ms]}
+
+happiness :: Extra -> Problem -> [Point] -> IO Happiness
+happiness extra problem ms =
+  weightedAverage extra' problem answer
   where
-    answer = Answer{placements=[Placement x y |(x,y)<-cands]}
+    extra' = updateExtra problem answer extra
+    answer = toAnswer ms
 
 -- randomly add musicians(targets) to the given placement(initial).
 randomPlace :: Problem -> [(Int,Point)] -> [(Int,Point)] -> IO [Point]

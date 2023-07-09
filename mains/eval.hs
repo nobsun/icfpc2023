@@ -38,5 +38,6 @@ main = do
   opt <- execParser parserInfo
   Just prob <- readProblem (optProblemNo opt)
   Just (ans :: Answer) <- decode <$> BL.readFile (optSolutionFile opt)
-  putStrLn $ "score: " ++ show (happiness prob ans)
+  score <- happiness prob ans
+  putStrLn $ "score: " ++ show score
   putStrLn $ "valid: " ++ show (isValidAnswer prob ans)

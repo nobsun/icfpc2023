@@ -30,8 +30,8 @@ tryToSubmit probNum sols = do
 tryToSubmit' :: Int -> Problem -> [(Answer, FilePath)] -> IO ()
 tryToSubmit' probNum problem answers = do
   let calcH p@(ans, path) = do
-        let extra = mkExtra problem ans
-            einfo = pprExtraShort extra
+        extra <- mkExtra problem ans
+        let einfo = pprExtraShort extra
             strategy = Parallel
         putStrLn $ unwords [path ++ ":", "calulating", show strategy, "happiness:", einfo ]
         h <- Happiness.applyStrategy strategy extra problem ans

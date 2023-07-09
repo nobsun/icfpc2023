@@ -35,8 +35,8 @@ calcHappiness path probNum strategy = do
   let probMark = "problem " ++ show probNum
   problem <- maybe (fail $ "parse error: " ++ probMark) pure =<< readProblem probNum
   answer <- maybe (fail $ "parse error: " ++ probMark) pure =<< readSolutionFile path
-  let extra = mkExtra problem answer
-      einfo = pprExtraShort extra
+  extra <- mkExtra problem answer
+  let einfo = pprExtraShort extra
   nthread <- getNumCapabilities
   putStrLn $ unwords [path ++ ":", "calulating", show strategy, "happiness:", "threads:" ++ show nthread, einfo ]
   Happiness.applyStrategy strategy extra problem answer
