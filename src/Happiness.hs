@@ -31,11 +31,12 @@ weightedAverageHappiness :: Problem -> Answer -> Happiness
 weightedAverageHappiness prob ans = weightedAverage (mkExtra prob ans) prob ans
 
 weightedAverage :: Extra -> Problem -> Answer -> Happiness
-weightedAverage _extra prob ans = score
+weightedAverage extra prob ans = score
   where
+    isBlock = isBlockWith $ int_compat_blocktest extra
     score = sum [ impact 0 k
                 | k <- [0..length ms-1], j <- [0..length ms-1]
-                , not $ isBlockWith NotIntCompat (ms !! k) (atnds !! 0) (ms !! j)
+                , not $ isBlock (ms !! k) (atnds !! 0) (ms !! j)
                 ]
     atnds = [Attendee centerX centerY waTaste]
     ms = placements ans
