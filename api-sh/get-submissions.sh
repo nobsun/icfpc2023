@@ -2,7 +2,7 @@
 
 usage() {
     cat <<EOF
-Usage: $0 PROBLEM_ID
+Usage: $0 PROBLEM_ID [LIMIT]
 EOF
 }
 
@@ -18,5 +18,11 @@ if [ x"$problem_id" = x ]; then
     exit 1
 fi
 
+limit=10
+
+if [ x"$2" != x ]; then
+    limit=$2
+fi
+
 curl -H "Authorization: Bearer ${API_TOKEN}" \
-     https://api.icfpcontest.com/submissions"?offset=0&limit=10&problem_id=${problem_id}"
+     https://api.icfpcontest.com/submissions"?offset=0&limit=${limit}&problem_id=${problem_id}"
