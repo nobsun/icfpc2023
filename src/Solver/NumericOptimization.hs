@@ -34,8 +34,9 @@ getCandidatesIO problem = do
       f x = traceShow (y1,y2,y) $ y
         where
           y = y1 + y2
-          y1 = - happiness problem x
-          y2 = realToFrac weight * penalty x
+          -- y1 = - happiness problem x
+          y1 = 0
+          y2 = {- realToFrac weight * -} penalty x
 
       penalty :: (RealFrac a, Floating a) => P a -> a
       penalty (P ms) = sum
