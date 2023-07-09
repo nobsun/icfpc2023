@@ -2,7 +2,6 @@
 -- extra metadata for Problem and Answer
 module Extra where
 
-import qualified Data.Set as Set
 import Text.Printf (printf)
 
 import qualified IntCompat
@@ -21,11 +20,10 @@ mkProblemExtra Problem{..} =
   ProblemExtra
   { num_musicians = length musicians
   , num_attendees = length attendees
-  , num_instruments = Set.size is
+  , num_instruments = maximum (0 : musicians) + 1
   , attendees_int_compat = all compatA attendees
   }
   where
-    is = Set.fromList musicians
     compatA Attendee{..} = IntCompat.double x && IntCompat.double y
 
 pprProblemExtraShort :: ProblemExtra -> String
