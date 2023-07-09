@@ -26,22 +26,23 @@ data P a = P [(a, a)]
 getCandidatesIO :: Problem -> IO (Either String [(Double, Double)])
 getCandidatesIO problem = do
   let numMusicians = length (musicians problem)
-      averageTaste = sum ts / fromIntegral (length ts)
-        where
-          ts = [abs (realToFrac like :: Double) | attendee <- Problem.attendees problem, like <- Problem.tastes attendee]
+
+      weight :: Double
+      weight = 1e6 * sum [abs like | attendee <- Problem.attendees problem, like <- Problem.tastes attendee]
 
   let f :: (RealFrac a, Floating a, Show a) => P a -> a
       f x = traceShow (y1,y2,y) $ y
         where
           y = y1 + y2
           y1 = - happiness problem x
-          y2 = penalty x
+          y2 = realToFrac weight * penalty x
 
       penalty :: (RealFrac a, Floating a) => P a -> a
       penalty (P ms) = sum
-        [ realToFrac (1e6 * (10 * averageTaste) * 10^(2::Int)) / (d2 + eps)
+        [ 1 / (d2 / 100 + eps)
         | ((x1,y1), (x2,y2)) <- pairs ms
         , let d2 = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
+        , d2 < 100
         ]
         where
           eps = 1e-6
