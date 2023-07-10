@@ -104,6 +104,17 @@ executables:
     dependencies:
     - icfpc2023
 
+  problem-submit:
+    main:                problem-submit.hs
+    source-dirs:         mains
+    ghc-options:
+    - -rtsopts
+    - -threaded
+    - -with-rtsopts=-qg
+    - -with-rtsopts=-N4
+    dependencies:
+    - icfpc2023
+
   draw-problem:
     main:                draw-problem.hs
     source-dirs:         mains
