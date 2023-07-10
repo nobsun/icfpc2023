@@ -6,6 +6,8 @@ import Data.Array (Array)
 import Data.Array.IArray ((!), listArray)
 import Data.Array.Unboxed (UArray)
 import Data.Function (on)
+import Data.IntMap.Strict (IntMap)
+import qualified Data.IntMap.Strict as IntMap
 import Data.List (sortBy, groupBy)
 import Data.IORef (IORef, newIORef)
 import Text.Printf (printf)
@@ -28,10 +30,10 @@ mkProblemExtra Problem{..} =
   ProblemExtra
   { num_musicians = length musicians
   , num_attendees = length attendees
-  , num_instruments = maximum (0 : musicians) + 1
+  , num_instruments = num_instruments
   , attendees_int_compat = all compatA attendees
   , million_times_atnds_tastes = listArray (0, length attendees - 1) $ map million_times_tastes attendees
-  , same_inst_musicians = listArray (0, length musicians - 1) group_by_inst
+  , same_inst_musicians = same_inst_musicians
   }
   where
     compatA Attendee{..} = IntCompat.double x && IntCompat.double y
@@ -40,7 +42,11 @@ mkProblemExtra Problem{..} =
     million_times_tastes :: Attendee -> UArray Int Double
     million_times_tastes a = listArray (0, length ts - 1) $ map (1e6 *) ts  where ts = tastes a
 
-    group_by_inst = map (map fst) $ groupBy ((==)`on`snd) $ sortBy (compare`on`snd) $ zip [0..] musicians
+    num_instruments = maximum (0 : musicians) + 1
+
+    same_inst_musicians = listArray (0, num_instruments - 1) [IntMap.findWithDefault [] inst m | inst <- [0 .. num_instruments - 1]]
+      where
+        m = IntMap.fromListWith (++) $ zip musicians $ map (\k -> [k]) [0..]
 
 
 pprProblemExtraShort :: ProblemExtra -> String

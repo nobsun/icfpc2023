@@ -95,14 +95,16 @@ naive extra prob ans = pure score
     insts = musicians prob
     plrs = pillars prob
 
-    impact (i, a_i) (_k, inst_k, p_k) = ceiling $ (closeness * num) / den
+    impact (i, a_i) (k, inst_k, p_k)
+      | isFullDivisionProblem prob = ceiling $ closeness * fromIntegral (ceiling (num / den) :: Happiness)
+      | otherwise = ceiling (num / den)
       where
-        num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
+        num = (million_times_atnds_tastes.problem_extra $ extra) ! i ! inst_k
         den = squareDistance p_k a_i
         closeness = 1 + 
-          sum[ 1/(squareDistance p_k (ms_ar!j))
-             | inst<-insts, inst/=inst_k
-             , j <-(same_inst_musicians.problem_extra $ extra)! inst
+          sum[ 1 / squareDistance p_k (ms_ar!j)
+             | j <- (same_inst_musicians.problem_extra $ extra) ! inst_k
+             , k /= j
              ]
 
 withQueue :: Extra -> Problem -> Answer -> IO Happiness
