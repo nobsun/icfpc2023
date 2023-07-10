@@ -104,10 +104,11 @@ getCandidates prob = if Map.null ms'
         f :: ((Double, Double), [(Instrument, Like)])
           -> (Map.Map Instrument [Int], Map.Map Int ((Double, Double), Double))
           -> (Map.Map Instrument [Int], Map.Map Int ((Double, Double), Double))
-        f (pos, (i, _):is) (ms, rs)
+        f (pos, (i, l):is) (ms, rs)
           | Map.null ms = (ms, rs)
           | otherwise = case ms Map.!? i of
               Nothing -> f (pos, is) (ms, rs)
               Just [] -> f (pos, is) (ms, rs)
-              Just (j:[]) -> (Map.delete i ms,    Map.insert j (pos, 1.0) rs)
-              Just (j:js) -> (Map.insert i js ms, Map.insert j (pos, 1.0) rs)
+              Just (j:[]) -> (Map.delete i ms,    Map.insert j (pos, volume) rs)
+              Just (j:js) -> (Map.insert i js ms, Map.insert j (pos, volume) rs)
+          where volume = if l < 0.0 then 0.0 else 10.0
