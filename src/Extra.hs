@@ -16,27 +16,37 @@ import qualified IntCompat
 import Problem
 import Answer
 
+data Division
+  = Lightening
+  | Full
+  deriving (Eq, Show)
+
 data ProblemExtra
-  = ProblemExtra { num_musicians :: Int
+  = ProblemExtra { division :: Division
+                 , num_musicians :: Int
                  , num_attendees :: Int
                  , num_instruments :: Int
                  , attendees_int_compat :: Bool
+                 , pillars_int_compat :: Bool
                  , million_times_atnds_tastes :: Array Int (UArray Int Double)
                  , same_inst_musicians :: Array Instrument [Int]
                  } deriving Show
 
 mkProblemExtra :: Problem -> ProblemExtra
-mkProblemExtra Problem{..} =
+mkProblemExtra p@Problem{..} =
   ProblemExtra
-  { num_musicians = length musicians
+  { division = if isFullDivisionProblem p then Full else Lightening
+  , num_musicians = length musicians
   , num_attendees = length attendees
   , num_instruments = num_instruments
   , attendees_int_compat = all compatA attendees
+  , pillars_int_compat = all compatP pillars
   , million_times_atnds_tastes = listArray (0, length attendees - 1) $ map million_times_tastes attendees
   , same_inst_musicians = same_inst_musicians
   }
   where
     compatA Attendee{..} = IntCompat.double x && IntCompat.double y
+    compatP Pillar{..} = IntCompat.double (fst center) && IntCompat.double (snd center) && IntCompat.double radius
 
     {- each tastes times 1,000,000 memos -}
     million_times_tastes :: Attendee -> UArray Int Double
@@ -65,7 +75,8 @@ listProblemExtra ProblemExtra{..} =
   , "attendees: " ++ show num_attendees
   , "instruments: " ++ show num_instruments
   , "attendee-int:" ++ if attendees_int_compat then "compat" else "not-compat"
-  ]
+  ] ++
+  [ "pillars-int:" ++ if pillars_int_compat then "compat" else "not-compat" | Full <- [division] ]
 
 printProblemExtras :: Int -> IO ()
 printProblemExtras n =
@@ -117,8 +128,11 @@ data BlockTestICompat
 
 int_compat_blocktest :: Extra -> BlockTestICompat
 int_compat_blocktest Extra{..}
-  | answer_int_compat && attendees_int_compat problem_extra  =  IntCompat
-  | otherwise                                              =  NotIntCompat
+  | answer_int_compat, Full <- division, attendees_int_compat, pillars_int_compat  =  IntCompat
+  | answer_int_compat, Lightening <- division, attendees_int_compat                =  IntCompat
+  | otherwise                                                                      =  NotIntCompat
+  where
+    ProblemExtra{..} = problem_extra
 
 pprExtraShort :: Extra -> String
 pprExtraShort e@Extra{..} =
