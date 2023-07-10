@@ -16,72 +16,72 @@ type Point = (Double, Double)
 -- 辺上にいるミュージシャンの影響を及ぼす範囲
 --
 --  西に配置されたミュージシャン (x0, y0) が影響を与える観客の条件:
---     - sqrt 3 (x - x0) - (y - y0) >= 0
---     - sqrt 3 (x - x0) + (y - y0) <= 0
+--   * (y - y0) + sqrt 3 (x - x0) <= 0
+--   * (y - y0) - sqrt 3 (x - x0) >= 0
 --  北に配置されたミュージシャン (x0, y0) が影響を与える観客の条件:
---     - (x - x0) - sqrt 3 (y - y0) >= 0
---     - (x - x0) + sqrt 3 (y - y0) >= 0
+--   * sqrt 3 (y - y0) + (x - x0) >= 0
+--   * sqrt 3 (y - y0) - (x - x0) >= 0
 --  東に配置されたミュージシャン (x0, y0) が影響を与える観客の条件:
---     - sqrt 3 (x - x0) - (y - y0) <= 0
---     - sqrt 3 (x - x0) + (y - y0) >= 0
+--   * (y - y0) + sqrt 3 (x - x0) >= 0
+--   * (y - y0) - sqrt 3 (x - x0) <= 0
 --  南に配置されたミュージシャン (x0, y0) が影響を与える観客の条件:
---     - (x - x0) - sqrt 3 (y - y0) <= 0
---     - (x - x0) + sqrt 3 (y - y0) <= 0
+--   * sqrt 3 (y - y0) + (x - x0) <= 0
+--   * sqrt 3 (y - y0) - (x - x0) <= 0
 --
 -- 角にいるミュージシャンの影響を及ぼす範囲
 --
--- 北西に配置されたミュージシャン (x0, y0) が影響を与える観客の条件:
---     - (x - x0) - sqrt 3 (y - y0) >= 0
---     - sqrt 3 (x - x0) - (y - y0) >= 0
--- 北東に配置されたミュージシャン (x0, y0) が影響を与える観客の条件:
---     - (x - x0) + sqrt 3 (y - y0) >= 0
---     - sqrt 3 (x - x0) + (y - y0) >= 0
--- 南東に配置されたミュージシャン (x0, y0) が影響を与える観客の条件:
---     - sqrt 3 (x - x0) - (y - y0) <= 0
---     - (x - x0) - sqrt 3 (y - y0) <= 0
--- 南西に配置されたミュージシャン (x0, y0) が影響を与える観客の条件:
---     - sqrt 3 (x - x0) + (y - y0) <= 0
---     - (x - x0) + sqrt 3 (y - y0) <= 0
+--  北西に配置されたミュージシャン (x0, y0) が影響を与える観客の条件:
+--   * sqrt 3 (y - y0) - (x - x0) >= 0
+--   * (y - y0) - sqrt 3 (x - x0) >= 0
+--  北東に配置されたミュージシャン (x0, y0) が影響を与える観客の条件:
+--   * sqrt 3 (y - y0) + (x - x0) >= 0
+--   * (y - y0) + sqrt 3 (x - x0) >= 0
+--  南東に配置されたミュージシャン (x0, y0) が影響を与える観客の条件:
+--   * sqrt 3 (y - y0) - (x - x0) <= 0
+--   * (y - y0) - sqrt 3 (x - x0) <= 0
+--  南西に配置されたミュージシャン (x0, y0) が影響を与える観客の条件:
+--   * sqrt 3 (y - y0) + (x - x0) <= 0
+--   * (y - y0) + sqrt 3 (x - x0) <= 0
 
 inRangeOfWestMusician :: Point -> Attendee -> Bool
 inRangeOfWestMusician (x0, y0) (Attendee x y _) =
-  sqrt 3 * (x - x0) - (y - y0) >= 0 &&
-  sqrt 3 * (x - x0) + (y - y0) <= 0
+  (y - y0) + sqrt 3 * (x - x0) <= 0 &&
+  (y - y0) - sqrt 3 * (x - x0) >= 0
 
 inRangeOfNorthMusician :: Point -> Attendee -> Bool
 inRangeOfNorthMusician (x0, y0) (Attendee x y _) =
-  (x - x0) - sqrt 3 * (y - y0) >= 0 &&
-  (x - x0) + sqrt 3 * (y - y0) >= 0
+  sqrt 3 * (y - y0) + (x - x0) >= 0 &&
+  sqrt 3 * (y - y0) - (x - x0) >= 0
 
 inRangeOfEastMusician :: Point -> Attendee -> Bool
 inRangeOfEastMusician (x0, y0) (Attendee x y _) =
-  sqrt 3 * (x - x0) - (y - y0) <= 0 &&
-  sqrt 3 * (x - x0) + (y - y0) >= 0
+  (y - y0) + sqrt 3 * (x - x0) >= 0 &&
+  (y - y0) - sqrt 3 * (x - x0) <= 0
 
 inRangeOfSouthMusician :: Point -> Attendee -> Bool
 inRangeOfSouthMusician (x0, y0) (Attendee x y _) =
-  (x - x0) - sqrt 3 * (y - y0) <= 0 &&
-  (x - x0) + sqrt 3 * (y - y0) <= 0
+  sqrt 3 * (y - y0) + (x - x0) <= 0 &&
+  sqrt 3 * (y - y0) - (x - x0) <= 0
 
 inRangeOfNorthWestMusician :: Point -> Attendee -> Bool
 inRangeOfNorthWestMusician (x0, y0) (Attendee x y _) =
-  (x - x0) - sqrt 3 * (y - y0) >= 0 &&
-  sqrt 3 * (x - x0) - (y - y0) >= 0
+  sqrt 3 * (y - y0) - (x - x0) >= 0 &&
+  (y - y0) - sqrt 3 * (x - x0) >= 0
 
 inRangeOfNorthEastMusician :: Point -> Attendee -> Bool
 inRangeOfNorthEastMusician (x0, y0) (Attendee x y _) =
-  (x - x0) + sqrt 3 * (y - y0) >= 0 &&
-  sqrt 3 * (x - x0) + (y - y0) >= 0
+  sqrt 3 * (y - y0) + (x - x0) >= 0 &&
+  (y - y0) + sqrt 3 * (x - x0) >= 0
 
 inRangeOfSouthEastMusician :: Point -> Attendee -> Bool
 inRangeOfSouthEastMusician (x0, y0) (Attendee x y _) =
-  sqrt 3 * (x - x0) - (y - y0) <= 0 &&
-  (x - x0) - sqrt 3 * (y - y0) <= 0
+  sqrt 3 * (y - y0) - (x - x0) <= 0 &&
+  (y - y0) - sqrt 3 * (x - x0) <= 0
 
 inRangeOfSouthWestMusician :: Point -> Attendee -> Bool
 inRangeOfSouthWestMusician (x0, y0) (Attendee x y _) =
-  sqrt 3 * (x - x0) + (y - y0) <= 0 &&
-  (x - x0) + sqrt 3 * (y - y0) <= 0
+  sqrt 3 * (y - y0) + (x - x0) <= 0 &&
+  (y - y0) + sqrt 3 * (x - x0) <= 0
 
 stageBounds :: Problem -> (Double, Double, Double, Double)
 stageBounds prob = (left, top, right, bottom)
@@ -183,3 +183,49 @@ attendeesForPositions prob
 
 getCandidates :: SolverF
 getCandidates prob = undefined
+
+
+_sampleProblem :: Problem
+_sampleProblem
+  = Problem { room_width = 100.0
+            , room_height = 100.0
+            , stage_width = 80.0
+            , stage_height = 80.0
+            , stage_bottom_left = (10.0, 10.0)
+            , musicians = []
+            , attendees = [ Attendee { x = 5.0
+                                     , y = 5.0
+                                     , tastes = []
+                                     }
+                          , Attendee { x = 5.0
+                                     , y = 50.0
+                                     , tastes = []
+                                     }
+                          , Attendee { x = 5.0
+                                     , y = 95.0
+                                     , tastes = []
+                                     }
+                          , Attendee { x = 50.0
+                                     , y = 5.0
+                                     , tastes = []
+                                     }
+                          , Attendee { x = 50.0
+                                     , y = 95.0
+                                     , tastes = []
+                                     }
+                          , Attendee { x = 95.0
+                                     , y = 5.0
+                                     , tastes = []
+                                     }
+                          , Attendee { x = 95.0
+                                     , y = 50.0
+                                     , tastes = []
+                                     }
+                          , Attendee { x = 95.0
+                                     , y = 95.0
+                                     , tastes = []
+                                     }
+                          ]
+            , pillars = []
+            }
+  
