@@ -16,6 +16,12 @@ import PastSubmissions
 import Happiness
 import Solutions
 
+trySubmitHeuristic :: FilePath -> IO ()
+trySubmitHeuristic path =
+  case fromFilenameHeulistic path of
+    Nothing         -> putStrLn $ "fail to delect PROBLEM_ID: " ++ path
+    Just (_, pnum)  -> tryToSubmit pnum [path]
+
 tryToSubmit :: Int -> [FilePath] -> IO ()
 tryToSubmit _ [] = putStrLn "tryToSubmit: null input"
 tryToSubmit probNum sols = do
