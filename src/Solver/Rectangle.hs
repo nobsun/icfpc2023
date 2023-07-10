@@ -253,8 +253,8 @@ pillarsForPositions prob
     innerPlrs :: [((Point, Direction), [Pillar])]
     innerPlrs = map (\pd@(p, _) -> (pd, [])) innerPoss
 
-expectHappiness :: Problem -> Point -> [Attendee] -> [Like]
-expectHappiness prob (x0, y0) atnds = foldr expect (replicate n 0.0) atnds
+expectHappiness :: Problem -> Point -> [Attendee] -> [Pillar] -> [Like]
+expectHappiness prob (x0, y0) atnds plrs = foldr expect (replicate n 0.0) atnds
   where
     n = length (tastes (head (attendees prob)))
     expect (Attendee x y ts) acc = zipWith (calcHappiness (x0, y0) (x, y)) acc ts
@@ -281,11 +281,16 @@ standingPositions prob = sortBy comp nonInners ++ inners
          -> ((Point, Direction), [(Instrument, Like)])
          -> Ordering
     comp (_, (_, l1):_) (_, (_, l2):_) = compare l2 l1
+    poss :: Map.Map (Point, Direction) [Attendee]
     poss = attendeesForPositions prob
+    plrs :: Map.Map  (Point, Direction) [Pillar]
+    plrs = pillarsForPositions prob
     exps :: Map.Map (Point, Direction) [(Instrument, Like)]
     exps = Map.mapWithKey f poss
       where
-        f (p, _) as = prefer $ expectHappiness prob p as
+        f :: (Point, Direction) -> [Attendee] -> [(Instrument, Like)]
+        f pd@(p, _) as = prefer $ expectHappiness prob p as ps
+          where ps = plrs Map.! pd
         prefer :: [Like] -> [(Instrument, Like)]
         prefer ls = sortBy (\x y -> compare (snd y) (snd x)) (zip [0..] ls)
     (nonInners, inners) = partition (\((_, d), _) -> d /= Inner) $ Map.toList exps
