@@ -47,7 +47,7 @@ main = do
   -- stage
   forM_ [floor x0 .. ceiling (x0 + stage_width prob)] $ \x ->
     forM_ [floor y0 .. ceiling (y0 + stage_height prob)] $ \y ->
-      writePixelBT img x y (PixelRGBA8 0 0 0 255)
+      writePixelBT img x y (PixelRGBA8 180 180 180 255)
 
   -- attendees
   forM_ (attendees prob) $ \Attendee{ x = x, y = y } -> do
