@@ -73,6 +73,13 @@ stage_bottom Problem{..} = case stage_bottom_left of
 stage_top :: Problem -> Double
 stage_top Problem{..} = stage_bottom Problem{..} + stage_height
 
+-- | Full division かどうかの判定
+--
+-- \"Playing Together\" を有効にするかの判定に利用することを想定。
+-- 今のところ full division の問題では pillars が非空なので、それで判定。
+isFullDivisionProblem :: Problem -> Bool
+isFullDivisionProblem Problem{..} = not (null pillars)
+
 instance ToJSON Attendee
 instance FromJSON Attendee
 instance ToJSON Pillar
