@@ -3,6 +3,7 @@
 module Answer
   ( Placement (..)
   , Answer (..)
+  , normalVolumes
   , isValidAnswer
   , isIntCompatAnswer
   ) where
@@ -31,6 +32,11 @@ data Answer
            , volumes    :: Maybe [Double]
            }
   deriving (Show, Eq, Generic)
+
+normalVolumes :: [Double] -> Maybe [Double]
+normalVolumes vs
+  | null vs = Nothing
+  | otherwise = Just vs
 
 instance ToJSON Placement
 instance FromJSON Placement
