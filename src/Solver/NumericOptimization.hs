@@ -1,5 +1,5 @@
 module Solver.NumericOptimization
-  ( getCandidates
+  ( getCandidatesIO
   ) where
 
 import Control.Monad
@@ -23,10 +23,6 @@ import Happiness hiding (happiness)
 import Solver (SolverF)
 
 import Debug.Trace
-
-
-getCandidates :: SolverF
-getCandidates problem = unsafePerformIO (getCandidatesIO problem)
 
 
 getCandidatesIO :: Problem -> IO (Either String [((Double, Double), Double)])

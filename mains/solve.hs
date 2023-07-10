@@ -11,6 +11,7 @@ import Solutions
 
 solvers :: [(Name, SolverF)]
 solvers =
+
   [ ("arraying", Arraying.getCandidates)
   , ("numeric-optimization", NumericOptimization.getCandidates)
   , ("genetic", Genetic.getCandidates)

@@ -7,7 +7,7 @@ import Answer
 -- import Happiness
 
 type Name = String
-type SolverF = Problem -> Either String [((Double, Double), Double)]
+type SolverF = Problem -> IO (Either String [((Double, Double), Double)])
 
 solve' :: Name
        -> SolverF
@@ -16,14 +16,14 @@ solve' :: Name
 solve' solverName solver probNum = do
   let probMark = "problem " ++ show probNum
   problem <- maybe (fail $ "parse error: " ++ probMark) pure =<< readProblem probNum
-  res <- either (fail . (("solver error: " ++ probMark ++ ": solver " ++ solverName ++ ": ") ++)) pure $ solver problem
+  res <- either (fail . (("solver error: " ++ probMark ++ ": solver " ++ solverName ++ ": ") ++)) pure =<< solver problem
   return (Answer { placements = [ Placement x y | ((x, y), _) <- res ]
-                 , volumes = [v | (_, v) <- res ]
+                 , volumes = normalVolumes [v | (_, v) <- res ]
                  }
          , problem)
 
 class Solver a where
-  apply :: a -> Problem -> Either String [((Double, Double), Double)]
+  apply :: a -> Problem -> IO (Either String [((Double, Double), Double)])
 
 solve :: Solver a => Name -> a -> Int -> IO ()
 solve name solver pnum = B.putStr . encode . fst =<< solve' name (apply solver) pnum
