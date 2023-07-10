@@ -74,7 +74,7 @@ splitBy n xs =
   let (as,bs) = splitAt n xs in as : splitBy n bs
 
 toAnswer :: [Point] -> Answer
-toAnswer ms = Answer{placements=[Placement x y |(x,y)<-ms]}
+toAnswer ms = Answer{placements=[Placement x y |(x,y)<-ms], volumes=(repeat 1)}
 
 happiness :: Extra -> Problem -> [Point] -> IO Happiness
 happiness extra problem ms =
