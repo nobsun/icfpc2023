@@ -13,7 +13,8 @@ solvers =
   [ ("arraying", Arraying.getCandidates)
   , ("numeric-optimization", NumericOptimization.getCandidates)
   , ("genetic", Genetic.getCandidates)
-  , ("front-heat", FrontHeat.getCandidates)
+  , ("front-heat", FrontHeat.getCandidates FrontHeat.Lattice)
+  , ("front-heat-triangle", FrontHeat.getCandidates FrontHeat.Triangle)
   ]
 
 main :: IO ()

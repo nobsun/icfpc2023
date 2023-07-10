@@ -49,10 +49,13 @@ stageBounds prob = (left, top, right, bottom)
 --   (width, height)      ステージのサイズ
 --   (setbackX, setbackY) ステージ端から離れる必要のある距離
 --   (offsetX, offsetY)   ステージの左下の座標
-makePos :: (Double, Double) -> (Double, Double) -> (Double, Double) -> [(Double, Double)]
-makePos (width, height) (setbackX, setbackY) (offsetX, offsetY)
-  = map (\(x, y) -> (x + offsetX, y + offsetY)) $ filter inRange pos
+trianglePositioning :: Problem -> [(Double, Double)]
+trianglePositioning prob = map (\(x, y) -> (x + offsetX, y + offsetY)) $ filter inRange pos
   where
+    (width, height) = (stage_width prob, stage_height prob)
+    (setbackX, setbackY) = (10.0, 10.0)
+    (offsetX, offsetY) = (stage_left prob, stage_bottom prob)
+    
     inRange (x, y) = setbackX <= x && x <= width - setbackX && setbackY <= y && y <= height - setbackY
     hs, ws :: Int
     hs = round $ (height - 2 * setbackY) / 5.0
@@ -63,16 +66,30 @@ makePos (width, height) (setbackX, setbackY) (offsetX, offsetY)
         conv (x, y) = ( setbackX + 10 * sqrt 3.1 * fromIntegral x + if odd y then 5 * sqrt 3.1 else 0
                       , setbackY + 5 * fromIntegral y)
 
+latticePositioning :: Problem -> [(Double, Double)]
+latticePositioning prob = [ (x, y)
+                          | x <- [w+10.0, w+20.0 .. e-10.0]
+                          , y <- [s+10.0, s+20.0 .. n-10.0]
+                          , x <= e-10.0 && y <= n-10.0 --Double の誤差のため
+                          ]
+  where
+    (w, n, e, s) = stageBounds prob
+
+data Formation
+  = Lattice
+  | Triangle
+  deriving (Show, Eq)
+
 -- | ステージ上の立てる場所を返す
 --   それぞれの場所について、その場所にいる人たちの好みの楽器を高い順に並べる
 --   Like がインパクトなので、Like が高い楽器を優先的に配置したい
-standingPositions :: (Double, [Attendee]) -> Problem -> [((Double, Double), [(Instrument, Like)])]
-standingPositions (d, atnds) prob
+standingPositions :: Formation -> (Double, [Attendee]) -> Problem -> [((Double, Double), [(Instrument, Like)])]
+standingPositions fmt (d, atnds) prob
   = sortBy (\(_, (_, l1):_) (_, (_, l2):_) -> compare l2 l1)
     $ map (\pos -> (pos, preferedInstrs pos (near pos atnds))) poss
   where
     (w, n, e, s) = stageBounds prob
-    poss = makePos (e-w, n-s) (10.0, 10.0) (w, s)
+    poss = trianglePositioning prob
     near (x, y) = filter (\(Attendee x' y' _) -> (x-x')^2 + (y-y')^2 <= (d+10)^2)
     preferedInstrs :: (Double, Double) -> [Attendee] -> [(Instrument, Like)]
     preferedInstrs (x, y) = sortBy descByLike . zip [0..] . summary
@@ -83,13 +100,6 @@ standingPositions (d, atnds) prob
               where
                 calc :: Double -> Double -> Double -> Double -> Double
                 calc x' y' acc t = acc + t / ((x-x')^2 + (y-y')^2)
-
--- | とりあえず Instrument と Like のリストを全部は使いこなせないので先頭だけ使うバージョン
---  Like で昇順ソートするので foldr で右から処理する想定
-simpleStandingPositions ::  (Double, [Attendee]) -> Problem -> [((Double, Double), Instrument, Like)]
-simpleStandingPositions xs prob
-  = sortBy (\(_,_,l1) (_,_,l2) -> compare l1 l2) $ map (\(pos, (i, l):_) -> (pos, i, l)) res
-  where res = standingPositions xs prob
 
 musicianDictionary :: Problem -> Map.Map Instrument [Int]
 musicianDictionary prob = Map.fromList $ splitWithOrder instrs ms
@@ -104,13 +114,13 @@ splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs
     seed = Map.fromList $ map (,[]) instrs
     m = foldl (\m' (i, instr) -> Map.insertWith (++) instr [i] m') seed ms
 
-getCandidates :: SolverF
-getCandidates prob = if Map.null ms'
-                     then Right . map snd . sortBy (\x y -> compare (fst x) (fst y)) . Map.toList $ resp
-                     else Left $ "error" ++ show (Map.elems ms')
+getCandidates :: Formation -> SolverF
+getCandidates fmt prob = if Map.null ms'
+                         then Right . map snd . sortBy (\x y -> compare (fst x) (fst y)) . Map.toList $ resp
+                         else Left $ "error" ++ show (Map.elems ms')
   where
     (d, atnds) = decideFrontHeat 0.1 prob
-    poss = standingPositions (d, atnds) prob
+    poss = standingPositions fmt (d, atnds) prob
     ms = musicianDictionary prob
     (ms', resp) = foldr f (ms, Map.empty) poss
       where
