@@ -111,29 +111,6 @@ data Align = LeftTop
 -- | 立ち位置の配置をどちら寄せかにしたときに後ろが余るのでそれを調整するかどうか
 type Adjust = Bool
 
--- | ミュージシャンが30以下の問題の場合に特価した中央寄せの配置
--- {16,22,23,24,25,26,27,28,40,41,42,43,44,45,46,49,51,54,55}
-constPositions :: Problem-> (Align, Adjust) -> [(Point, Direction)]
-constPositions prob (_, _) = map (\((x, y), d) -> ((centerX + 10 * x, centerY + 10 * y), d)) ps
-  where
-    ps = [ ((-2,  2), NorthWest)
-         , ((-2,  1), West)
-         , ((-2,  0), West)
-         , ((-2, -1), West)
-         , ((-2, -2), West)
-         , ((-2, -3), SouthWest)
-         , ((-1,  2), North)
-         , ((0,   2), North)
-         , ((1,   2), North)
-         , ((2,   2), NorthEast)
-         , ((2,   1), East)
-         , ((2,   0), East)
-         , ((2,  -1), East)
-         , ((2,  -2), East)
-         , ((2,  -3), SouthEast)
-         ] ++ [ ((x, y), Inner) | x <-[-1, 0, 1], y <- [-2, -1, 0, 1] ]
-    (centerX, centerY) = centerOfStage prob
-
 positions :: Problem -> (Align, Adjust) -> [(Point, Direction)]
 positions prob (align, adjust) = map withDirection poss
   where
@@ -221,8 +198,6 @@ positionsByDirection :: Problem
 positionsByDirection prob (align, adjust) = dividePoss poss
   where
     poss = positions prob (align, adjust)
-    -- poss = constPositions prob (align, adjust) -- Dirty Hack
-
     dividePoss = foldr divide ([], [], [], [], [], [], [], [], [])
       where
         divide p@(_, West) (ws, ns, es, ss, nws, nes, ses, sws, ins)
