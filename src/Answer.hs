@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 module Answer
   ( Placement (..)
-  , Answer (..)
+  , Answer (placements, volumes)
   , mkAnswer
   , normalVolumes
   , isValidAnswer
