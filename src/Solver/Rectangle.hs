@@ -5,7 +5,7 @@ import qualified Data.Map as Map
 
 import Problem
 import Solver (SolverF)
-import Happiness (isBlockWithRadius')
+import BlockVec (isBlock)
 
 type Point = (Double, Double)
 
@@ -262,7 +262,7 @@ expectHappiness prob (x0, y0) atnds plrs = foldr expect (replicate n 0.0) atnds
       where calcHappiness (x, y) acc t
               | disturbedBy plrs = acc
               | otherwise        = acc + 1e6*t / ((x-x0)^2 + (y-y0)^2)
-            disturbedBy plrs = any (\(Pillar (px, py) r) -> isBlockWithRadius' r (x0, y0) (x, y) (px, py)) plrs
+            disturbedBy plrs = any (\(Pillar (px, py) r) -> isBlock (x0, y0) (x, y) (px, py) r) plrs
 
 musicianDictionary :: Problem -> Map.Map Instrument [Int]
 musicianDictionary prob = Map.fromList $ splitWithOrder instrs ms
