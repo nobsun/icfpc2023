@@ -1,5 +1,6 @@
 module Solver.Rectangle where
 
+import Data.List (sortBy, partition)
 import qualified Data.Map as Map
 
 import Problem
@@ -178,11 +179,70 @@ attendeesForPositions prob
     -- 外周に穴が開いているならここにはミュージシャンは配置されていないはず
     innerAtnds :: [((Point, Direction), [Attendee])]
     innerAtnds = map (\pd@(p, _) -> (pd, [])) innerPoss
-    
 
+-- | TODO
+pillarsForPositions :: Problem -> Map.Map (Point, Direction) [Pillar]
+pillarsForPositions prob = Map.empty
+
+
+expectHappiness :: Point -> [Attendee] -> [Like]
+expectHappiness (x0, y0) atnds = foldr expect (replicate n 0.0) atnds
+  where
+    n = length (tastes (head atnds))
+    expect (Attendee x y ts) acc = zipWith (calcHappiness (x0, y0) (x, y)) acc ts
+      where calcHappiness (x0, y0) (x, y) acc t = acc + 1e6*t / ((x-x0)^2 + (y-y0)^2)
+
+musicianDictionary :: Problem -> Map.Map Instrument [Int]
+musicianDictionary prob = Map.fromList $ splitWithOrder instrs ms
+  where
+    ms = zip [0..] (musicians prob)
+    instrs = [0..n-1]
+    n = length (tastes (head (attendees prob)))
+
+    splitWithOrder :: [Instrument] -> [(Int, Instrument)] -> [(Instrument, [Int])]
+    splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs
+      where
+        seed = Map.fromList $ map (,[]) instrs
+        m = foldl (\m' (i, instr) -> Map.insertWith (++) instr [i] m') seed ms
+
+-- | NOTE: Inner 以外はソートして立ち位置の優先度を考慮する。 Inner はほぼ効果がないので最後に付ける
+standingPositions :: Problem -> [((Point, Direction), [(Instrument, Like)])]
+standingPositions prob = sortBy comp nonInners ++ inners
+  where
+    comp :: ((Point, Direction), [(Instrument, Like)])
+         -> ((Point, Direction), [(Instrument, Like)])
+         -> Ordering
+    comp (_, (_, l1):_) (_, (_, l2):_) = compare l2 l1
+    poss = attendeesForPositions prob
+    (nonInners, inners) = partition (\((_, d), _) -> d /= Inner) $ Map.toList exps
+    exps :: Map.Map (Point, Direction) [(Instrument, Like)]
+    exps = Map.mapWithKey f poss
+      where
+        f (p, _) as = prefer $ expectHappiness p as
+        prefer :: [Like] -> [(Instrument, Like)]
+        prefer ls = sortBy (\x y -> compare (snd y) (snd x)) (zip [0..] ls)
 
 getCandidates :: SolverF
-getCandidates prob = undefined
+getCandidates prob = if Map.null ms'
+                     then Right . map snd . sortBy (\x y -> compare (fst x) (fst y)) . Map.toList $ resp
+                     else Left $ "error" ++ show (Map.elems ms')
+  where
+    -- NOTE: foldr で末尾から処理しているので reverse しています
+    poss = reverse $ standingPositions prob
+    ms = musicianDictionary prob
+    (ms', resp) = foldr f (ms, Map.empty) poss
+      where
+        f :: ((Point, Direction), [(Instrument, Like)])
+          -> (Map.Map Instrument [Int], Map.Map Int (Point, Double))
+          -> (Map.Map Instrument [Int], Map.Map Int (Point, Double))
+        f ((pos, d), (i, l):is) (ms, rs)
+          | Map.null ms = (ms, rs)
+          | otherwise = case ms Map.!? i of
+              Nothing -> f ((pos, d), is) (ms, rs)
+              Just [] -> f ((pos, d), is) (ms, rs)
+              Just (j:[]) -> (Map.delete i ms,    Map.insert j (pos, volume) rs)
+              Just (j:js) -> (Map.insert i js ms, Map.insert j (pos, volume) rs)
+          where volume = if l < 0.0 then 0.0 else 10.0
 
 
 _sampleProblem :: Problem
