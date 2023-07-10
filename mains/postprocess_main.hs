@@ -11,6 +11,7 @@ import Happiness
 import Problem
 
 import Postprocess.TuneVolume (tuneVolume)
+import Postprocess.Swap (swap)
 
 
 data Options
@@ -39,7 +40,7 @@ optionsParser = Options
     command :: Parser String
     command = strArgument
       $  metavar "COMMAND"
-      <> help "command: tune-volume"
+      <> help "command: tune-volume, swap"
 
     inputFile :: Parser FilePath
     inputFile = strArgument
@@ -82,6 +83,9 @@ main = do
       "tune-volume" -> do
         extra <- Extra.mkExtra prob sol1
         pure (tuneVolume extra prob sol1, Nothing)
+      "swap" -> do
+        extra <- Extra.mkExtra prob sol1
+        swap extra prob sol1 (Just 100)
       name -> error ("unknown command: " ++ name)
 
   BL.writeFile (optOutputFile opt) (encode sol2)
