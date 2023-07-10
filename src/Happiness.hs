@@ -330,8 +330,11 @@ isBlockDoubleInvalid (Placement mx my) (Attendee ax ay _) obs =
 -- NOT PASS -- False
  -}
 isBlock' :: (RealFrac a, Floating a) => (a, a) -> (a, a) -> (a, a) -> Bool
-isBlock' (mx, my) (ax, ay) (bx, by)
-  = distance (a, b, c) (bx, by) <= 5.0 &&
+isBlock' = isBlockWithRadius' 5.0
+
+isBlockWithRadius' :: (RealFrac a, Floating a) => a -> (a, a) -> (a, a) -> (a, a) -> Bool
+isBlockWithRadius' radius (mx, my) (ax, ay) (bx, by)
+  = distance (a, b, c) (bx, by) <= radius &&
     (
       between (mx, my) (p, q) (ax, ay) ||
       -- この条件は交点が直線の間にないけど線分にかかるので必要なように思う
@@ -356,8 +359,8 @@ isBlock' (mx, my) (ax, ay) (bx, by)
         p_ = a / (a^(2::Int) + b^(2::Int)) * (- c - b * d)
         q_ = (b / a) * p + d
 
-    -- (x2, y2) が (x1, y1) の 5.0 以内にあるかどうか
-    inner (x1, y1) (x2, y2) = sqrt ((x2 - x1)^(2::Int) + (y2 - y1)^(2::Int)) <= 5.0
+    -- (x2, y2) が (x1, y1) の radius 以内にあるかどうか
+    inner (x1, y1) (x2, y2) = sqrt ((x2 - x1)^(2::Int) + (y2 - y1)^(2::Int)) <= radius
 
 
 -- | (x1, y1) (x2, y2) を通る直線の方程式の係数 a, b, c を求める
