@@ -6,6 +6,7 @@ import qualified Solver.Arraying as Arraying
 import qualified Solver.NumericOptimization as NumericOptimization
 import qualified Solver.Genetic as Genetic
 import qualified Solver.FrontHeat as FrontHeat
+import qualified Solver.Rectangle as Rectangle
 import Solutions
 
 solvers :: [(Name, SolverF)]
@@ -14,6 +15,7 @@ solvers =
   , ("numeric-optimization", NumericOptimization.getCandidates)
   , ("genetic", Genetic.getCandidates)
   , ("front-heat", FrontHeat.getCandidates)
+  , ("rectangle", Rectangle.getCandidates)
   ]
 
 main :: IO ()
