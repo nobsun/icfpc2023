@@ -47,7 +47,7 @@ _test = encode ans
 
 
 isValidAnswer :: Problem -> Answer -> Bool
-isValidAnswer Problem{ stage_bottom_left = (x0,y0), stage_width = w, stage_height = h, musicians = ms } Answer{ placements = ps } =
+isValidAnswer Problem{ stage_bottom_left = (x0,y0), stage_width = w, stage_height = h, musicians = ms } Answer{ placements = ps, volumes = _vs } =
   and
   [ length ps == length ms
   , and [x0 + 10 <= x && x <= x0 + w - 10 && y0 + 10 <= y && y <= y0 + h - 10 | Placement x y <- ps]
