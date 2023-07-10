@@ -3,7 +3,9 @@ module Solutions where
 import Control.Concurrent (getNumCapabilities)
 import qualified Data.ByteString.Lazy as B
 import Data.Aeson (encode, decode)
+import Text.Read (readMaybe)
 import Text.Printf (printf)
+import System.FilePath (takeBaseName, splitExtension)
 
 import Answer
 import Problem
@@ -19,6 +21,21 @@ saveAnswer (name, solver) probNum = do
   let path = printf "solutions/%s_%03d.json" name probNum
   putStrLn $ "writing " ++ path --- ++ " : happiness: " ++ show (happiness problem ans)
   B.writeFile path $ encode ans
+
+-- get solver-name and problem-number with heuristics
+fromFilenameHeulistic :: FilePath -> Maybe (String, Int)
+fromFilenameHeulistic path
+  | j@(Just _) <- lookup path knowns  =  j
+  | ext == ".json"  =  case break (== '_') $ takeBaseName name of
+      (sn, '_' : nnn)      ->    (,) sn <$> readMaybe nnn
+      _                    ->    Nothing
+  | otherwise              =     Nothing
+  where
+    (name, ext) = splitExtension path
+    knowns = {- known filenames -}
+      [ ("solutions/submission-p22-2023-07-08T02_25_50.863957478Z.json", ("unknown", 22))
+      , ("submission-p22-2023-07-08T02_25_50.863957478Z.json", ("unknown", 22))
+      ]
 
 readSolutionFile :: FilePath -> IO (Maybe Answer)
 readSolutionFile path = do
