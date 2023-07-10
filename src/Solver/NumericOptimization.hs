@@ -11,6 +11,7 @@ import Data.Vector.Storable (Vector)
 import System.IO.Unsafe
 import qualified System.Random.MWC as Rand
 import qualified System.Random.MWC.Distributions as Rand
+import Text.Printf
 import qualified Numeric.Optimization as Opt
 
 import Problem (Problem (..))
@@ -35,7 +36,7 @@ getCandidatesIO problem = do
       tasteTable = array ((0,0), (numAttendees-1, numInstruments-1)) $ do
         (i, attendee) <- zip [0..] (Problem.attendees problem)
         (j, like) <- zip [0..] (Problem.tastes attendee)
-        return ((i,j), 1e6 * like)
+        return ((i,j), like)
 
       weightTable :: UArray (Int, Int) Double
       weightTable = array ((0,0), (numAttendees-1, numMusicians-1)) $ do
@@ -49,28 +50,29 @@ getCandidatesIO problem = do
         k <- [0..numMusicians-1]
         let x2 = xs VS.! k
             y2 = ys VS.! k
-        return ((i,k), (x1-x2)^(2::Int) + (y1-y2)^(2::Int))
+        return ((i,k), (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int))
 
       squareDistanceBackward :: (Vector Double, Vector Double) -> UArray (Int, Int) Double -> (Vector Double, Vector Double)
       squareDistanceBackward (xs, ys) gret =
         ( VS.generate numMusicians $ \k ->
             let x2 = xs VS.! k
-             in sum [(gret ! (i,k)) * 2 * (x1 - x2) * (-1)
+             in sum [ (gret ! (i,k)) * 2 * (x1 - x2) * (-1)
                     | (i, Problem.Attendee{ Problem.x = x1 }) <- zip [0..] (Problem.attendees problem)
                     ]
         , VS.generate numMusicians $ \k ->
             let y2 = ys VS.! k
-             in sum [(gret ! (i,k)) * 2 * (y1 - y2) * (-1)
-                | (i, Problem.Attendee{ Problem.y = y1 }) <- zip [0..] (Problem.attendees problem)
-                ]
+             in sum [ (gret ! (i,k)) * 2 * (y1 - y2) * (-1)
+                    | (i, Problem.Attendee{ Problem.y = y1 }) <- zip [0..] (Problem.attendees problem)
+                    ]
         )
 
       -- ブロックされているかは考慮しないバージョン
+      -- 数値が大きくなりすぎると計算が不安定になるかもと思って 1e6 をかけない状態での値で扱っている
       happyness :: (Vector Double, Vector Double) -> (Double, (Vector Double, Vector Double))
       happyness ps = (y, z)
         where
           d = squareDistance ps
-          y = sum [(weightTable ! (i,k)) / (d ! (i,k)) | i <- [0..numAttendees-1], k <- [0..numMusicians-1]]
+          y = sum [(weightTable ! ik) / (d ! ik) | ik <- indices weightTable]
           z = squareDistanceBackward ps $ array (bounds weightTable) [(ik, (weightTable ! ik) * (-1) * (d ! ik)^^(-2::Int)) | ik <- indices weightTable]
 
       eps = 1e-6
@@ -79,7 +81,9 @@ getCandidatesIO problem = do
       penalty (xs, ys) = sum
         [ 1 / (d2 / 100 + eps)
         | (k1, k2) <- pairs [0..numMusicians-1]
-        , let d2 = ((xs VS.! k1) - (xs VS.! k2))^(2::Int) + ((ys VS.! k1) - (ys VS.! k2))^(2::Int)
+        , let (x1, y1) = (xs VS.! k1, ys VS.! k1)
+        , let (x2, y2) = (xs VS.! k2, ys VS.! k2)
+        , let d2 = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
         , d2 < 100
         ]
 
@@ -90,26 +94,31 @@ getCandidatesIO problem = do
         )
         where
           us = concat
-            [ [ Left (k1, a * 2 * ((xs VS.! k1) - (xs VS.! k2)))
-              , Left (k2, a * 2 * ((xs VS.! k1) - (xs VS.! k2)) * (-1))
-              , Right (k1, a * 2 * ((ys VS.! k1) - (ys VS.! k2)))
-              , Right (k2, a * 2 * ((ys VS.! k1) - (ys VS.! k2)) * (-1))
+            [ [ Left (k1, a * 2 * (x1 - x2))
+              , Left (k2, a * 2 * (x1 - x2) * (-1))
+              , Right (k1, a * 2 * (y1 - y2))
+              , Right (k2, a * 2 * (y1 - y2) * (-1))
               ]
             | (k1, k2) <- pairs [0..numMusicians-1]
-            , let d2 = ((xs VS.! k1) - (xs VS.! k2))^(2::Int) + ((ys VS.! k1) - (ys VS.! k2))^(2::Int)
+            , let (x1, y1) = (xs VS.! k1, ys VS.! k1)
+            , let (x2, y2) = (xs VS.! k2, ys VS.! k2)
+            , let d2 = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
             , d2 < 100
             , let a = gret * (-1) * (d2 / 100 + eps)^^(-2::Int) * (1/100)
             ]
 
       penaltyWeight :: Double
-      penaltyWeight = 1e6
+      penaltyWeight = 10
 
+      -- 数値が大きくなりすぎると計算が不安定になるかもと思って 1e6 をかけない状態での値を目的関数にしている
+      -- ceiling をしないのでスケールは関係ない
       f :: Vector Double -> Double
-      f inp = traceShow (y1,y2,y) $ y
+      f inp = trace (printf "obj = %f = %f + %f; approximate happiness = %f; penalty = %f" obj obj1 (penaltyWeight * obj2) (h * 1e6) obj2) $ obj
         where
-          y = y1 + penaltyWeight * y2
-          y1 = - fst (happyness ps)
-          y2 = penalty ps
+          obj = obj1 + penaltyWeight * obj2
+          h = fst (happyness ps)
+          obj1 = - h
+          obj2 = penalty ps
           ps = VS.splitAt numMusicians inp
 
       g :: Vector Double -> Vector Double
@@ -140,7 +149,8 @@ getCandidatesIO problem = do
       -- params = def{ paramsMaxIters=Just 10 }
   result <- Opt.minimize Opt.LBFGSB params (f `Opt.WithGrad` g `Opt.WithBounds` bounds) x0
 
-  if Opt.resultSuccess result || Opt.resultMessage result == "The number of steps exceeded the user's request." then do
+  -- メッセージのスペースに注意
+  if Opt.resultSuccess result || Opt.resultMessage result `elem` ["The number of steps exceeded the user's request.", "ABNORMAL_TERMINATION_IN_LNSRCH                              "] then do
     let (xs,ys) = VS.splitAt numMusicians (Opt.resultSolution result)
     return $ Right (zip (VS.toList xs) (VS.toList ys))
   else
