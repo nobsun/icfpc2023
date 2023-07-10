@@ -33,23 +33,24 @@ tryToSubmit probNum sols = do
         maybe (parseError $> []) result =<< readSolutionFile sol
   putStrLn $ "loading " ++ unwords sols
   answers <- concat <$> mapM readSol sols
-  let action problem = tryToSubmit' probNum problem answers
+  let action problem = do
+        extras <- sequence [ mkExtra problem answer | (answer, _) <- answers ]
+        tryToSubmit' probNum problem $ zip answers extras
   maybe (putStrLn $ "problem parse error: problem " ++ show probNum) action =<< readProblem probNum
 
-tryToSubmit' :: Int -> Problem -> [(Answer, FilePath)] -> IO ()
+tryToSubmit' :: Int -> Problem -> [((Answer, FilePath), Extra)] -> IO ()
 tryToSubmit' probNum problem answers = do
-  let calcH p@(ans, path) = do
-        extra@Extra{..} <- mkExtra problem ans
-        let einfo = pprExtraShort extra
-            strategy = Parallel
-        case answer_valid of
-          Invalid -> do
-            putStrLn $ path ++ ": invalid answer skip"
-            pure []
-          Valid   -> do
-            putStrLn $ unwords [path ++ ":", "calulating", show strategy, "happiness:", einfo ]
-            h <- Happiness.applyStrategy strategy extra problem ans
-            pure [(h, p)]
+  let calcH (p@(ans, path), extra@Extra{..}) = case answer_valid of
+        Invalid -> do
+          putStrLn $ path ++ ": invalid answer skip"
+          pure []
+        Valid   ->  do
+          let einfo = pprExtraShort extra
+              strategy = Parallel
+          putStrLn $ unwords [path ++ ":", "calulating", show strategy, "happiness:", einfo ]
+          h <- Happiness.applyStrategy strategy extra problem ans
+          pure [(h, p)]
+
   hs <- concat <$> mapM calcH answers
   putStrLn $ "fetching past-max ..."
   pmax <- getPositiveMax probNum
