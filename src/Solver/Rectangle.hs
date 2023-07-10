@@ -5,6 +5,7 @@ import qualified Data.Map as Map
 
 import Problem
 import Solver (SolverF)
+import Happiness (isBlockWithRadius')
 
 type Point = (Double, Double)
 
@@ -257,8 +258,11 @@ expectHappiness :: Problem -> Point -> [Attendee] -> [Pillar] -> [Like]
 expectHappiness prob (x0, y0) atnds plrs = foldr expect (replicate n 0.0) atnds
   where
     n = length (tastes (head (attendees prob)))
-    expect (Attendee x y ts) acc = zipWith (calcHappiness (x0, y0) (x, y)) acc ts
-      where calcHappiness (x0, y0) (x, y) acc t = acc + 1e6*t / ((x-x0)^2 + (y-y0)^2)
+    expect (Attendee x y ts) acc = zipWith (calcHappiness (x, y)) acc ts
+      where calcHappiness (x, y) acc t
+              | disturbedBy plrs = acc
+              | otherwise        = acc + 1e6*t / ((x-x0)^2 + (y-y0)^2)
+            disturbedBy plrs = any (\(Pillar (px, py) r) -> isBlockWithRadius' r (x0, y0) (x, y) (px, py)) plrs
 
 musicianDictionary :: Problem -> Map.Map Instrument [Int]
 musicianDictionary prob = Map.fromList $ splitWithOrder instrs ms
