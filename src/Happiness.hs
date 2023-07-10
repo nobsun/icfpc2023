@@ -99,7 +99,7 @@ naive extra prob ans = pure score
       where
         num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
         den = squareDistance p_k a_i
-        closeness =
+        closeness = 1 + 
           sum[ 1/(squareDistance p_k (ms_ar!j))
              | inst<-insts, inst/=inst_k
              , j <-(same_inst_musicians.problem_extra $ extra)! inst
@@ -152,7 +152,7 @@ withQueue extra prob ans = do
       where
         num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
         den = squareDistance p_k a_i
-        closeness =
+        closeness = 1 + 
           sum[ 1/(squareDistance p_k (ms_ar!j))
              | inst<-insts, inst/=inst_k
              , j <-(same_inst_musicians.problem_extra $ extra)! inst
