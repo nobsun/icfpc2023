@@ -18,7 +18,7 @@ solve' solverName solver probNum = do
   problem <- maybe (fail $ "parse error: " ++ probMark) pure =<< readProblem probNum
   res <- either (fail . (("solver error: " ++ probMark ++ ": solver " ++ solverName ++ ": ") ++)) pure =<< solver problem
   return (Answer { placements = [ Placement x y | ((x, y), _) <- res ]
-                 , volumes = [v | (_, v) <- res ]
+                 , volumes = normalVolumes [v | (_, v) <- res ]
                  }
          , problem)
 

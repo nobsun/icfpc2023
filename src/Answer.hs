@@ -3,10 +3,12 @@
 module Answer
   ( Placement (..)
   , Answer (..)
+  , normalVolumes
   , isValidAnswer
   , isIntCompatAnswer
   ) where
 
+import Data.String (fromString)
 import qualified Data.ByteString.Lazy as B
 import Data.Aeson
 -- import Text.Printf (printf)
@@ -27,24 +29,40 @@ instance Obstacle Placement where
 
 data Answer
   = Answer { placements :: [Placement]
-           , volumes    :: [Double]
+           , volumes    :: Maybe [Double]
            }
   deriving (Show, Eq, Generic)
 
+normalVolumes :: [Double] -> Maybe [Double]
+normalVolumes vs
+  | null vs = Nothing
+  | otherwise = Just vs
+
 instance ToJSON Placement
 instance FromJSON Placement
-instance ToJSON Answer
+instance ToJSON Answer where
+  toJSON = genericToJSON defaultOptions { omitNothingFields = True }
 instance FromJSON Answer
 
+_test :: (B.ByteString, B.ByteString, Answer, Answer)
+_test = ( encode ans1
+        , encode ans2
+        , maybe (error "parse error: str1") id $ decode str1
+        , maybe (error "parse error: str2") id $ decode str2
+        )
+  where ans1 = Answer { placements = [ Placement {x = 10.0, y = 20.0}
+                                     , Placement {x = 30.0, y = 40.0}
+                                     ]
+                      , volumes = Nothing
+                      }
+        ans2 = Answer { placements = [ Placement {x = 10.0, y = 20.0}
+                                     , Placement {x = 30.0, y = 40.0}
+                                     ]
+                      , volumes = Just [1.0, 2.0]
+                      }
 
-_test :: B.ByteString
-_test = encode ans
-  where ans = Answer { placements = [ Placement {x = 10.0, y = 20.0}
-                                    , Placement {x = 30.0, y = 40.0}
-                                    ]
-                     , volumes = [1.0, 2.0]
-                     }
-
+        str1 = fromString "{\"placements\":[{\"x\":10,\"y\":20},{\"x\":30,\"y\":40}]}"
+        str2 = fromString "{\"placements\":[{\"x\":10,\"y\":20},{\"x\":30,\"y\":40}],\"volumes\":[1.0,2.0]}"
 
 isValidAnswer :: Problem -> Answer -> Bool
 isValidAnswer Problem{ stage_bottom_left = (x0,y0), stage_width = w, stage_height = h, musicians = ms } Answer{ placements = ps, volumes = _vs } =
