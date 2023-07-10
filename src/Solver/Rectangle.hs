@@ -44,43 +44,43 @@ type Point = (Double, Double)
 --   * sqrt 3 (y - y0) + (x - x0) <= 0
 --   * (y - y0) + sqrt 3 (x - x0) <= 0
 
-inRangeOfWestMusician :: Point -> Attendee -> Bool
-inRangeOfWestMusician (x0, y0) (Attendee x y _) =
+inRangeOfWestMusician :: Point -> Point -> Bool
+inRangeOfWestMusician (x0, y0) (x, y) =
   (y - y0) + sqrt 3 * (x - x0) <= 0 &&
   (y - y0) - sqrt 3 * (x - x0) >= 0
 
-inRangeOfNorthMusician :: Point -> Attendee -> Bool
-inRangeOfNorthMusician (x0, y0) (Attendee x y _) =
+inRangeOfNorthMusician :: Point -> Point -> Bool
+inRangeOfNorthMusician (x0, y0) (x, y) =
   sqrt 3 * (y - y0) + (x - x0) >= 0 &&
   sqrt 3 * (y - y0) - (x - x0) >= 0
 
-inRangeOfEastMusician :: Point -> Attendee -> Bool
-inRangeOfEastMusician (x0, y0) (Attendee x y _) =
+inRangeOfEastMusician :: Point -> Point -> Bool
+inRangeOfEastMusician (x0, y0) (x, y) =
   (y - y0) + sqrt 3 * (x - x0) >= 0 &&
   (y - y0) - sqrt 3 * (x - x0) <= 0
 
-inRangeOfSouthMusician :: Point -> Attendee -> Bool
-inRangeOfSouthMusician (x0, y0) (Attendee x y _) =
+inRangeOfSouthMusician :: Point -> Point -> Bool
+inRangeOfSouthMusician (x0, y0) (x, y) =
   sqrt 3 * (y - y0) + (x - x0) <= 0 &&
   sqrt 3 * (y - y0) - (x - x0) <= 0
 
-inRangeOfNorthWestMusician :: Point -> Attendee -> Bool
-inRangeOfNorthWestMusician (x0, y0) (Attendee x y _) =
+inRangeOfNorthWestMusician :: Point -> Point -> Bool
+inRangeOfNorthWestMusician (x0, y0) (x, y) =
   sqrt 3 * (y - y0) - (x - x0) >= 0 &&
   (y - y0) - sqrt 3 * (x - x0) >= 0
 
-inRangeOfNorthEastMusician :: Point -> Attendee -> Bool
-inRangeOfNorthEastMusician (x0, y0) (Attendee x y _) =
+inRangeOfNorthEastMusician :: Point -> Point -> Bool
+inRangeOfNorthEastMusician (x0, y0) (x, y) =
   sqrt 3 * (y - y0) + (x - x0) >= 0 &&
   (y - y0) + sqrt 3 * (x - x0) >= 0
 
-inRangeOfSouthEastMusician :: Point -> Attendee -> Bool
-inRangeOfSouthEastMusician (x0, y0) (Attendee x y _) =
+inRangeOfSouthEastMusician :: Point -> Point -> Bool
+inRangeOfSouthEastMusician (x0, y0) (x, y) =
   sqrt 3 * (y - y0) - (x - x0) <= 0 &&
   (y - y0) - sqrt 3 * (x - x0) <= 0
 
-inRangeOfSouthWestMusician :: Point -> Attendee -> Bool
-inRangeOfSouthWestMusician (x0, y0) (Attendee x y _) =
+inRangeOfSouthWestMusician :: Point -> Point -> Bool
+inRangeOfSouthWestMusician (x0, y0) (x, y) =
   sqrt 3 * (y - y0) + (x - x0) <= 0 &&
   (y - y0) + sqrt 3 * (x - x0) <= 0
 
@@ -160,8 +160,6 @@ positionsByDirection prob = dividePoss poss
           = (ws, ns, es, ss, nws, nes, ses, p:sws, ins)
         divide p@(_, Inner) (ws, ns, es, ss, nws, nes, ses, sws, ins)
           = (ws, ns, es, ss, nws, nes, ses, sws, p:ins)
-          
-
 
 attendeesForPositions :: Problem -> Map.Map (Point, Direction) [Attendee]
 attendeesForPositions prob
@@ -175,29 +173,38 @@ attendeesForPositions prob
       , northWestPos, northEastPos, southEastPos, southWestPos
       , innerPoss) = positionsByDirection prob
     westAtnds :: [((Point, Direction), [Attendee])]
-    westAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfWestMusician p) atnds)) westPoss
+    westAtnds = map (by inRangeOfWestMusician) westPoss
     northAtnds :: [((Point, Direction), [Attendee])]
-    northAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfNorthMusician p) atnds)) northPoss
+    northAtnds = map (by inRangeOfNorthMusician) northPoss
     eastAtnds :: [((Point, Direction), [Attendee])]
-    eastAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfEastMusician p) atnds)) eastPoss
+    eastAtnds = map (by inRangeOfEastMusician) eastPoss
     southAtnds :: [((Point, Direction), [Attendee])]
-    southAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfSouthMusician p) atnds)) southPoss
+    southAtnds = map (by inRangeOfSouthMusician) southPoss
     northWestAtnds :: [((Point, Direction), [Attendee])]
-    northWestAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfNorthWestMusician p) atnds)) northWestPos
+    northWestAtnds = map (by inRangeOfNorthWestMusician) northWestPos
     northEastAtnds :: [((Point, Direction), [Attendee])]
-    northEastAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfNorthEastMusician p) atnds)) northEastPos
+    northEastAtnds = map (by inRangeOfNorthEastMusician) northEastPos
     southEastAtnds :: [((Point, Direction), [Attendee])]
-    southEastAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfSouthEastMusician p) atnds)) southEastPos
+    southEastAtnds = map (by inRangeOfSouthEastMusician) southEastPos
     southWestAtnds :: [((Point, Direction), [Attendee])]
-    southWestAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfSouthWestMusician p) atnds)) southWestPos
+    southWestAtnds = map (by inRangeOfSouthWestMusician) southWestPos
+    by pred = (\pd@(p, _) -> (pd, filter (\(Attendee x y _) -> pred p (x, y)) atnds))
     -- NOTE: 必ず外周から埋めるのでここが影響を与えることはない
     -- 外周に穴が開いているならここにはミュージシャンは配置されていないはず
     innerAtnds :: [((Point, Direction), [Attendee])]
     innerAtnds = map (\pd@(p, _) -> (pd, [])) innerPoss
 
--- | TODO
+-- | 柱を正確に拾うのは大変なのでざっくり拾う
+--   方針として柱の中心と半径から柱に外接する正方形を作り、それに対して範囲に含まれるか判断する
 pillarsForPositions :: Problem -> Map.Map (Point, Direction) [Pillar]
 pillarsForPositions prob = Map.empty
+  where
+    plrs :: [Pillar]
+    plrs = pillars prob
+    westPoss :: [(Point, Direction)]
+    (westPoss, northPoss, eastPoss, southPoss
+      , northWestPos, northEastPos, southEastPos, southWestPos
+      , innerPoss) = positionsByDirection prob
 
 
 expectHappiness :: Problem -> Point -> [Attendee] -> [Like]
