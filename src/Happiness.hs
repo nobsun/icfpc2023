@@ -79,15 +79,19 @@ happiness prob ans = do
 
 -- | calculate happiness along with spec
 naive :: Extra -> Problem -> Answer -> IO Happiness
-naive extra prob ans = pure score
+naive extra prob ans = pure $ sum [val | (_, _, val) <- naiveUnreduced extra prob ans ]
+
+-- | calculate happiness along with spec
+naiveUnreduced :: Extra -> Problem -> Answer -> [(Int, Int, Happiness)]
+naiveUnreduced extra prob ans = score
   where
     isBlock :: Obstacle o => Placement -> Attendee -> o -> Bool
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
-    score = sum [ impact (i, a_i) (k, inst_k, p_k)
-                | (k, inst_k, p_k) <- zip3 [0 :: Int ..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
-                , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
-                , and [not $ isBlock p_k a_i pl | pl <- plrs]
-                ]
+    score = [ (i, k, impact (i, a_i) (k, inst_k, p_k))
+            | (k, inst_k, p_k) <- zip3 [0 :: Int ..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
+            , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
+            , and [not $ isBlock p_k a_i pl | pl <- plrs]
+            ]
     atnds = attendees prob
     ms = placements ans
     ms_ar :: Array Int Placement
