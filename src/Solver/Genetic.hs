@@ -1,3 +1,5 @@
+{-# language TupleSections #-}
+
 module Solver.Genetic
   ( getCandidatesIO
   ) where
@@ -14,7 +16,7 @@ import Debug.Trace
 import Problem (Problem(..), Attendee(..))
 import Answer (Answer(..), mkAnswer, Placement(..))
 import Extra
-import Happiness (Happiness, weightedAverage)
+import Happiness (Happiness, memoise)
 import Solver (SolverF)
 
 
@@ -32,38 +34,44 @@ getCandidatesIO problem@(Problem{stage_width=w, stage_height=h ,stage_bottom_lef
   putStrLn $ "generating initial placement randomly"
   initials <- sequence $ take 2 $ repeat $ randomPlace problem (zip[0..nMusician-1](repeat undefined)) []
   extra <- mkExtra problem (toAnswer (initials!!0))
-  initHappiness <- sequence[happiness extra problem i | i<-initials]
+  initHappiness <- sequence[happiness extra problem i curNo 0 | (curNo,i)<-zip[0..]initials]
   putStrLn $ "happiness: "++ show initHappiness
-  descendant <- go 2 extra initials
+  descendant <- go 2 extra (zip[0..]initials)
   -- descendant is sorted desc by happiness
   return $ Right (map (\pos -> (pos, 1.0)) (head descendant)) -- FIXME
   where
     nMusician :: Int
     nMusician = length ms
 
-    go :: Double -> Extra -> [[Point]] -> IO [[Point]]
-    go count extra cands | count >= 16 = return cands
+    go :: Double -> Extra -> [(Int,[Point])] -> IO [[Point]]
+    go count extra cands | count >= 16 = pure $ map snd cands
                          | otherwise  = do
       putStrLn $ "count: " ++ show count
       putStrLn "creating children..."
-      children <- genetic count cands
-      happy <- sequence[happiness extra problem c | c<-children]
+      children <- fmap (zip[truncate(count)*1000..]) $  genetic count cands
+      happy <- sequence[happiness extra problem c curNo parNo| (curNo,(parNo,c))<-children]
       let hchildren = sortBy (flip compare`on`fst) (zip happy children)
       putStrLn $ "happiness: "++show (map fst hchildren)
-      go (count+2) extra (map snd $ take 2 hchildren)
+      go (count+2) extra $ take 2 [(cno,c) |(h,(cno,(pno,c)))<-hchildren]
 
-    genetic :: Double -> [[Point]] -> IO [[Point]]
+    genetic :: Double -> [(Int,[Point])] -> IO [(Int,[Point])]
     genetic count cands = do
       g <- newStdGen
       let dw = w/count
           dh = h/count
           rs = [((dw*(i-1)+zw, dw*i+zw),(dh*(j-1)+zh, dh*i+zh)) |[i,j]<-splitBy 2 (randomRs (0,count-1) g)]
       -- crossover c and d by area
-      a1 <- sequence [crossOver u v c d | ([c,d],(u,v))<-zip (sequence[cands,cands]) rs]
+      a1 <- sequence2 [(no, crossOver u v c d) | ([(no,c),(_,d)],(u,v))<-zip (sequence[cands,cands]) rs]
       -- replace n musicians randomly
-      a2 <- sequence [mutation problem n c | let n=nMusician`div`(truncate count), c<-cands]
-      return $ catMaybes (a1++a2)
+      a2 <- sequence2 [(no, mutation problem n c) | let n=nMusician`div`(truncate count), (no,c)<-cands]
+      return $ a1++a2
 
+sequence2 :: [(a, IO (Maybe b))] -> IO [(a, b)]
+sequence2 xs = do
+  bs' <- sequence bs
+  pure $ catMaybes $ zipWith (\a->fmap(a,)) as bs'
+  where
+    (as, bs) = unzip xs
 
 splitBy :: Int -> [a] -> [[a]]
 splitBy _ [] = []
@@ -73,9 +81,9 @@ splitBy n xs =
 toAnswer :: [Point] -> Answer
 toAnswer ms = mkAnswer [Placement x y |(x,y)<-ms] (repeat 1)
 
-happiness :: Extra -> Problem -> [Point] -> IO Happiness
-happiness extra problem ms =
-  weightedAverage extra' problem answer
+happiness :: Extra -> Problem -> [Point] -> Int -> Int ->  IO Happiness
+happiness extra problem ms curNo parNo =
+  memoise extra' problem answer curNo parNo
   where
     extra' = updateExtra problem answer extra
     answer = toAnswer ms

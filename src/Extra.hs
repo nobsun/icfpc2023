@@ -92,19 +92,43 @@ data AnswerCheck
   deriving Show
 
 -- memory for calculating happiness, etc..
-data S = S{}
+data S = S
+  { s_answer        :: Answer
+  , s_m_m_distance  :: UArray Int Double
+  , s_m_a_distance  :: UArray Int Double
+  , s_closeness     :: UArray Int Double
+  }
+
+mkDummyS :: ProblemExtra -> S
+mkDummyS pextra =
+  S{ s_answer = mkAnswer (take (num_musicians pextra) (repeat (Placement(-1)(-1))))
+         (take (num_musicians pextra) (repeat 1))
+   , s_m_m_distance = listArray (0, sum[1..num_musicians pextra-1]) (repeat 0)
+   , s_m_a_distance = listArray (0, (num_musicians pextra)*(num_attendees pextra)) (repeat 0)
+   , s_closeness = listArray (0, num_musicians pextra) (repeat 0)
+   }
+
+mmIndex :: Int -> Int -> Int
+mmIndex i j =
+  sum[0..t-2]+b
+  where
+    (b,t) = (min i j, max i j)
+
+maIndex :: Int -> Int -> Int -> Int
+maIndex numMusician m a = a*numMusician+m
+
 
 data Extra
   = Extra { problem_extra :: ProblemExtra
           , answer_valid :: AnswerCheck
           , answer_int_compat :: Bool
-          , state :: IORef S
+          , state :: IORef [(Int,S)]
           }
 
 mkExtra' :: Problem -> ProblemExtra -> Answer -> IO Extra
 mkExtra' problem pextra answer = do
-  s <- newIORef S{}
-  pure Extra
+  s <- newIORef []
+  pure $ Extra
     { problem_extra = pextra
     , answer_valid = if isValidAnswer problem answer then Valid else Invalid
     , answer_int_compat = isIntCompatAnswer answer

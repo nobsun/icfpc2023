@@ -5,8 +5,12 @@ import Control.Concurrent (newChan, writeChan, readChan, forkIO, getNumCapabilit
 import Control.Monad
 import Data.Array (Array)
 import Data.Array.IArray ((!), listArray)
+import qualified Data.Array.MArray as MA (writeArray, freeze, thaw)
+import Data.Array.IO (IOUArray)
 import Data.Array.Unboxed (UArray)
+import Data.Function (on)
 import Data.List.Split (chunksOf)
+import Data.IORef (readIORef, modifyIORef)
 
 import Problem
 import Answer
@@ -169,6 +173,85 @@ withQueue extra prob ans = do
              | j <- (same_inst_musicians.problem_extra $ extra) ! inst_k
              , k /= j
              ]
+
+-- | check diff from old history
+memoise :: Extra -> Problem -> Answer -> Int -> Int -> IO Happiness
+memoise extra prob ans curNo oldNo = do
+  hist <- readIORef (state extra)
+  case lookup oldNo hist of
+    Nothing  -> memoise' (mkDummyS (problem_extra extra))
+    Just old -> do
+      putStrLn $ "debug: curNo="++show curNo++", oldNo="++show oldNo++", hists="++show(map fst hist)
+      memoise' old
+  where
+    isBlock :: Obstacle o => Placement -> Attendee -> o -> Bool
+    isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
+    atnds = attendees prob
+    ms = placements ans
+    ms_ar :: Array Int Placement
+    ms_ar = listArray (0, length ms-1) ms
+    n_ms = (num_musicians.problem_extra $ extra)
+    insts = musicians prob
+    plrs = pillars prob
+
+--    near (Placement x1 y1) (Placement x2 y2) =
+--       abs(x1-x2) < 0.1 && abs(y1-y2) < 0.1
+
+    impact mad mmd clo (i, a_i) (k, inst_k, p_k)
+      | isFullDivisionProblem prob = ceiling $ closeness * fromIntegral (ceiling (num / den) :: Happiness)
+      | otherwise = ceiling (num / den)
+      where
+        num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
+        den = mad!(maIndex n_ms k i)
+        closeness = clo!k
+
+    memoise' :: S -> IO Happiness
+    memoise' old = do
+--      putStrLn $ "debug: old: " ++ (take 1000 $ show(s_answer old))
+--      putStrLn $ "debug: cur: " ++ (take 1000 $ show ans)
+      let diff :: [(Int,Instrument)]
+          diff = [is | (is,same) <-zip (zip[0..]insts) $ (zipWith (==)`on`placements) ans (s_answer old)
+                     , not same]
+          madUpdate =
+            [ (maIndex n_ms k i, if blockedByM || blockedByP then -1 else squareDistance (ms_ar!k) a_i)
+            | (k,_) <-diff, (i, a_i) <- zip[0..]atnds
+            , let blockedByM = or[isBlock (ms_ar!k) a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
+            , let blockedByP = or[isBlock (ms_ar!k) a_i pl | pl <- plrs]
+            ]
+          mmdUpdate =
+            [ (mmIndex k j, squareDistance (ms_ar!k) p_j)
+            | (k,_) <-diff, (j,p_j)<-zip[0..]ms, k/=j
+            ]
+          cloUpdate =
+            [ (k, 1 + sum[ 1 / sqrt (squareDistance (ms_ar!k) (ms_ar!j))
+                         | j <-(same_inst_musicians.problem_extra $ extra)! inst_k])
+            | (k,inst_k) <-diff
+            ]
+--      putStrLn $ "debug: diff size: " ++show(length  diff)
+      madu <- MA.thaw (s_m_a_distance old)  :: IO (IOUArray Int Double)
+      mmdu <- MA.thaw (s_m_m_distance old) :: IO (IOUArray Int Double)
+      clou <- MA.thaw (s_closeness old)     :: IO (IOUArray Int Double)
+      sequence [MA.writeArray madu i e | (i,e)<-madUpdate]
+      sequence [MA.writeArray mmdu i e | (i,e)<-mmdUpdate]
+      sequence [MA.writeArray clou i e | (i,e)<-cloUpdate]
+      mad <- MA.freeze madu :: IO (UArray Int Double)
+      mmd <- MA.freeze mmdu :: IO (UArray Int Double)
+      clo <- MA.freeze clou :: IO (UArray Int Double)
+      -- update history memo
+      let cur = S{ s_answer=ans
+                 , s_m_a_distance=mad
+                 , s_m_m_distance=mmd
+                 , s_closeness=clo
+                 }
+      modifyIORef (state extra) (\hists-> take 8 ((curNo,cur):hists))
+      let score =
+             sum [ impact mad mmd clo (i, a_i) (k, inst_k, p_k)
+                 | (k, inst_k, p_k) <- zip3 [0 :: Int ..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
+                 , mad!(maIndex n_ms k i) > 0 -- minus means "blocked"
+                 ]
+      putStrLn $ "debug: score="++ show score
+      pure score
+
 
 isBlockWith :: Obstacle o => BlockTestICompat -> AnswerCheck -> Placement -> Attendee -> o -> Bool
 isBlockWith IntCompat    Valid    = isBlockInt
