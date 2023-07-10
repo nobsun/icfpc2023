@@ -12,10 +12,10 @@ import Solutions
 solvers :: [(Name, SolverF)]
 solvers =
 
-  [ ("arraying", Arraying.getCandidates)
-  , ("numeric-optimization", NumericOptimization.getCandidates)
-  , ("genetic", Genetic.getCandidates)
-  , ("front-heat", FrontHeat.getCandidates)
+  [ ("arraying", return . Arraying.getCandidates)
+  , ("numeric-optimization", NumericOptimization.getCandidatesIO)
+  , ("genetic", Genetic.getCandidatesIO)
+  , ("front-heat", return . FrontHeat.getCandidates)
   , ("rectangle", Rectangle.getCandidates)
   ]
 
