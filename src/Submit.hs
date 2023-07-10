@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Submit where
 
 import Data.String (fromString)
@@ -30,13 +31,15 @@ tryToSubmit probNum sols = do
 tryToSubmit' :: Int -> Problem -> [(Answer, FilePath)] -> IO ()
 tryToSubmit' probNum problem answers = do
   let calcH p@(ans, path) = do
-        extra <- mkExtra problem ans
+        extra@Extra{..} <- mkExtra problem ans
         let einfo = pprExtraShort extra
             strategy = Parallel
         putStrLn $ unwords [path ++ ":", "calulating", show strategy, "happiness:", einfo ]
         h <- Happiness.applyStrategy strategy extra problem ans
-        pure (h, p)
-  hs <- mapM calcH answers
+        case answer_valid of
+          Valid   -> pure [(h, p)]
+          Invalid -> pure []
+  hs <- concat <$> mapM calcH answers
   putStrLn $ "fetching past-max ..."
   pmax <- getPositiveMax probNum
   let (h, (answer, path)) = maximumBy (comparing fst) hs
