@@ -17,7 +17,7 @@ tuneVolume :: Extra -> Problem -> Answer -> Answer
 tuneVolume extra prob ans
   = ans
   { Answer.volumes = Just $
-      [ if IntMap.findWithDefault 0 k table >= 0 then 10 else 0
+      [ if IntMap.findWithDefault 0 k table > 0 then 10 else 0
       | k <- [0..n-1]
       ]
   }
