@@ -127,18 +127,19 @@ positions prob = map withDirection poss
     northEdge = maximum $ map snd poss
     southEdge = minimum $ map snd poss
 
-attendeesForPositions :: Problem -> Map.Map (Point, Direction) [Attendee]
-attendeesForPositions prob
-  = Map.fromList
-    $ westAtnds ++ northAtnds ++ eastAtnds ++ southAtnds
-    ++ northWestAtnds ++ northEastAtnds ++ southEastAtnds ++ southWestAtnds
-    ++ innerAtnds
+positionsByDirection :: Problem -> ( [(Point, Direction)] -- West
+                                   , [(Point, Direction)] -- North
+                                   , [(Point, Direction)] -- East
+                                   , [(Point, Direction)] -- South
+                                   , [(Point, Direction)] -- NorthWest
+                                   , [(Point, Direction)] -- NorthEast
+                                   , [(Point, Direction)] -- SouthEast
+                                   , [(Point, Direction)] -- SouthWest
+                                   , [(Point, Direction)] -- Inner
+                                   )
+positionsByDirection prob = dividePoss poss
   where
-    atnds = attendees prob
     poss = positions prob
-    (westPoss, northPoss, eastPoss, southPoss
-      , northWestPos, northEastPos, southEastPos, southWestPos
-      , innerPoss) = dividePoss poss
     dividePoss = foldr divide ([], [], [], [], [], [], [], [], [])
       where
         divide p@(_, West) (ws, ns, es, ss, nws, nes, ses, sws, ins)
@@ -159,6 +160,20 @@ attendeesForPositions prob
           = (ws, ns, es, ss, nws, nes, ses, p:sws, ins)
         divide p@(_, Inner) (ws, ns, es, ss, nws, nes, ses, sws, ins)
           = (ws, ns, es, ss, nws, nes, ses, sws, p:ins)
+          
+
+
+attendeesForPositions :: Problem -> Map.Map (Point, Direction) [Attendee]
+attendeesForPositions prob
+  = Map.fromList
+    $ westAtnds ++ northAtnds ++ eastAtnds ++ southAtnds
+    ++ northWestAtnds ++ northEastAtnds ++ southEastAtnds ++ southWestAtnds
+    ++ innerAtnds
+  where
+    atnds = attendees prob
+    (westPoss, northPoss, eastPoss, southPoss
+      , northWestPos, northEastPos, southEastPos, southWestPos
+      , innerPoss) = positionsByDirection prob
     westAtnds :: [((Point, Direction), [Attendee])]
     westAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfWestMusician p) atnds)) westPoss
     northAtnds :: [((Point, Direction), [Attendee])]
