@@ -3,6 +3,10 @@ module Solutions where
 import Control.Concurrent (getNumCapabilities)
 import qualified Data.ByteString.Lazy as B
 import Data.Aeson (encode, decode)
+import Data.Ord
+import Data.Function
+import Data.Maybe
+import Data.List
 import Text.Read (readMaybe)
 import Text.Printf (printf)
 import System.FilePath (takeBaseName, splitExtension)
@@ -36,6 +40,14 @@ fromFilenameHeulistic path
       [ ("solutions/submission-p22-2023-07-08T02_25_50.863957478Z.json", ("unknown", 22))
       , ("submission-p22-2023-07-08T02_25_50.863957478Z.json", ("unknown", 22))
       ]
+
+problemSubmitCommands :: [FilePath] -> [String]
+problemSubmitCommands = map (cmd . unzip) . groupBy ((==) `on` snd) . sortBy (comparing snd) . mapMaybe takePair
+  where
+    takePair path = do
+      (_, pnum) <- fromFilenameHeulistic path
+      return (path, pnum)
+    cmd (names, pnum:_) = unwords $ ["./scripts/problem-submit.sh", show pnum] ++ names
 
 readSolutionFile :: FilePath -> IO (Maybe Answer)
 readSolutionFile path = do

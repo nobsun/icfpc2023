@@ -31,6 +31,7 @@ library
       Happiness
       IntCompat
       PastSubmissions
+      Postprocess.Swap
       Postprocess.TuneVolume
       Problem
       Solutions
@@ -235,6 +236,37 @@ executable postprocess
     , time
   default-language: GHC2021
 
+executable problem-submit
+  main-is: problem-submit.hs
+  other-modules:
+      Paths_icfpc2023
+  hs-source-dirs:
+      mains
+  default-extensions:
+      LambdaCase
+      MultiWayIf
+      NPlusKPatterns
+      OverloadedStrings
+      NoStarIsType
+      TypeFamilyDependencies
+      DataKinds
+      PolyKinds
+      UndecidableInstances
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts -threaded -with-rtsopts=-qg -with-rtsopts=-N4
+  build-depends:
+      aeson
+    , array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , directory
+    , filepath
+    , icfpc2023
+    , process
+    , random
+    , time
+  default-language: GHC2021
+
 executable solve
   main-is: solve.hs
   other-modules:
@@ -252,6 +284,37 @@ executable solve
       PolyKinds
       UndecidableInstances
   ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts
+  build-depends:
+      aeson
+    , array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , directory
+    , filepath
+    , icfpc2023
+    , process
+    , random
+    , time
+  default-language: GHC2021
+
+executable try-submit
+  main-is: try-submit.hs
+  other-modules:
+      Paths_icfpc2023
+  hs-source-dirs:
+      mains
+  default-extensions:
+      LambdaCase
+      MultiWayIf
+      NPlusKPatterns
+      OverloadedStrings
+      NoStarIsType
+      TypeFamilyDependencies
+      DataKinds
+      PolyKinds
+      UndecidableInstances
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts -threaded -with-rtsopts=-qg -with-rtsopts=-N4
   build-depends:
       aeson
     , array

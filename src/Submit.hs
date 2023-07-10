@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Submit where
 
 import Data.String (fromString)
@@ -6,6 +7,7 @@ import Data.List (maximumBy)
 import Data.Functor
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Aeson
+import System.IO (hSetBuffering, BufferMode (LineBuffering), stdout)
 import System.Process (readProcess)
 
 import Problem
@@ -15,28 +17,41 @@ import PastSubmissions
 import Happiness
 import Solutions
 
+trySubmitHeuristic :: FilePath -> IO ()
+trySubmitHeuristic path =
+  case fromFilenameHeulistic path of
+    Nothing         -> putStrLn $ "fail to delect PROBLEM_ID: " ++ path
+    Just (_, pnum)  -> tryToSubmit pnum [path]
+
 tryToSubmit :: Int -> [FilePath] -> IO ()
 tryToSubmit _ [] = putStrLn "tryToSubmit: null input"
 tryToSubmit probNum sols = do
+  hSetBuffering stdout LineBuffering
   let readSol sol = do
         let parseError = putStrLn ("answer parse error: " ++ sol)
             result answer = pure [(answer, sol)]
         maybe (parseError $> []) result =<< readSolutionFile sol
   putStrLn $ "loading " ++ unwords sols
   answers <- concat <$> mapM readSol sols
-  let action problem = tryToSubmit' probNum problem answers
+  let action problem = do
+        extras <- sequence [ mkExtra problem answer | (answer, _) <- answers ]
+        tryToSubmit' probNum problem $ zip answers extras
   maybe (putStrLn $ "problem parse error: problem " ++ show probNum) action =<< readProblem probNum
 
-tryToSubmit' :: Int -> Problem -> [(Answer, FilePath)] -> IO ()
+tryToSubmit' :: Int -> Problem -> [((Answer, FilePath), Extra)] -> IO ()
 tryToSubmit' probNum problem answers = do
-  let calcH p@(ans, path) = do
-        extra <- mkExtra problem ans
-        let einfo = pprExtraShort extra
-            strategy = Parallel
-        putStrLn $ unwords [path ++ ":", "calulating", show strategy, "happiness:", einfo ]
-        h <- Happiness.applyStrategy strategy extra problem ans
-        pure (h, p)
-  hs <- mapM calcH answers
+  let calcH (p@(ans, path), extra@Extra{..}) = case answer_valid of
+        Invalid -> do
+          putStrLn $ path ++ ": invalid answer skip"
+          pure []
+        Valid   ->  do
+          let einfo = pprExtraShort extra
+              strategy = Parallel
+          putStrLn $ unwords [path ++ ":", "calulating", show strategy, "happiness:", einfo ]
+          h <- Happiness.applyStrategy strategy extra problem ans
+          pure [(h, p)]
+
+  hs <- concat <$> mapM calcH answers
   putStrLn $ "fetching past-max ..."
   pmax <- getPositiveMax probNum
   let (h, (answer, path)) = maximumBy (comparing fst) hs
