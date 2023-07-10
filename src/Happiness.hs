@@ -31,10 +31,10 @@ applyStrategyZ Parallel e p a = withQueue e p a
 applyStrategyZ WeightedAverage e p a = weightedAverage e p a
 
 squareDistance :: (Obstacle o1, Obstacle o2) => o1 -> o2 -> Double
-squareDistance x y = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
+squareDistance a b = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
   where
-    (x1,x2) = obCenter x
-    (y1,y2) = obCenter y
+    (x1,y1) = obCenter a
+    (x2,y2) = obCenter b
 
 weightedAverageHappiness :: Problem -> Answer -> IO Happiness
 weightedAverageHappiness prob ans = do
