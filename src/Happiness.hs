@@ -197,7 +197,7 @@ memoise extra prob ans curNo oldNo = do
 --    near (Placement x1 y1) (Placement x2 y2) =
 --       abs(x1-x2) < 0.1 && abs(y1-y2) < 0.1
 
-    impact mad mmd clo (i, a_i) (k, inst_k, p_k)
+    impact mad _mmd clo (i, _a_i) (k, inst_k, _p_k)
       | isFullDivisionProblem prob = ceiling $ closeness * fromIntegral (ceiling (num / den) :: Happiness)
       | otherwise = ceiling (num / den)
       where
@@ -231,9 +231,9 @@ memoise extra prob ans curNo oldNo = do
       madu <- MA.thaw (s_m_a_distance old)  :: IO (IOUArray Int Double)
       mmdu <- MA.thaw (s_m_m_distance old) :: IO (IOUArray Int Double)
       clou <- MA.thaw (s_closeness old)     :: IO (IOUArray Int Double)
-      sequence [MA.writeArray madu i e | (i,e)<-madUpdate]
-      sequence [MA.writeArray mmdu i e | (i,e)<-mmdUpdate]
-      sequence [MA.writeArray clou i e | (i,e)<-cloUpdate]
+      sequence_ [MA.writeArray madu i e | (i,e)<-madUpdate]
+      sequence_ [MA.writeArray mmdu i e | (i,e)<-mmdUpdate]
+      sequence_ [MA.writeArray clou i e | (i,e)<-cloUpdate]
       mad <- MA.freeze madu :: IO (UArray Int Double)
       mmd <- MA.freeze mmdu :: IO (UArray Int Double)
       clo <- MA.freeze clou :: IO (UArray Int Double)

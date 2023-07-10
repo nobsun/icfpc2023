@@ -52,7 +52,7 @@ getCandidatesIO problem@(Problem{stage_width=w, stage_height=h ,stage_bottom_lef
       happy <- sequence[happiness extra problem c curNo parNo| (curNo,(parNo,c))<-children]
       let hchildren = sortBy (flip compare`on`fst) (zip happy children)
       putStrLn $ "happiness: "++show (map fst hchildren)
-      go (count+2) extra $ take 2 [(cno,c) |(h,(cno,(pno,c)))<-hchildren]
+      go (count+2) extra $ take 2 [(cno,c) |(_hap,(cno,(_pno,c)))<-hchildren]
 
     genetic :: Double -> [(Int,[Point])] -> IO [(Int,[Point])]
     genetic count cands = do
