@@ -105,7 +105,7 @@ data Direction = West
 positions :: Problem -> [(Point, Direction)]
 positions prob = map withDirection poss
   where
-    withDirection p@(x, y) = (p, direction p)
+    withDirection p@(x, y) = arrange (p, direction p)
     direction (x, y)
       | x == westEdge && y == northEdge = NorthWest
       | x == eastEdge && y == northEdge = NorthEast
@@ -116,6 +116,18 @@ positions prob = map withDirection poss
       | y == northEdge = North
       | y == southEdge = South
       | otherwise = Inner
+
+    -- | NOTE: 雑に調整している。無くてもよいが加点が期待できるかもしれないのでやっただけ
+    -- 左上から右下に向かって列挙したので西端と南端ステージ端に寄り切れてない
+    -- うまく調整したいが今のところ西端と南端の最終列および最終行のみ調整する
+    arrange :: (Point, Direction) -> (Point, Direction)
+    arrange ((x, y), NorthEast) = ((e-10.0, y),      NorthEast)
+    arrange ((x, y), East)      = ((e-10.0, y),      East)
+    arrange ((x, y), SouthEast) = ((e-10.0, s+10.0), SouthEast)
+    arrange ((x, y), South)     = ((x,      s+10.0), South)
+    arrange ((x, y), SouthWest) = ((x,      s+10.0), SouthWest)
+    arrange ((x, y), d)         = ((x,      y),      d)
+
 
     (w, n, e, s) = stageBounds prob
     poss = [ (x, y)
