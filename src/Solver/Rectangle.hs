@@ -188,7 +188,7 @@ positionsByDirection :: Problem -> ( [(Point, Direction)] -- West
                                    )
 positionsByDirection prob = dividePoss poss
   where
-    poss = positions prob RightTop -- TODO: ここで調整していろいろ投げてみる
+    poss = positions prob RightBottom -- TODO: ここで調整していろいろ投げてみる
     dividePoss = foldr divide ([], [], [], [], [], [], [], [], [])
       where
         divide p@(_, West) (ws, ns, es, ss, nws, nes, ses, sws, ins)
