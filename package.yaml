@@ -113,6 +113,16 @@ executables:
     - icfpc2023
     - optparse-applicative
 
+  postprocess:
+    main:                postprocess_main.hs
+    source-dirs:         mains
+    ghc-options:
+    - -rtsopts
+    dependencies:
+    - icfpc2023
+    - optparse-applicative
+
+
 tests:
   icfpc2023-test:
     main:                spec.hs
