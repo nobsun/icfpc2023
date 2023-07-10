@@ -102,8 +102,14 @@ data Direction = West
                | Inner
   deriving (Show, Eq, Ord)
 
-positions :: Problem -> [(Point, Direction)]
-positions prob = map withDirection poss
+data Align = LeftTop
+           | LeftBottom
+           | RightTop
+           | RightBottom
+  deriving (Show, Eq, Ord)
+
+positions :: Problem -> Align -> [(Point, Direction)]
+positions prob align = map withDirection poss
   where
     withDirection p@(x, y) = arrange (p, direction p)
     direction (x, y)
@@ -117,24 +123,54 @@ positions prob = map withDirection poss
       | y == southEdge = South
       | otherwise = Inner
 
+    arrange = id
     -- | NOTE: 雑に調整している。無くてもよいが加点が期待できるかもしれないのでやっただけ
     -- 左上から右下に向かって列挙したので西端と南端ステージ端に寄り切れてない
     -- うまく調整したいが今のところ西端と南端の最終列および最終行のみ調整する
-    arrange :: (Point, Direction) -> (Point, Direction)
-    arrange ((x, y), NorthEast) = ((e-10.0, y),      NorthEast)
-    arrange ((x, y), East)      = ((e-10.0, y),      East)
-    arrange ((x, y), SouthEast) = ((e-10.0, s+10.0), SouthEast)
-    arrange ((x, y), South)     = ((x,      s+10.0), South)
-    arrange ((x, y), SouthWest) = ((x,      s+10.0), SouthWest)
-    arrange ((x, y), d)         = ((x,      y),      d)
-
+    -- arrange :: (Point, Direction) -> (Point, Direction)
+    -- arrange ((x, y), NorthEast) = ((e-10.0, y),      NorthEast)
+    -- arrange ((x, y), East)      = ((e-10.0, y),      East)
+    -- arrange ((x, y), SouthEast) = ((e-10.0, s+10.0), SouthEast)
+    -- arrange ((x, y), South)     = ((x,      s+10.0), South)
+    -- arrange ((x, y), SouthWest) = ((x,      s+10.0), SouthWest)
+    -- arrange ((x, y), d)         = ((x,      y),      d)
 
     (w, n, e, s) = stageBounds prob
-    poss = [ (x, y)
-           | x <- [w+10.0, w+20.0 .. e-10.0]
-           , y <- [n-10.0, n-20.0 .. s+10.0]
-           , x <= e-10.0 && y >= s+10.0 -- Double なのでこれがないと誤差でステージに近すぎる場合が出る
-           ]
+    -- 左上寄せ
+    possLeftTop
+      = [ (x, y)
+        | x <- [w+10.0, w+20.0 .. e-10.0]
+        , y <- [n-10.0, n-20.0 .. s+10.0]
+        , x <= e-10.0 && y >= s+10.0 -- Double なのでこれがないと誤差でステージに近すぎる場合が出る
+        ]
+    -- 左下寄せ
+    possLeftBottom
+      = [ (x, y)
+        | x <- [w+10.0, w+20.0 .. e-10.0]
+        , y <- [s+10.0, s+20.0 .. n-10.0]
+        , x <= e-10.0 && y <= n-10.0 -- Double なのでこれがないと誤差でステージに近すぎる場合が出る
+        ]
+    -- 右上寄せ
+    possRightTop
+      = [ (x, y)
+        | x <- [e-10.0, e-20.0 .. w+10.0]
+        , y <- [n-10.0, n-20.0 .. s+10.0]
+        , x >= w+10.0 && y >= s+10.0 -- Double なのでこれがないと誤差でステージに近すぎる場合が出る
+        ]
+    -- 右下寄せ
+    possRightBottom
+      = [ (x, y)
+        | x <- [e-10.0, e-20.0 .. w+10.0]
+        , y <- [s+10.0, s+20.0 .. n-10.0]
+        , x >= w+10.0 && y <= n-10.0 -- Double なのでこれがないと誤差でステージに近すぎる場合が出る
+        ]
+    --  ここでいろいろ試す
+    poss = case align of
+      LeftTop     -> possLeftTop
+      LeftBottom  -> possLeftBottom
+      RightTop    -> possRightTop
+      RightBottom -> possRightBottom
+
     westEdge = minimum $ map fst poss
     eastEdge = maximum $ map fst poss
     northEdge = maximum $ map snd poss
@@ -152,7 +188,7 @@ positionsByDirection :: Problem -> ( [(Point, Direction)] -- West
                                    )
 positionsByDirection prob = dividePoss poss
   where
-    poss = positions prob
+    poss = positions prob LeftBottom -- TODO: ここで調整していろいろ投げてみる
     dividePoss = foldr divide ([], [], [], [], [], [], [], [], [])
       where
         divide p@(_, West) (ws, ns, es, ss, nws, nes, ses, sws, ins)
