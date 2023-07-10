@@ -1,5 +1,7 @@
 module Solver.Rectangle where
 
+import qualified Data.Map as Map
+
 import Problem
 import Solver (SolverF)
 
@@ -41,43 +43,43 @@ type Point = (Double, Double)
 --     - sqrt 3 (x - x0) + (y - y0) <= 0
 --     - (x - x0) + sqrt 3 (y - y0) <= 0
 
-inRangeOfWestMusician :: Point -> Point -> Bool
-inRangeOfWestMusician (x0, y0) (x, y) =
+inRangeOfWestMusician :: Point -> Attendee -> Bool
+inRangeOfWestMusician (x0, y0) (Attendee x y _) =
   sqrt 3 * (x - x0) - (y - y0) >= 0 &&
   sqrt 3 * (x - x0) + (y - y0) <= 0
 
-inRangeOfNorthMusician :: Point -> Point -> Bool
-inRangeOfNorthMusician (x0, y0) (x, y) =
+inRangeOfNorthMusician :: Point -> Attendee -> Bool
+inRangeOfNorthMusician (x0, y0) (Attendee x y _) =
   (x - x0) - sqrt 3 * (y - y0) >= 0 &&
   (x - x0) + sqrt 3 * (y - y0) >= 0
 
-inRangeOfEastMusician :: Point -> Point -> Bool
-inRangeOfEastMusician (x0, y0) (x, y) =
+inRangeOfEastMusician :: Point -> Attendee -> Bool
+inRangeOfEastMusician (x0, y0) (Attendee x y _) =
   sqrt 3 * (x - x0) - (y - y0) <= 0 &&
   sqrt 3 * (x - x0) + (y - y0) >= 0
 
-inRangeOfSouthMusician :: Point -> Point -> Bool
-inRangeOfSouthMusician (x0, y0) (x, y) =
+inRangeOfSouthMusician :: Point -> Attendee -> Bool
+inRangeOfSouthMusician (x0, y0) (Attendee x y _) =
   (x - x0) - sqrt 3 * (y - y0) <= 0 &&
   (x - x0) + sqrt 3 * (y - y0) <= 0
 
-inRangeOfNorthWestMusician :: Point -> Point -> Bool
-inRangeOfNorthWestMusician (x0, y0) (x, y) =
+inRangeOfNorthWestMusician :: Point -> Attendee -> Bool
+inRangeOfNorthWestMusician (x0, y0) (Attendee x y _) =
   (x - x0) - sqrt 3 * (y - y0) >= 0 &&
   sqrt 3 * (x - x0) - (y - y0) >= 0
 
-inRangeOfNorthEastMusician :: Point -> Point -> Bool
-inRangeOfNorthEastMusician (x0, y0) (x, y) =
+inRangeOfNorthEastMusician :: Point -> Attendee -> Bool
+inRangeOfNorthEastMusician (x0, y0) (Attendee x y _) =
   (x - x0) + sqrt 3 * (y - y0) >= 0 &&
   sqrt 3 * (x - x0) + (y - y0) >= 0
 
-inRangeOfSouthEastMusician :: Point -> Point -> Bool
-inRangeOfSouthEastMusician (x0, y0) (x, y) =
+inRangeOfSouthEastMusician :: Point -> Attendee -> Bool
+inRangeOfSouthEastMusician (x0, y0) (Attendee x y _) =
   sqrt 3 * (x - x0) - (y - y0) <= 0 &&
   (x - x0) - sqrt 3 * (y - y0) <= 0
 
-inRangeOfSouthWestMusician :: Point -> Point -> Bool
-inRangeOfSouthWestMusician (x0, y0) (x, y) =
+inRangeOfSouthWestMusician :: Point -> Attendee -> Bool
+inRangeOfSouthWestMusician (x0, y0) (Attendee x y _) =
   sqrt 3 * (x - x0) + (y - y0) <= 0 &&
   (x - x0) + sqrt 3 * (y - y0) <= 0
 
@@ -123,3 +125,57 @@ positions prob = map withDirection poss
     eastEdge = maximum $ map fst poss
     northEdge = maximum $ map snd poss
     southEdge = minimum $ map snd poss
+
+attendeesForPositions :: Problem -> Map.Map (Point, Direction) [Attendee]
+attendeesForPositions prob = undefined
+  where
+    atnds = attendees prob
+    poss = positions prob
+    (westPoss, northPoss, eastPoss, southPoss
+      , northWestPos, northEastPos, southEastPos, southWestPos
+      , innerPoss) = dividePoss poss
+    dividePoss = foldr divide ([], [], [], [], [], [], [], [], [])
+      where
+        divide p@(_, West) (ws, ns, es, ss, nws, nes, ses, sws, ins)
+          = (p:ws, ns, es, ss, nws, nes, ses, sws, ins)
+        divide p@(_, North) (ws, ns, es, ss, nws, nes, ses, sws, ins)
+          = (ws, p:ns, es, ss, nws, nes, ses, sws, ins)
+        divide p@(_, East) (ws, ns, es, ss, nws, nes, ses, sws, ins)
+          = (ws, ns, p:es, ss, nws, nes, ses, sws, ins)
+        divide p@(_, South) (ws, ns, es, ss, nws, nes, ses, sws, ins)
+          = (ws, ns, es, p:ss, nws, nes, ses, sws, ins)
+        divide p@(_, NorthWest) (ws, ns, es, ss, nws, nes, ses, sws, ins)
+          = (ws, ns, es, ss, p:nws, nes, ses, sws, ins)
+        divide p@(_, NorthEast) (ws, ns, es, ss, nws, nes, ses, sws, ins)
+          = (ws, ns, es, ss, nws, p:nes, ses, sws, ins)
+        divide p@(_, SouthEast) (ws, ns, es, ss, nws, nes, ses, sws, ins)
+          = (ws, ns, es, ss, nws, nes, p:ses, sws, ins)
+        divide p@(_, SouthWest) (ws, ns, es, ss, nws, nes, ses, sws, ins)
+          = (ws, ns, es, ss, nws, nes, ses, p:sws, ins)
+        divide p@(_, Inner) (ws, ns, es, ss, nws, nes, ses, sws, ins)
+          = (ws, ns, es, ss, nws, nes, ses, sws, p:ins)
+    westAtnds :: [((Point, Direction), [Attendee])]
+    westAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfWestMusician p) atnds)) westPoss
+    northAtnds :: [((Point, Direction), [Attendee])]
+    northAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfNorthMusician p) atnds)) northPoss
+    eastAtnds :: [((Point, Direction), [Attendee])]
+    eastAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfEastMusician p) atnds)) eastPoss
+    southAtnds :: [((Point, Direction), [Attendee])]
+    southAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfSouthMusician p) atnds)) southPoss
+    northWestAtnds :: [((Point, Direction), [Attendee])]
+    northWestAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfNorthWestMusician p) atnds)) northWestPos
+    northEastAtnds :: [((Point, Direction), [Attendee])]
+    northEastAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfNorthEastMusician p) atnds)) northEastPos
+    southEastAtnds :: [((Point, Direction), [Attendee])]
+    southEastAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfSouthEastMusician p) atnds)) southEastPos
+    southWestAtnds :: [((Point, Direction), [Attendee])]
+    southWestAtnds = map (\pd@(p, _) -> (pd, filter (inRangeOfSouthWestMusician p) atnds)) southWestPos
+    -- NOTE: 必ず外周から埋めるのでここが影響を与えることはない
+    -- 外周に穴が開いているならここにはミュージシャンは配置されていないはず
+    innerAtnds :: [((Point, Direction), [Attendee])]
+    innerAtnds = map (\pd@(p, _) -> (pd, [])) innerPoss
+    
+
+
+getCandidates :: SolverF
+getCandidates prob = undefined
