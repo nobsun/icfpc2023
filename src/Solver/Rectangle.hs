@@ -114,7 +114,9 @@ type Adjust = Bool
 positions :: Problem -> (Align, Adjust) -> [(Point, Direction)]
 positions prob (align, adjust) = map withDirection poss
   where
-    withDirection p@(x, y) = arrange (p, direction p)
+    withDirection p@(x, y)
+      | adjust = arrange (p, direction p)
+      | otherwise = (p, direction p)
     direction (x, y)
       | x == westEdge && y == northEdge = NorthWest
       | x == eastEdge && y == northEdge = NorthEast
@@ -126,17 +128,19 @@ positions prob (align, adjust) = map withDirection poss
       | y == southEdge = South
       | otherwise = Inner
 
-    arrange = id
     -- | NOTE: 雑に調整している。無くてもよいが加点が期待できるかもしれないのでやっただけ
     -- 左上から右下に向かって列挙したので西端と南端ステージ端に寄り切れてない
     -- うまく調整したいが今のところ西端と南端の最終列および最終行のみ調整する
-    -- arrange :: (Point, Direction) -> (Point, Direction)
-    -- arrange ((x, y), NorthEast) = ((e-10.0, y),      NorthEast)
-    -- arrange ((x, y), East)      = ((e-10.0, y),      East)
-    -- arrange ((x, y), SouthEast) = ((e-10.0, s+10.0), SouthEast)
-    -- arrange ((x, y), South)     = ((x,      s+10.0), South)
-    -- arrange ((x, y), SouthWest) = ((x,      s+10.0), SouthWest)
-    -- arrange ((x, y), d)         = ((x,      y),      d)
+    arrange :: (Point, Direction) -> (Point, Direction)
+    arrange ((x, y), West)      = ((w+10.0, y),      West)
+    arrange ((x, y), North)     = ((x,      n-10.0), North)
+    arrange ((x, y), East)      = ((e-10.0, y),      East)
+    arrange ((x, y), South)     = ((x,      s+10.0), South)
+    arrange ((x, y), NorthWest) = ((w+10.0, n-10.0), NorthWest)
+    arrange ((x, y), NorthEast) = ((e-10.0, n-10.0), NorthEast)
+    arrange ((x, y), SouthEast) = ((e-10.0, s+10.0), SouthEast)
+    arrange ((x, y), SouthWest) = ((w+10.0, s+10.0), SouthWest)
+    arrange ((x, y), d)         = ((x,      y),      d)
 
     (w, n, e, s) = stageBounds prob
     -- 左上寄せ
