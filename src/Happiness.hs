@@ -143,7 +143,7 @@ withQueue extra prob ans = do
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
     chunk_score triple_chunk =
       sum
-      [ impact (i, a_i) (k, inst_k, p_k)
+      [ unit_score (i, a_i) (k, inst_k, p_k)
       | (k, inst_k, p_k) <- triple_chunk
       , (i, a_i) <- zip [0..] atnds
       , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
@@ -157,14 +157,19 @@ withQueue extra prob ans = do
     insts = musicians prob
     plrs = pillars prob
 
-    impact (i, a_i) (_k, inst_k, p_k) = ceiling $ (closeness * num) / den
+    -- q(k) * I(k) or I(k)
+    unit_score (i, a_i) (k, inst_k, p_k)
+      | isFullDivisionProblem prob = ceiling $ closeness * fromIntegral impact
+      | otherwise = impact
       where
         num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
         den = squareDistance p_k a_i
+        -- I(k)
+        impact = ceiling (num / den) :: Happiness
         closeness = 1 +
-          sum[ 1/(squareDistance p_k (ms_ar!j))
-             | inst<-insts, inst/=inst_k
-             , j <-(same_inst_musicians.problem_extra $ extra)! inst
+          sum[ 1 / sqrt (squareDistance p_k (ms_ar!j))
+             | j <- (same_inst_musicians.problem_extra $ extra) ! inst_k
+             , k /= j
              ]
 
 isBlockWith :: Obstacle o => BlockTestICompat -> AnswerCheck -> Placement -> Attendee -> o -> Bool
