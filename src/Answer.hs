@@ -7,6 +7,7 @@ module Answer
   , isIntCompatAnswer
   ) where
 
+import Data.String (fromString)
 import qualified Data.ByteString.Lazy as B
 import Data.Aeson
 -- import Text.Printf (printf)
@@ -36,15 +37,15 @@ instance FromJSON Placement
 instance ToJSON Answer
 instance FromJSON Answer
 
-
-_test :: B.ByteString
-_test = encode ans
+_test :: (B.ByteString, Answer)
+_test = (encode ans, maybe (error "parse error!!") id $ decode str)
   where ans = Answer { placements = [ Placement {x = 10.0, y = 20.0}
                                     , Placement {x = 30.0, y = 40.0}
                                     ]
                      , volumes = [1.0, 2.0]
                      }
 
+        str = fromString "{\"placements\":[{\"x\":10,\"y\":20},{\"x\":30,\"y\":40}]}"
 
 isValidAnswer :: Problem -> Answer -> Bool
 isValidAnswer Problem{ stage_bottom_left = (x0,y0), stage_width = w, stage_height = h, musicians = ms } Answer{ placements = ps, volumes = _vs } =
