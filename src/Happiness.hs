@@ -4,7 +4,7 @@ module Happiness where
 import Control.Concurrent (newChan, writeChan, readChan, forkIO, getNumCapabilities)
 import Control.Monad
 import Data.Array (Array)
-import Data.Array.IArray ((!))
+import Data.Array.IArray ((!), listArray)
 import Data.Array.Unboxed (UArray)
 import Data.List.Split (chunksOf)
 
@@ -30,8 +30,11 @@ applyStrategyZ Naive e p a = naive e p a
 applyStrategyZ Parallel e p a = withQueue e p a
 applyStrategyZ WeightedAverage e p a = weightedAverage e p a
 
-squareDistance :: Placement -> Attendee -> Double
-squareDistance (Placement x1 y1) (Attendee x2 y2 _) = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
+squareDistance :: (Obstacle o1, Obstacle o2) => o1 -> o2 -> Double
+squareDistance x y = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
+  where
+    (x1,x2) = obCenter x
+    (y1,y2) = obCenter y
 
 weightedAverageHappiness :: Problem -> Answer -> IO Happiness
 weightedAverageHappiness prob ans = do
@@ -87,12 +90,20 @@ naive extra prob ans = pure score
                 ]
     atnds = attendees prob
     ms = placements ans
+    ms_ar :: Array Int Placement
+    ms_ar = listArray (0, length ms-1) ms
+    insts = musicians prob
     plrs = pillars prob
 
-    impact (i, a_i) (_k, inst_k, p_k) = ceiling $ num / den
+    impact (i, a_i) (_k, inst_k, p_k) = ceiling $ (closeness * num) / den
       where
         num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
         den = squareDistance p_k a_i
+        closeness =
+          sum[ 1/(squareDistance p_k (ms_ar!j))
+             | inst<-insts, inst/=inst_k
+             , j <-(same_inst_musicians.problem_extra $ extra)! inst
+             ]
 
 withQueue :: Extra -> Problem -> Answer -> IO Happiness
 withQueue extra prob ans = do
@@ -132,12 +143,20 @@ withQueue extra prob ans = do
 
     atnds = attendees prob
     ms = placements ans
+    ms_ar :: Array Int Placement
+    ms_ar = listArray (0, length ms-1) ms
+    insts = musicians prob
     plrs = pillars prob
 
-    impact (i, a_i) (_k, inst_k, p_k) = ceiling $ num / den
+    impact (i, a_i) (_k, inst_k, p_k) = ceiling $ (closeness * num) / den
       where
         num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
         den = squareDistance p_k a_i
+        closeness =
+          sum[ 1/(squareDistance p_k (ms_ar!j))
+             | inst<-insts, inst/=inst_k
+             , j <-(same_inst_musicians.problem_extra $ extra)! inst
+             ]
 
 isBlockWith :: Obstacle o => BlockTestICompat -> AnswerCheck -> Placement -> Attendee -> o -> Bool
 isBlockWith IntCompat    Valid    = isBlockInt

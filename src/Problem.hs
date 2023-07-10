@@ -31,6 +31,10 @@ class Obstacle a where
   obCenter :: a -> (Double, Double)
   obRadius :: a -> Double
 
+instance Obstacle Attendee where
+  obCenter a = (x a, y a)
+  obRadius _ = 0
+
 instance Obstacle Pillar where
   obCenter = center
   obRadius = radius

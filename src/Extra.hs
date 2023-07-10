@@ -5,6 +5,8 @@ module Extra where
 import Data.Array (Array)
 import Data.Array.IArray ((!), listArray)
 import Data.Array.Unboxed (UArray)
+import Data.Function (on)
+import Data.List (sortBy, groupBy)
 import Data.IORef (IORef, newIORef)
 import Text.Printf (printf)
 
@@ -18,6 +20,7 @@ data ProblemExtra
                  , num_instruments :: Int
                  , attendees_int_compat :: Bool
                  , million_times_atnds_tastes :: Array Int (UArray Int Double)
+                 , same_inst_musicians :: Array Instrument [Int]
                  } deriving Show
 
 mkProblemExtra :: Problem -> ProblemExtra
@@ -28,6 +31,7 @@ mkProblemExtra Problem{..} =
   , num_instruments = maximum (0 : musicians) + 1
   , attendees_int_compat = all compatA attendees
   , million_times_atnds_tastes = listArray (0, length attendees - 1) $ map million_times_tastes attendees
+  , same_inst_musicians = listArray (0, length musicians - 1) group_by_inst
   }
   where
     compatA Attendee{..} = IntCompat.double x && IntCompat.double y
@@ -35,6 +39,9 @@ mkProblemExtra Problem{..} =
     {- each tastes times 1,000,000 memos -}
     million_times_tastes :: Attendee -> UArray Int Double
     million_times_tastes a = listArray (0, length ts - 1) $ map (1e6 *) ts  where ts = tastes a
+
+    group_by_inst = map (map fst) $ groupBy ((==)`on`snd) $ sortBy (compare`on`snd) $ zip [0..] musicians
+
 
 pprProblemExtraShort :: ProblemExtra -> String
 pprProblemExtraShort ProblemExtra{..} =
