@@ -3,6 +3,7 @@
 module Answer
   ( Placement (..)
   , Answer (..)
+  , mkAnswer
   , normalVolumes
   , isValidAnswer
   , isIntCompatAnswer
@@ -32,6 +33,9 @@ data Answer
            , volumes    :: Maybe [Double]
            }
   deriving (Show, Eq, Generic)
+
+mkAnswer :: [Placement] -> [Double] -> Answer
+mkAnswer ps vs = Answer { placements = ps, volumes = normalVolumes vs }
 
 normalVolumes :: [Double] -> Maybe [Double]
 normalVolumes vs
