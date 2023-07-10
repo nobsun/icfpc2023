@@ -16,7 +16,14 @@ solvers =
   , ("numeric-optimization", NumericOptimization.getCandidatesIO)
   , ("genetic", Genetic.getCandidatesIO)
   , ("front-heat", return . FrontHeat.getCandidates)
-  , ("rectangle", Rectangle.getCandidates)
+  , ("rectangle-lt", Rectangle.getCandidates (Rectangle.LeftTop, False))
+  , ("rectangle-lb", Rectangle.getCandidates (Rectangle.LeftBottom, False))
+  , ("rectangle-rt", Rectangle.getCandidates (Rectangle.RightTop, False))
+  , ("rectangle-rb", Rectangle.getCandidates (Rectangle.RightBottom, False))
+  , ("rectangle-lt-adjust", Rectangle.getCandidates (Rectangle.LeftTop, True))
+  , ("rectangle-lb-adjust", Rectangle.getCandidates (Rectangle.LeftBottom, True))
+  , ("rectangle-rt-adjust", Rectangle.getCandidates (Rectangle.RightTop, True))
+  , ("rectangle-rb-adjust", Rectangle.getCandidates (Rectangle.RightBottom, True))
   ]
 
 main :: IO ()

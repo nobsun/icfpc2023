@@ -108,8 +108,11 @@ data Align = LeftTop
            | RightBottom
   deriving (Show, Eq, Ord)
 
-positions :: Problem -> Align -> [(Point, Direction)]
-positions prob align = map withDirection poss
+-- | 立ち位置の配置をどちら寄せかにしたときに後ろが余るのでそれを調整するかどうか
+type Adjust = Bool
+
+positions :: Problem -> (Align, Adjust) -> [(Point, Direction)]
+positions prob (align, adjust) = map withDirection poss
   where
     withDirection p@(x, y) = arrange (p, direction p)
     direction (x, y)
@@ -176,19 +179,21 @@ positions prob align = map withDirection poss
     northEdge = maximum $ map snd poss
     southEdge = minimum $ map snd poss
 
-positionsByDirection :: Problem -> ( [(Point, Direction)] -- West
-                                   , [(Point, Direction)] -- North
-                                   , [(Point, Direction)] -- East
-                                   , [(Point, Direction)] -- South
-                                   , [(Point, Direction)] -- NorthWest
-                                   , [(Point, Direction)] -- NorthEast
-                                   , [(Point, Direction)] -- SouthEast
-                                   , [(Point, Direction)] -- SouthWest
-                                   , [(Point, Direction)] -- Inner
-                                   )
-positionsByDirection prob = dividePoss poss
+positionsByDirection :: Problem
+                     -> (Align, Adjust)
+                     -> ( [(Point, Direction)] -- West
+                        , [(Point, Direction)] -- North
+                        , [(Point, Direction)] -- East
+                        , [(Point, Direction)] -- South
+                        , [(Point, Direction)] -- NorthWest
+                        , [(Point, Direction)] -- NorthEast
+                        , [(Point, Direction)] -- SouthEast
+                        , [(Point, Direction)] -- SouthWest
+                        , [(Point, Direction)] -- Inner
+                        )
+positionsByDirection prob (align, adjust) = dividePoss poss
   where
-    poss = positions prob RightBottom -- TODO: ここで調整していろいろ投げてみる
+    poss = positions prob (align, adjust)
     dividePoss = foldr divide ([], [], [], [], [], [], [], [], [])
       where
         divide p@(_, West) (ws, ns, es, ss, nws, nes, ses, sws, ins)
@@ -210,8 +215,8 @@ positionsByDirection prob = dividePoss poss
         divide p@(_, Inner) (ws, ns, es, ss, nws, nes, ses, sws, ins)
           = (ws, ns, es, ss, nws, nes, ses, sws, p:ins)
 
-attendeesForPositions :: Problem -> Map.Map (Point, Direction) [Attendee]
-attendeesForPositions prob
+attendeesForPositions :: Problem -> (Align, Adjust) -> Map.Map (Point, Direction) [Attendee]
+attendeesForPositions prob (align, adjust)
   = Map.fromList
     $ westAtnds ++ northAtnds ++ eastAtnds ++ southAtnds
     ++ northWestAtnds ++ northEastAtnds ++ southEastAtnds ++ southWestAtnds
@@ -220,7 +225,7 @@ attendeesForPositions prob
     atnds = attendees prob
     (westPoss, northPoss, eastPoss, southPoss
       , northWestPos, northEastPos, southEastPos, southWestPos
-      , innerPoss) = positionsByDirection prob
+      , innerPoss) = positionsByDirection prob (align, adjust)
     westAtnds :: [((Point, Direction), [Attendee])]
     westAtnds = map (by inRangeOfWestMusician) westPoss
     northAtnds :: [((Point, Direction), [Attendee])]
@@ -245,8 +250,8 @@ attendeesForPositions prob
 
 -- | 柱を正確に拾うのは大変なのでざっくり拾う
 --   方針として柱の中心と半径から柱に外接する正方形を作り、それに対して範囲に含まれるか判断する
-pillarsForPositions :: Problem -> Map.Map (Point, Direction) [Pillar]
-pillarsForPositions prob
+pillarsForPositions :: Problem -> (Align, Adjust) -> Map.Map (Point, Direction) [Pillar]
+pillarsForPositions prob (align, adjust)
   = Map.fromList $ westPlrs ++ northPlrs ++ eastPlrs ++ southPlrs
     ++ northWestPlrs ++ northEastPlrs ++ southEastPlrs ++ southWestPlrs
     ++ innerPlrs
@@ -256,7 +261,7 @@ pillarsForPositions prob
     westPoss :: [(Point, Direction)]
     (westPoss, northPoss, eastPoss, southPoss
       , northWestPos, northEastPos, southEastPos, southWestPos
-      , innerPoss) = positionsByDirection prob
+      , innerPoss) = positionsByDirection prob (align, adjust)
     westPlrs :: [((Point, Direction), [Pillar])]
     westPlrs = map f westPoss
       where f pd@(p, _)
@@ -326,17 +331,19 @@ musicianDictionary prob = Map.fromList $ splitWithOrder instrs ms
         m = foldl (\m' (i, instr) -> Map.insertWith (++) instr [i] m') seed ms
 
 -- | NOTE: Inner 以外はソートして立ち位置の優先度を考慮する。 Inner はほぼ効果がないので最後に付ける
-standingPositions :: Problem -> [((Point, Direction), [(Instrument, Like)])]
-standingPositions prob = sortBy comp nonInners ++ inners
+standingPositions :: Problem
+                  -> (Align, Adjust) -- 立ち位置に配置をどちら寄せにするかと最後を調整するか
+                  -> [((Point, Direction), [(Instrument, Like)])]
+standingPositions prob (align, adjust) = sortBy comp nonInners ++ inners
   where
     comp :: ((Point, Direction), [(Instrument, Like)])
          -> ((Point, Direction), [(Instrument, Like)])
          -> Ordering
     comp (_, (_, l1):_) (_, (_, l2):_) = compare l2 l1
     poss :: Map.Map (Point, Direction) [Attendee]
-    poss = attendeesForPositions prob
+    poss = attendeesForPositions prob (align, adjust)
     plrs :: Map.Map  (Point, Direction) [Pillar]
-    plrs = pillarsForPositions prob
+    plrs = pillarsForPositions prob (align, adjust)
     exps :: Map.Map (Point, Direction) [(Instrument, Like)]
     exps = Map.mapWithKey f poss
       where
@@ -347,15 +354,14 @@ standingPositions prob = sortBy comp nonInners ++ inners
         prefer ls = sortBy (\x y -> compare (snd y) (snd x)) (zip [0..] ls)
     (nonInners, inners) = partition (\((_, d), _) -> d /= Inner) $ Map.toList exps
 
-getCandidates :: SolverF
-getCandidates prob =
-  pure $
-  if Map.null ms'
-  then Right . map snd . sortBy (\x y -> compare (fst x) (fst y)) . Map.toList $ resp
-  else Left $ "error" ++ show (Map.elems ms')
+getCandidates :: (Align, Adjust) -> SolverF
+getCandidates (align, adjust) prob =
+  pure $ if Map.null ms'
+         then Right . map snd . sortBy (\x y -> compare (fst x) (fst y)) . Map.toList $ resp
+         else Left $ "error" ++ show (Map.elems ms')
   where
     -- NOTE: foldr で末尾から処理しているので reverse しています
-    poss = reverse $ standingPositions prob
+    poss = reverse $ standingPositions prob (align, adjust)
     ms = musicianDictionary prob
     (ms', resp) = foldr f (ms, Map.empty) poss
       where
