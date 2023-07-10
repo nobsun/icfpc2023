@@ -22,6 +22,7 @@ data Options
   , optOutputFile :: FilePath
   , optShowInputScore :: Bool
   , optShowOutputScore :: Bool
+  , optSteps :: Maybe Int
   }
 
 optionsParser :: Parser Options
@@ -32,6 +33,7 @@ optionsParser = Options
   <*> outputFile
   <*> showInputScore
   <*> showOutputScore
+  <*> steps
   where
     problemNo = argument auto
       $  metavar "PROBLEM_NO"
@@ -63,6 +65,12 @@ optionsParser = Options
       $  long "show-output-score"
       <> help "show output score"
 
+    steps :: Parser (Maybe Int)
+    steps = optional $ option auto
+      $  long "steps"
+      <> metavar "N"
+      <> help "some command requires number of steps"
+
 parserInfo :: ParserInfo Options
 parserInfo = info (optionsParser <**> helper)
   $  fullDesc
@@ -85,7 +93,7 @@ main = do
         pure (tuneVolume extra prob sol1, Nothing)
       "swap" -> do
         extra <- Extra.mkExtra prob sol1
-        swap extra prob sol1 (Just 100)
+        swap extra prob sol1 (optSteps opt)
       name -> error ("unknown command: " ++ name)
 
   BL.writeFile (optOutputFile opt) (encode sol2)
