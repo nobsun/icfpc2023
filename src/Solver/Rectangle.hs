@@ -188,7 +188,7 @@ attendeesForPositions prob
     southEastAtnds = map (by inRangeOfSouthEastMusician) southEastPos
     southWestAtnds :: [((Point, Direction), [Attendee])]
     southWestAtnds = map (by inRangeOfSouthWestMusician) southWestPos
-    by pred = (\pd@(p, _) -> (pd, filter (\(Attendee x y _) -> pred p (x, y)) atnds))
+    by pred pd@(p, _) = (pd, filter (\(Attendee x y _) -> pred p (x, y)) atnds)
     -- NOTE: 必ず外周から埋めるのでここが影響を与えることはない
     -- 外周に穴が開いているならここにはミュージシャンは配置されていないはず
     innerAtnds :: [((Point, Direction), [Attendee])]
@@ -205,7 +205,45 @@ pillarsForPositions prob = Map.empty
     (westPoss, northPoss, eastPoss, southPoss
       , northWestPos, northEastPos, southEastPos, southWestPos
       , innerPoss) = positionsByDirection prob
+    westPlrs :: [((Point, Direction), [Pillar])]
+    westPlrs = map f westPoss
+      where f pd@(p, _)
+              = (pd, filter (\(Pillar (x, y) r) -> inRangeOfWestMusician p (x+r, y+r) ||
+                                                   inRangeOfWestMusician p (x+r, y-r)) plrs)
+    northPlrs :: [((Point, Direction), [Pillar])]
+    northPlrs = map f northPoss
+      where f pd@(p, _)
+              = (pd, filter (\(Pillar (x, y) r) -> inRangeOfNorthMusician p (x+r, y-r) ||
+                                                   inRangeOfNorthMusician p (x-r, y-r)) plrs)
+    eastPlrs :: [((Point, Direction), [Pillar])]
+    eastPlrs = map f eastPoss
+      where f pd@(p, _)
+              = (pd, filter (\(Pillar (x, y) r) -> inRangeOfEastMusician p (x-r, y+r) ||
+                                                   inRangeOfEastMusician p (x-r, y-r)) plrs)
+    southPlrs :: [((Point, Direction), [Pillar])]
+    southPlrs = map f southPoss
+      where f pd@(p, _)
+              = (pd, filter (\(Pillar (x, y) r) -> inRangeOfSouthMusician p (x+r, y+r) ||
+                                                   inRangeOfSouthMusician p (x-r, y+r)) plrs)
+    northWestPlrs :: [((Point, Direction), [Pillar])]
+    northWestPlrs = map f northWestPos
+      where f pd@(p, _)
+              = (pd, filter (\(Pillar (x, y) r) -> inRangeOfNorthWestMusician p (x+r, y-r)) plrs)
+              
+    northEastPlrs :: [((Point, Direction), [Pillar])]
+    northEastPlrs = map f northEastPos
+      where f pd@(p, _)
+              = (pd, filter (\(Pillar (x, y) r) -> inRangeOfNorthEastMusician p (x-r, y-r)) plrs)
 
+    southEastPlrs :: [((Point, Direction), [Pillar])]
+    southEastPlrs = map f southEastPos
+      where f pd@(p, _)
+              = (pd, filter (\(Pillar (x, y) r) -> inRangeOfSouthEastMusician p (x-r, y+r)) plrs)
+
+    southWestPlrs :: [((Point, Direction), [Pillar])]
+    southWestPlrs = map f southWestPos
+      where f pd@(p, _)
+              = (pd, filter (\(Pillar (x, y) r) -> inRangeOfSouthWestMusician p (x+r, y+r)) plrs)
 
 expectHappiness :: Problem -> Point -> [Attendee] -> [Like]
 expectHappiness prob (x0, y0) atnds = foldr expect (replicate n 0.0) atnds
