@@ -115,7 +115,7 @@ positions prob = map withDirection poss
       | y == northEdge = North
       | y == southEdge = South
       | otherwise = Inner
-    
+
     (w, n, e, s) = stageBounds prob
     poss = [ (x, y)
            | x <- [w+10.0, w+20.0 .. e-10.0]
@@ -223,9 +223,11 @@ standingPositions prob = sortBy comp nonInners ++ inners
         prefer ls = sortBy (\x y -> compare (snd y) (snd x)) (zip [0..] ls)
 
 getCandidates :: SolverF
-getCandidates prob = if Map.null ms'
-                     then Right . map snd . sortBy (\x y -> compare (fst x) (fst y)) . Map.toList $ resp
-                     else Left $ "error" ++ show (Map.elems ms')
+getCandidates prob =
+  pure $
+  if Map.null ms'
+  then Right . map snd . sortBy (\x y -> compare (fst x) (fst y)) . Map.toList $ resp
+  else Left $ "error" ++ show (Map.elems ms')
   where
     -- NOTE: foldr で末尾から処理しているので reverse しています
     poss = reverse $ standingPositions prob
@@ -288,4 +290,3 @@ _sampleProblem
                           ]
             , pillars = []
             }
-  
