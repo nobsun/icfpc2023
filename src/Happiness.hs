@@ -87,7 +87,7 @@ naiveUnreduced extra prob ans = score
   where
     isBlock :: Obstacle o => Placement -> Attendee -> o -> Bool
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
-    score = [ (i, k, impact (i, a_i) (k, inst_k, p_k))
+    score = [ (i, k, unit_score (i, a_i) (k, inst_k, p_k))
             | (k, inst_k, p_k) <- zip3 [0 :: Int ..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
             , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
             , and [not $ isBlock p_k a_i pl | pl <- plrs]
@@ -99,13 +99,16 @@ naiveUnreduced extra prob ans = score
     insts = musicians prob
     plrs = pillars prob
 
-    impact (i, a_i) (k, inst_k, p_k)
-      | isFullDivisionProblem prob = ceiling $ closeness * fromIntegral (ceiling (num / den) :: Happiness)
-      | otherwise = ceiling (num / den)
+    -- q(k) * I(k) or I(k)
+    unit_score (i, a_i) (k, inst_k, p_k)
+      | isFullDivisionProblem prob = ceiling $ closeness * fromIntegral impact
+      | otherwise = impact
       where
         num = (million_times_atnds_tastes.problem_extra $ extra) ! i ! inst_k
         den = squareDistance p_k a_i
-        closeness = 1 + 
+        -- I(k)
+        impact = ceiling (num / den) :: Happiness
+        closeness = 1 +
           sum[ 1 / sqrt (squareDistance p_k (ms_ar!j))
              | j <- (same_inst_musicians.problem_extra $ extra) ! inst_k
              , k /= j
@@ -158,7 +161,7 @@ withQueue extra prob ans = do
       where
         num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
         den = squareDistance p_k a_i
-        closeness = 1 + 
+        closeness = 1 +
           sum[ 1/(squareDistance p_k (ms_ar!j))
              | inst<-insts, inst/=inst_k
              , j <-(same_inst_musicians.problem_extra $ extra)! inst
