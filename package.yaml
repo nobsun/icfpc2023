@@ -54,8 +54,10 @@ ghc-options:
 library:
   source-dirs: src
   dependencies:
+  - ad
   - split
   - mwc-random
+  - vector
   - numeric-optimization ==0.1.1.0
   - numeric-optimization-ad ==0.1.0.1
 
