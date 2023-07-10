@@ -7,6 +7,7 @@ import Data.List (maximumBy)
 import Data.Functor
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Aeson
+import System.IO (hSetBuffering, BufferMode (LineBuffering), stdout)
 import System.Process (readProcess)
 
 import Problem
@@ -25,6 +26,7 @@ trySubmitHeuristic path =
 tryToSubmit :: Int -> [FilePath] -> IO ()
 tryToSubmit _ [] = putStrLn "tryToSubmit: null input"
 tryToSubmit probNum sols = do
+  hSetBuffering stdout LineBuffering
   let readSol sol = do
         let parseError = putStrLn ("answer parse error: " ++ sol)
             result answer = pure [(answer, sol)]
