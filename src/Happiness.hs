@@ -96,7 +96,6 @@ naiveUnreduced extra prob ans = score
     ms = placements ans
     ms_ar :: Array Int Placement
     ms_ar = listArray (0, length ms-1) ms
-    insts = musicians prob
     plrs = pillars prob
 
     -- q(k) * I(k) or I(k)
@@ -154,7 +153,6 @@ withQueue extra prob ans = do
     ms = placements ans
     ms_ar :: Array Int Placement
     ms_ar = listArray (0, length ms-1) ms
-    insts = musicians prob
     plrs = pillars prob
 
     -- q(k) * I(k) or I(k)
