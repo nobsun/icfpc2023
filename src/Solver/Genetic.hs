@@ -1,5 +1,5 @@
 module Solver.Genetic
-  ( getCandidates
+  ( getCandidatesIO
   ) where
 
 
@@ -26,10 +26,7 @@ infixr 0 $$
 f $$ x = traceShow x (f x)
 
 
-getCandidates :: SolverF
-getCandidates problem = unsafePerformIO (getCandidatesIO problem)
-
-getCandidatesIO :: Problem -> IO (Either String [(Point, Volume)])
+getCandidatesIO :: SolverF
 getCandidatesIO problem@(Problem{stage_width=w, stage_height=h ,stage_bottom_left=(zw,zh), musicians=ms}) = do
   putStrLn $ "stage-width: "++show w++", stage_height: "++show h++", musicians: "++show nMusician
   putStrLn $ "generating initial placement randomly"

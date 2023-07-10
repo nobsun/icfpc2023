@@ -91,7 +91,7 @@ splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs
     seed = Map.fromList $ map (,[]) instrs
     m = foldl (\m' (i, instr) -> Map.insertWith (++) instr [i] m') seed ms
 
-getCandidates :: SolverF
+getCandidates :: Problem -> Either String [((Double, Double), Double)]
 getCandidates prob = if Map.null ms'
                      then Right . map snd . sortBy (\x y -> compare (fst x) (fst y)) . Map.toList $ resp
                      else Left $ "error" ++ show (Map.elems ms')
