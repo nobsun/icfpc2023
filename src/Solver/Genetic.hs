@@ -12,7 +12,7 @@ import System.Random (RandomGen, newStdGen, randomRs, randomRIO)
 import Debug.Trace
 
 import Problem (Problem(..), Attendee(..))
-import Answer (Answer(..), normalVolumes, Placement(..))
+import Answer (Answer(..), mkAnswer, Placement(..))
 import Extra
 import Happiness (Happiness, weightedAverage)
 import Solver (SolverF)
@@ -71,7 +71,7 @@ splitBy n xs =
   let (as,bs) = splitAt n xs in as : splitBy n bs
 
 toAnswer :: [Point] -> Answer
-toAnswer ms = Answer{placements=[Placement x y |(x,y)<-ms], volumes= normalVolumes (repeat 1)}
+toAnswer ms = mkAnswer [Placement x y |(x,y)<-ms] (repeat 1)
 
 happiness :: Extra -> Problem -> [Point] -> IO Happiness
 happiness extra problem ms =

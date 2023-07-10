@@ -17,10 +17,7 @@ solve' solverName solver probNum = do
   let probMark = "problem " ++ show probNum
   problem <- maybe (fail $ "parse error: " ++ probMark) pure =<< readProblem probNum
   res <- either (fail . (("solver error: " ++ probMark ++ ": solver " ++ solverName ++ ": ") ++)) pure =<< solver problem
-  return (Answer { placements = [ Placement x y | ((x, y), _) <- res ]
-                 , volumes = normalVolumes [v | (_, v) <- res ]
-                 }
-         , problem)
+  return (mkAnswer [ Placement x y | ((x, y), _) <- res ] [v | (_, v) <- res ], problem)
 
 class Solver a where
   apply :: a -> Problem -> IO (Either String [((Double, Double), Double)])
