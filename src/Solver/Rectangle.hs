@@ -98,7 +98,7 @@ data Direction = West
                | SouthEast
                | SouthWest
                | Inner
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 positions :: Problem -> [(Point, Direction)]
 positions prob = map withDirection poss
@@ -127,7 +127,11 @@ positions prob = map withDirection poss
     southEdge = minimum $ map snd poss
 
 attendeesForPositions :: Problem -> Map.Map (Point, Direction) [Attendee]
-attendeesForPositions prob = undefined
+attendeesForPositions prob
+  = Map.fromList
+    $ westAtnds ++ northAtnds ++ eastAtnds ++ southAtnds
+    ++ northWestAtnds ++ northEastAtnds ++ southEastAtnds ++ southWestAtnds
+    ++ innerAtnds
   where
     atnds = attendees prob
     poss = positions prob
