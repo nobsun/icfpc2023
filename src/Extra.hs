@@ -50,26 +50,22 @@ mkProblemExtra Problem{..} =
 
 
 pprProblemExtraShort :: ProblemExtra -> String
-pprProblemExtraShort ProblemExtra{..} =
-  unwords
-  [ "musicians:" ++ show num_musicians
-  , "attendees:" ++ show num_attendees
-  , "instruments:" ++ show num_instruments
-  , "attendee-int:" ++ if attendees_int_compat then "compat" else "not-compat"
-  ]
+pprProblemExtraShort e = unwords $ listProblemExtra e
 
 pprProblemExtra :: Int -> ProblemExtra -> String
-pprProblemExtra i ProblemExtra{..} = unlines $ zipWith (++) tags bodies
+pprProblemExtra i e = unlines $ zipWith (++) tags $ listProblemExtra e
   where
     tag = printf "%3d: " i
     spc = replicate (length tag) ' '
     tags = tag : repeat spc
-    bodies =
-      [ "musicians: " ++ show num_musicians
-      , "attendees: " ++ show num_attendees
-      , "instruments: " ++ show num_instruments
-      , "attendee-int:" ++ if attendees_int_compat then "compat" else "not-compat"
-      ]
+
+listProblemExtra :: ProblemExtra -> [String]
+listProblemExtra ProblemExtra{..} =
+  [ "musicians: " ++ show num_musicians
+  , "attendees: " ++ show num_attendees
+  , "instruments: " ++ show num_instruments
+  , "attendee-int:" ++ if attendees_int_compat then "compat" else "not-compat"
+  ]
 
 printProblemExtras :: Int -> IO ()
 printProblemExtras n =
