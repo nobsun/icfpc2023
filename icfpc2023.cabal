@@ -56,7 +56,8 @@ library
       UndecidableInstances
   ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans
   build-depends:
-      aeson
+      ad
+    , aeson
     , array
     , base >=4.7 && <5
     , bytestring
@@ -70,6 +71,7 @@ library
     , random
     , split
     , time
+    , vector
   default-language: GHC2021
 
 executable draw-problem
