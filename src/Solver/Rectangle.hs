@@ -185,10 +185,10 @@ pillarsForPositions :: Problem -> Map.Map (Point, Direction) [Pillar]
 pillarsForPositions prob = Map.empty
 
 
-expectHappiness :: Point -> [Attendee] -> [Like]
-expectHappiness (x0, y0) atnds = foldr expect (replicate n 0.0) atnds
+expectHappiness :: Problem -> Point -> [Attendee] -> [Like]
+expectHappiness prob (x0, y0) atnds = foldr expect (replicate n 0.0) atnds
   where
-    n = length (tastes (head atnds))
+    n = length (tastes (head (attendees prob)))
     expect (Attendee x y ts) acc = zipWith (calcHappiness (x0, y0) (x, y)) acc ts
       where calcHappiness (x0, y0) (x, y) acc t = acc + 1e6*t / ((x-x0)^2 + (y-y0)^2)
 
@@ -214,13 +214,13 @@ standingPositions prob = sortBy comp nonInners ++ inners
          -> Ordering
     comp (_, (_, l1):_) (_, (_, l2):_) = compare l2 l1
     poss = attendeesForPositions prob
-    (nonInners, inners) = partition (\((_, d), _) -> d /= Inner) $ Map.toList exps
     exps :: Map.Map (Point, Direction) [(Instrument, Like)]
     exps = Map.mapWithKey f poss
       where
-        f (p, _) as = prefer $ expectHappiness p as
+        f (p, _) as = prefer $ expectHappiness prob p as
         prefer :: [Like] -> [(Instrument, Like)]
         prefer ls = sortBy (\x y -> compare (snd y) (snd x)) (zip [0..] ls)
+    (nonInners, inners) = partition (\((_, d), _) -> d /= Inner) $ Map.toList exps
 
 getCandidates :: SolverF
 getCandidates prob = if Map.null ms'
