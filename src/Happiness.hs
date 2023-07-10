@@ -31,10 +31,10 @@ applyStrategyZ Parallel e p a = withQueue e p a
 applyStrategyZ WeightedAverage e p a = weightedAverage e p a
 
 squareDistance :: (Obstacle o1, Obstacle o2) => o1 -> o2 -> Double
-squareDistance x y = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
+squareDistance a b = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
   where
-    (x1,x2) = obCenter x
-    (y1,y2) = obCenter y
+    (x1,y1) = obCenter a
+    (x2,y2) = obCenter b
 
 weightedAverageHappiness :: Problem -> Answer -> IO Happiness
 weightedAverageHappiness prob ans = do
@@ -95,14 +95,16 @@ naive extra prob ans = pure score
     insts = musicians prob
     plrs = pillars prob
 
-    impact (i, a_i) (_k, inst_k, p_k) = ceiling $ (closeness * num) / den
+    impact (i, a_i) (k, inst_k, p_k)
+      | isFullDivisionProblem prob = ceiling $ closeness * fromIntegral (ceiling (num / den) :: Happiness)
+      | otherwise = ceiling (num / den)
       where
-        num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
+        num = (million_times_atnds_tastes.problem_extra $ extra) ! i ! inst_k
         den = squareDistance p_k a_i
         closeness = 1 + 
-          sum[ 1/(squareDistance p_k (ms_ar!j))
-             | inst<-insts, inst/=inst_k
-             , j <-(same_inst_musicians.problem_extra $ extra)! inst
+          sum[ 1 / squareDistance p_k (ms_ar!j)
+             | j <- (same_inst_musicians.problem_extra $ extra) ! inst_k
+             , k /= j
              ]
 
 withQueue :: Extra -> Problem -> Answer -> IO Happiness
