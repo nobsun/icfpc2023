@@ -29,7 +29,7 @@ getCandidates :: SolverF
 getCandidates problem = unsafePerformIO (getCandidatesIO problem)
 
 
-getCandidatesIO :: Problem -> IO (Either String [(Double, Double)])
+getCandidatesIO :: Problem -> IO (Either String [((Double, Double), Double)])
 getCandidatesIO problem = do
   let numMusicians = length (Problem.musicians problem)
       numAttendees = length $ Problem.attendees problem
@@ -176,11 +176,11 @@ getCandidatesIO problem = do
   -- メッセージのスペースに注意
   if Opt.resultSuccess result then do
     let (xs,ys) = VS.splitAt numMusicians (Opt.resultSolution result)
-    return $ Right (zip (VS.toList xs) (VS.toList ys))
+    return $ Right $ map (\pos -> (pos, 1.0)) $ zip (VS.toList xs) (VS.toList ys)
   else if Opt.resultMessage result `elem` ["The number of steps exceeded the user's request.", "ABNORMAL_TERMINATION_IN_LNSRCH                              "] then do
     traceM (Opt.resultMessage result)
     let (xs,ys) = VS.splitAt numMusicians (Opt.resultSolution result)
-    return $ Right (zip (VS.toList xs) (VS.toList ys))
+    return $ Right $ map (\pos -> (pos, 1.0)) $ zip (VS.toList xs) (VS.toList ys)
   else
     return $ Left (Opt.resultMessage result)
 

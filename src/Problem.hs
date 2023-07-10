@@ -21,6 +21,32 @@ data Attendee
              }
   deriving (Show, Eq, Generic)
 
+data Pillar
+  = Pillar { center :: (Double, Double)
+           , radius :: Double
+           }
+  deriving (Show, Eq, Generic)
+
+class Obstacle a where
+  obCenter :: a -> (Double, Double)
+  obRadius :: a -> Double
+
+instance Obstacle Attendee where
+  obCenter a = (x a, y a)
+  obRadius _ = 0
+
+instance Obstacle Pillar where
+  obCenter = center
+  obRadius = radius
+
+pillar_center_x :: Pillar -> Double
+pillar_center_x Pillar{..} = case center of
+  (x, _y) -> x
+
+pillar_center_y :: Pillar -> Double
+pillar_center_y Pillar{..} = case center of
+  (_x, y) -> y
+
 data Problem
   = Problem { room_width        :: Double
             , room_height       :: Double
@@ -29,6 +55,7 @@ data Problem
             , stage_bottom_left :: (Double, Double)
             , musicians         :: [Instrument]
             , attendees         :: [Attendee]
+            , pillars           :: [Pillar]
             }
   deriving (Show, Eq, Generic)
 
@@ -48,6 +75,8 @@ stage_top Problem{..} = stage_bottom Problem{..} + stage_height
 
 instance ToJSON Attendee
 instance FromJSON Attendee
+instance ToJSON Pillar
+instance FromJSON Pillar
 instance ToJSON Problem
 instance FromJSON Problem
 

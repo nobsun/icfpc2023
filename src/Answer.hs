@@ -9,7 +9,7 @@ module Answer
 
 import qualified Data.ByteString.Lazy as B
 import Data.Aeson
-import Text.Printf (printf)
+-- import Text.Printf (printf)
 import GHC.Generics
 
 import qualified IntCompat
@@ -21,8 +21,13 @@ data Placement
               }
   deriving (Show, Eq, Generic)
 
-newtype Answer
+instance Obstacle Placement where
+  obCenter a = (x a, y a)
+  obRadius _ = 5
+
+data Answer
   = Answer { placements :: [Placement]
+           , volumes    :: [Double]
            }
   deriving (Show, Eq, Generic)
 
@@ -32,16 +37,17 @@ instance ToJSON Answer
 instance FromJSON Answer
 
 
-test :: B.ByteString
-test = encode ans
+_test :: B.ByteString
+_test = encode ans
   where ans = Answer { placements = [ Placement {x = 10.0, y = 20.0}
                                     , Placement {x = 30.0, y = 40.0}
                                     ]
+                     , volumes = [1.0, 2.0]
                      }
 
 
 isValidAnswer :: Problem -> Answer -> Bool
-isValidAnswer Problem{ stage_bottom_left = (x0,y0), stage_width = w, stage_height = h, musicians = ms } Answer{ placements = ps } =
+isValidAnswer Problem{ stage_bottom_left = (x0,y0), stage_width = w, stage_height = h, musicians = ms } Answer{ placements = ps, volumes = _vs } =
   and
   [ length ps == length ms
   , and [x0 + 10 <= x && x <= x0 + w - 10 && y0 + 10 <= y && y <= y0 + h - 10 | Placement x y <- ps]

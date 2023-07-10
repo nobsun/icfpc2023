@@ -101,7 +101,7 @@ cordsFromRange Range{..} = map fromIntegral [ rgMin' + 10, rgMin' + 20 .. rgMax'
 ---
 
 getCandidates :: SolverF
-getCandidates problem = Right $ take len $ cordsFromRect stage
+getCandidates problem = Right $ map (\pos -> (pos, 1.0)) $ take len $ cordsFromRect stage -- FIXME
   where
     len = length $ musicians problem
     stage = getStageRect problem
@@ -110,4 +110,5 @@ getCandidatesOld :: SolverF
 getCandidatesOld problem = do
   (r0, mr1) <- getStageRectsOld problem
   let len = length $ musicians problem
-  return $ take len $ concatMap cordsFromRect $ maybe [r0] (\r1 -> [r0, r1]) mr1
+  -- FIXME
+  return $ map (\pos -> (pos, 1.0)) $ take len $ concatMap cordsFromRect $ maybe [r0] (\r1 -> [r0, r1]) mr1

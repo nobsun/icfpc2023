@@ -1,37 +1,48 @@
 {-# LANGUAGE RecordWildCards #-}
 module Happiness where
 
+import Control.Concurrent (newChan, writeChan, readChan, forkIO, getNumCapabilities)
+import Control.Monad
 import Data.Array (Array)
 import Data.Array.IArray ((!), listArray)
 import Data.Array.Unboxed (UArray)
-import Data.List (delete, zip3)
+import Data.List.Split (chunksOf)
 
 import Problem
 import Answer
 import Extra
 import qualified BlockVec
-import Control.Concurrent (setNumCapabilities)
 
 -- | FIXME
-type Happiness = Integer
+type Happiness = Int
 
 data HaStrategy
   = Naive
+  | Parallel
   | WeightedAverage
   deriving (Eq, Show)
 
-applyStrategy :: HaStrategy -> Extra -> Problem -> Answer -> Happiness
-applyStrategy Naive = naive
-applyStrategy WeightedAverage = weightedAverage
+applyStrategy :: HaStrategy -> Extra -> Problem -> Answer -> IO Happiness
+applyStrategy s e p a = (pure $!) =<< applyStrategyZ s e p a
 
-squareDistance :: Placement -> Attendee -> Double
-squareDistance (Placement x1 y1) (Attendee x2 y2 _) = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
+applyStrategyZ :: HaStrategy -> Extra -> Problem -> Answer -> IO Happiness
+applyStrategyZ Naive e p a = naive e p a
+applyStrategyZ Parallel e p a = withQueue e p a
+applyStrategyZ WeightedAverage e p a = weightedAverage e p a
 
-weightedAverageHappiness :: Problem -> Answer -> Happiness
-weightedAverageHappiness prob ans = weightedAverage (mkExtra prob ans) prob ans
+squareDistance :: (Obstacle o1, Obstacle o2) => o1 -> o2 -> Double
+squareDistance x y = (x1 - x2)^(2::Int) + (y1 - y2)^(2::Int)
+  where
+    (x1,x2) = obCenter x
+    (y1,y2) = obCenter y
 
-weightedAverage :: Extra -> Problem -> Answer -> Happiness
-weightedAverage extra prob ans = score
+weightedAverageHappiness :: Problem -> Answer -> IO Happiness
+weightedAverageHappiness prob ans = do
+  extra <- mkExtra prob ans
+  weightedAverage extra prob ans
+
+weightedAverage :: Extra -> Problem -> Answer -> IO Happiness
+weightedAverage extra prob ans = pure score
   where
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
     score = sum [ impact 0 k
@@ -48,47 +59,106 @@ weightedAverage extra prob ans = score
       where
         conv = fromRational . toRational
         (x, y) = foldr f (0.0, 0.0) atnds
-          where f (Attendee x y _) (x', y') = (x + x', y + y')
+          where f (Attendee x_ y_ _) (x', y') = (x_ + x', y_ + y')
     -- 観客の平均taste
     waTaste = foldr f [0.0..] (attendees prob)
       where
         f (Attendee x y ts) ts' = zipWith (\t t' -> w * t + t') ts ts'
           where
-            d2 = (attendeeX - x)^2 + (attendeeY - y)^2
+            d2 = (attendeeX - x)^(2::Int) + (attendeeY - y)^(2::Int)
             w = 1.0 / d2
     impact i k = ceiling $  num / den
       where
         num = 1e6 * (tastes (atnds !! i) !! (musicians prob !! k))
         den = squareDistance (ms !! k) (atnds !! i)
 
-happiness :: Problem -> Answer -> Happiness
-happiness prob ans = naive (mkExtra prob ans) prob ans
+happiness :: Problem -> Answer -> IO Happiness
+happiness prob ans = do
+  extra <- mkExtra prob ans
+  naive extra prob ans
 
 -- | calculate happiness along with spec
-naive :: Extra -> Problem -> Answer -> Happiness
-naive extra prob ans = score
+naive :: Extra -> Problem -> Answer -> IO Happiness
+naive extra prob ans = pure score
   where
+    isBlock :: Obstacle o => Placement -> Attendee -> o -> Bool
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
     score = sum [ impact (i, a_i) (k, inst_k, p_k)
                 | (k, inst_k, p_k) <- zip3 [0 :: Int ..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
                 , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
+                , and [not $ isBlock p_k a_i pl | pl <- plrs]
                 ]
     atnds = attendees prob
     ms = placements ans
+    ms_ar :: Array Int Placement
+    ms_ar = listArray (0, length ms-1) ms
+    insts = musicians prob
+    plrs = pillars prob
 
-    {- each tastes times 1,000,000 memos -}
-    million_times_tastes :: Attendee -> UArray Int Double
-    million_times_tastes a = listArray (0, length ts - 1) $ map (1e6 *) ts  where ts = tastes a
-
-    million_times_atnds_tastes :: Array Int (UArray Int Double)
-    million_times_atnds_tastes = listArray (0, length atnds - 1) $ map million_times_tastes atnds
-
-    impact (i, a_i) (_k, inst_k, p_k) = ceiling $ num / den
+    impact (i, a_i) (_k, inst_k, p_k) = ceiling $ (closeness * num) / den
       where
-        num = million_times_atnds_tastes ! i ! inst_k
+        num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
         den = squareDistance p_k a_i
+        closeness = 1 + 
+          sum[ 1/(squareDistance p_k (ms_ar!j))
+             | inst<-insts, inst/=inst_k
+             , j <-(same_inst_musicians.problem_extra $ extra)! inst
+             ]
 
-isBlockWith :: BlockTestICompat -> AnswerCheck -> Placement -> Attendee -> Placement -> Bool
+withQueue :: Extra -> Problem -> Answer -> IO Happiness
+withQueue extra prob ans = do
+  nthread <- getNumCapabilities
+
+  let inputs = zip3 [0 :: Int ..] (musicians prob) ms
+      jobs = map chunk_score $ chunksOf chunkSize inputs
+        where
+          chunkSize = 1 `max` (length inputs `quot` chunks)
+          chunks = nthread * 160
+      size = length jobs
+
+  inputQ <- newChan
+  resultQ <- newChan
+
+  let consumeJob = loop
+        where loop = do
+                thunk <- readChan inputQ
+                thunk `seq` writeChan resultQ thunk
+                loop
+
+  () <$ replicateM nthread (forkIO consumeJob)
+
+  mapM_  (writeChan inputQ) jobs  {- enqueue all jobs -}
+  sum <$> replicateM size (readChan resultQ)  {- dequeue all results and sum of them -}
+  where
+    isBlock :: Obstacle o => Placement -> Attendee -> o -> Bool
+    isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
+    chunk_score triple_chunk =
+      sum
+      [ impact (i, a_i) (k, inst_k, p_k)
+      | (k, inst_k, p_k) <- triple_chunk
+      , (i, a_i) <- zip [0..] atnds
+      , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
+      , and [not $ isBlock p_k a_i pl | pl <- plrs]
+      ]
+
+    atnds = attendees prob
+    ms = placements ans
+    ms_ar :: Array Int Placement
+    ms_ar = listArray (0, length ms-1) ms
+    insts = musicians prob
+    plrs = pillars prob
+
+    impact (i, a_i) (_k, inst_k, p_k) = ceiling $ (closeness * num) / den
+      where
+        num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
+        den = squareDistance p_k a_i
+        closeness = 1 + 
+          sum[ 1/(squareDistance p_k (ms_ar!j))
+             | inst<-insts, inst/=inst_k
+             , j <-(same_inst_musicians.problem_extra $ extra)! inst
+             ]
+
+isBlockWith :: Obstacle o => BlockTestICompat -> AnswerCheck -> Placement -> Attendee -> o -> Bool
 isBlockWith IntCompat    Valid    = isBlockInt
 isBlockWith NotIntCompat Valid    = isBlockDouble
 isBlockWith IntCompat    Invalid  = isBlockIntInvalid
@@ -137,11 +207,14 @@ isBlockWith NotIntCompat Invalid  = isBlockDoubleInvalid
 -- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 0.0 0.0)
 -- False
 --
-isBlockInt :: Placement -> Attendee -> Placement -> Bool
-isBlockInt (Placement mx my) (Attendee ax ay _) (Placement bx by) =
-  isBlockInt' (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by)
+isBlockInt :: Obstacle o => Placement -> Attendee -> o -> Bool
+isBlockInt (Placement mx my) (Attendee ax ay _) obs =
+  isBlockInt' (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by) (floor br)
+  where
+    (bx,by) = obCenter obs
+    br = obRadius obs
 
-isBlockInt' :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool
+isBlockInt' :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Int -> Bool
 isBlockInt' = BlockVec.isBlock
 
 -- | isBlockDouble
@@ -181,9 +254,12 @@ isBlockInt' = BlockVec.isBlock
 -- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 0.0 0.0)
 -- False
 --
-isBlockDouble :: Placement -> Attendee -> Placement -> Bool
-isBlockDouble (Placement mx my) (Attendee ax ay _) (Placement bx by) =
-  BlockVec.isBlock (mx, my) (ax, ay) (bx, by)
+isBlockDouble :: Obstacle o => Placement -> Attendee -> o -> Bool
+isBlockDouble (Placement mx my) (Attendee ax ay _) obs =
+  BlockVec.isBlock (mx, my) (ax, ay) (bx, by) br
+  where
+    (bx,by) = obCenter obs
+    br = obRadius obs
 
 -- | isBlockIntInvalid
 --   isBlockInt の valid でない answer に対応したバージョン
@@ -197,11 +273,14 @@ isBlockDouble (Placement mx my) (Attendee ax ay _) (Placement bx by) =
 -- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
 -- True
 --
-isBlockIntInvalid :: Placement -> Attendee -> Placement -> Bool
-isBlockIntInvalid (Placement mx my) (Attendee ax ay _) (Placement bx by) =
-  isBlockIntInvalid' (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by)
+isBlockIntInvalid :: Obstacle o => Placement -> Attendee -> o -> Bool
+isBlockIntInvalid (Placement mx my) (Attendee ax ay _) obs =
+  isBlockIntInvalid' (floor mx, floor my) (floor ax, floor ay) (floor bx, floor by) (floor br)
+  where
+    (bx,by) = obCenter obs
+    br = obRadius obs
 
-isBlockIntInvalid' :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Bool
+isBlockIntInvalid' :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Int -> Bool
 isBlockIntInvalid' = BlockVec.isBlockWithoutValid
 
 -- | isBlockIntInvalid
@@ -216,9 +295,12 @@ isBlockIntInvalid' = BlockVec.isBlockWithoutValid
 -- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
 -- True
 --
-isBlockDoubleInvalid :: Placement -> Attendee -> Placement -> Bool
-isBlockDoubleInvalid (Placement mx my) (Attendee ax ay _) (Placement bx by) =
-  BlockVec.isBlockWithoutValid (mx, my) (ax, ay) (bx, by)
+isBlockDoubleInvalid :: Obstacle o => Placement -> Attendee -> o -> Bool
+isBlockDoubleInvalid (Placement mx my) (Attendee ax ay _) obs =
+  BlockVec.isBlockWithoutValid (mx, my) (ax, ay) (bx, by) br
+  where
+    (bx,by) = obCenter obs
+    br = obRadius obs
 
 -- |
 --
@@ -262,57 +344,19 @@ isBlock' (mx, my) (ax, ay) (bx, by)
     (p, q)
       | a == 0 = (bx, - c / b)
       | b == 0 = (- c / a, by)
-      | otherwise = (p, q)
+      | otherwise = (p_, q_)
       where
         -- 垂線の直線は y = (b/a) x + d になる
         d = by - (b / a) * bx
         -- a p + b q + c = 0 と
         -- q = (b/a) p + d
         -- の連立方程式を解く
-        p = a / (a^(2::Int) + b^(2::Int)) * (- c - b * d)
-        q = (b / a) * p + d
+        p_ = a / (a^(2::Int) + b^(2::Int)) * (- c - b * d)
+        q_ = (b / a) * p + d
 
     -- (x2, y2) が (x1, y1) の 5.0 以内にあるかどうか
     inner (x1, y1) (x2, y2) = sqrt ((x2 - x1)^(2::Int) + (y2 - y1)^(2::Int)) <= 5.0
 
--- >>> isBlock2 (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 2.0 2.0)
--- True
--- >>> isBlock2 (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 1.0)
--- True
--- >>> isBlock2 (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 2.0)
--- True
--- >>> isBlock2 (Placement (-1.0) 1.0) (Attendee 0.0 3.0 []) (Placement 0.0 0.0)
--- True
--- >>> isBlock2 (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 7.0 8.0)
--- False
--- >>> isBlock2 (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (-8.0) (-7.0))
--- False
--- >>> isBlock2 (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
--- True
--- >>> isBlock2 (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (6.0))
--- False
--- >>> isBlock2 (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (7.0))
--- False
-isBlock2 :: Placement -> Attendee -> Placement -> Bool
-isBlock2 (Placement mx my) (Attendee ax ay _) (Placement bx by) =
-  inTriangle ml mr al (bx,by) || inTriangle al ar mr (bx,by)
-  where
-    r = -(mx-ax)/(ay-ay)
-    dx = 5/sqrt(1+r^2)
-    dy = r*dx
-
-    (ml,mr) = ((mx+dx,my+dy) , (mx-dx,my-dy))
-    (al,ar) = ((ax+dx,ay+dy) , (ax-dx,ay-dy))
-
--- p is in traiangle (a,b,c)?
-inTriangle a b c p =
-  and(map(>0)zs) || and(map(<0)zs)
-  where
-    zs = map (crossz p) [a,b,c]
-
--- z of cross product
-crossz (a1,a2) (b1,b2) =
-  a1*b2 - a2*b1
 
 -- | (x1, y1) (x2, y2) を通る直線の方程式の係数 a, b, c を求める
 --   傾き a = (y2 - y1) / (x2 - x1) として
