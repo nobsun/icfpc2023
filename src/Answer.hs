@@ -25,8 +25,9 @@ instance Obstacle Placement where
   obCenter a = (x a, y a)
   obRadius _ = 5
 
-newtype Answer
+data Answer
   = Answer { placements :: [Placement]
+           , volumes    :: [Double]
            }
   deriving (Show, Eq, Generic)
 
@@ -41,6 +42,7 @@ _test = encode ans
   where ans = Answer { placements = [ Placement {x = 10.0, y = 20.0}
                                     , Placement {x = 30.0, y = 40.0}
                                     ]
+                     , volumes = [1.0, 2.0]
                      }
 
 

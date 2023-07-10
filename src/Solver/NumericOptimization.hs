@@ -21,7 +21,7 @@ getCandidates problem = unsafePerformIO (getCandidatesIO problem)
 data P a = P [(a, a)]
   deriving (Functor, Foldable, Traversable, Show)
 
-getCandidatesIO :: Problem -> IO (Either String [(Double, Double)])
+getCandidatesIO :: Problem -> IO (Either String [((Double, Double), Double)])
 getCandidatesIO problem = do
   let numMusicians = length (musicians problem)
       averageTaste = sum ts / fromIntegral (length ts)
@@ -71,7 +71,7 @@ getCandidatesIO problem = do
 
   if resultSuccess result || resultMessage result == "The number of steps exceeded the user's request." then do
     let P ms = resultSolution result
-    return $ Right ms
+    return $ Right $ map (\pos -> (pos, 1.0)) ms -- FIXME
   else
     return $ Left (resultMessage result)
 

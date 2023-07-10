@@ -19,6 +19,7 @@ import Solver (SolverF)
 
 
 type Point = (Double,Double)
+type Volume = Double
 
 infixr 0 $$
 ($$) :: Show a => (a -> b) -> a -> b
@@ -28,7 +29,7 @@ f $$ x = traceShow x (f x)
 getCandidates :: SolverF
 getCandidates problem = unsafePerformIO (getCandidatesIO problem)
 
-getCandidatesIO :: Problem -> IO (Either String [Point])
+getCandidatesIO :: Problem -> IO (Either String [(Point, Volume)])
 getCandidatesIO problem@(Problem{stage_width=w, stage_height=h ,stage_bottom_left=(zw,zh), musicians=ms}) = do
   putStrLn $ "stage-width: "++show w++", stage_height: "++show h++", musicians: "++show nMusician
   putStrLn $ "generating initial placement randomly"
@@ -38,7 +39,7 @@ getCandidatesIO problem@(Problem{stage_width=w, stage_height=h ,stage_bottom_lef
   putStrLn $ "happiness: "++ show initHappiness
   descendant <- go 2 extra initials
   -- descendant is sorted desc by happiness
-  return $ Right (head descendant)
+  return $ Right (map (\pos -> (pos, 1.0)) (head descendant)) -- FIXME
   where
     nMusician :: Int
     nMusician = length ms
