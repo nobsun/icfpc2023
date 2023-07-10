@@ -28,13 +28,14 @@ instance Obstacle Placement where
 
 data Answer
   = Answer { placements :: [Placement]
-           , volumes    :: [Double]
+           , volumes    :: Maybe [Double]
            }
   deriving (Show, Eq, Generic)
 
 instance ToJSON Placement
 instance FromJSON Placement
-instance ToJSON Answer
+instance ToJSON Answer where
+  toJSON = genericToJSON defaultOptions { omitNothingFields = True }
 instance FromJSON Answer
 
 _test :: (B.ByteString, Answer)
@@ -42,7 +43,7 @@ _test = (encode ans, maybe (error "parse error!!") id $ decode str)
   where ans = Answer { placements = [ Placement {x = 10.0, y = 20.0}
                                     , Placement {x = 30.0, y = 40.0}
                                     ]
-                     , volumes = [1.0, 2.0]
+                     , volumes = Just [1.0, 2.0]
                      }
 
         str = fromString "{\"placements\":[{\"x\":10,\"y\":20},{\"x\":30,\"y\":40}]}"
