@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Submit where
 
 import Data.String (fromString)
@@ -6,6 +7,7 @@ import Data.List (maximumBy)
 import Data.Functor
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Aeson
+import System.IO (hSetBuffering, BufferMode (LineBuffering), stdout)
 import System.Process (readProcess)
 
 import Problem
@@ -15,9 +17,16 @@ import PastSubmissions
 import Happiness
 import Solutions
 
+trySubmitHeuristic :: FilePath -> IO ()
+trySubmitHeuristic path =
+  case fromFilenameHeulistic path of
+    Nothing         -> putStrLn $ "fail to delect PROBLEM_ID: " ++ path
+    Just (_, pnum)  -> tryToSubmit pnum [path]
+
 tryToSubmit :: Int -> [FilePath] -> IO ()
 tryToSubmit _ [] = putStrLn "tryToSubmit: null input"
 tryToSubmit probNum sols = do
+  hSetBuffering stdout LineBuffering
   let readSol sol = do
         let parseError = putStrLn ("answer parse error: " ++ sol)
             result answer = pure [(answer, sol)]
@@ -30,13 +39,15 @@ tryToSubmit probNum sols = do
 tryToSubmit' :: Int -> Problem -> [(Answer, FilePath)] -> IO ()
 tryToSubmit' probNum problem answers = do
   let calcH p@(ans, path) = do
-        extra <- mkExtra problem ans
+        extra@Extra{..} <- mkExtra problem ans
         let einfo = pprExtraShort extra
             strategy = Parallel
         putStrLn $ unwords [path ++ ":", "calulating", show strategy, "happiness:", einfo ]
         h <- Happiness.applyStrategy strategy extra problem ans
-        pure (h, p)
-  hs <- mapM calcH answers
+        case answer_valid of
+          Valid   -> pure [(h, p)]
+          Invalid -> pure []
+  hs <- concat <$> mapM calcH answers
   putStrLn $ "fetching past-max ..."
   pmax <- getPositiveMax probNum
   let (h, (answer, path)) = maximumBy (comparing fst) hs
