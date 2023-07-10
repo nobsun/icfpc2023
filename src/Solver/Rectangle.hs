@@ -197,7 +197,10 @@ attendeesForPositions prob
 -- | 柱を正確に拾うのは大変なのでざっくり拾う
 --   方針として柱の中心と半径から柱に外接する正方形を作り、それに対して範囲に含まれるか判断する
 pillarsForPositions :: Problem -> Map.Map (Point, Direction) [Pillar]
-pillarsForPositions prob = Map.empty
+pillarsForPositions prob
+  = Map.fromList $ westPlrs ++ northPlrs ++ eastPlrs ++ southPlrs
+    ++ northWestPlrs ++ northEastPlrs ++ southEastPlrs ++ southWestPlrs
+    ++ innerPlrs
   where
     plrs :: [Pillar]
     plrs = pillars prob
@@ -244,6 +247,11 @@ pillarsForPositions prob = Map.empty
     southWestPlrs = map f southWestPos
       where f pd@(p, _)
               = (pd, filter (\(Pillar (x, y) r) -> inRangeOfSouthWestMusician p (x+r, y+r)) plrs)
+              
+    -- NOTE: 必ず外周から埋めるのでここが影響を与えることはない
+    -- 外周に穴が開いているならここにはミュージシャンは配置されていないはず
+    innerPlrs :: [((Point, Direction), [Pillar])]
+    innerPlrs = map (\pd@(p, _) -> (pd, [])) innerPoss
 
 expectHappiness :: Problem -> Point -> [Attendee] -> [Like]
 expectHappiness prob (x0, y0) atnds = foldr expect (replicate n 0.0) atnds
