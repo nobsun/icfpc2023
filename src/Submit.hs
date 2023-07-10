@@ -42,11 +42,14 @@ tryToSubmit' probNum problem answers = do
         extra@Extra{..} <- mkExtra problem ans
         let einfo = pprExtraShort extra
             strategy = Parallel
-        putStrLn $ unwords [path ++ ":", "calulating", show strategy, "happiness:", einfo ]
-        h <- Happiness.applyStrategy strategy extra problem ans
         case answer_valid of
-          Valid   -> pure [(h, p)]
-          Invalid -> pure []
+          Invalid -> do
+            putStrLn $ path ++ ": invalid answer skip"
+            pure []
+          Valid   -> do
+            putStrLn $ unwords [path ++ ":", "calulating", show strategy, "happiness:", einfo ]
+            h <- Happiness.applyStrategy strategy extra problem ans
+            pure [(h, p)]
   hs <- concat <$> mapM calcH answers
   putStrLn $ "fetching past-max ..."
   pmax <- getPositiveMax probNum
