@@ -308,6 +308,7 @@ pillarsForPositions prob (align, adjust)
               
     -- NOTE: 必ず外周から埋めるのでここが影響を与えることはない
     -- 外周に穴が開いているならここにはミュージシャンは配置されていないはず
+    -- 外周を埋めつくす前提でいるが、人数が足りない場合は反対側 (背中側) の効果を見落としている
     innerPlrs :: [((Point, Direction), [Pillar])]
     innerPlrs = map (\pd@(p, _) -> (pd, [])) innerPoss
 
