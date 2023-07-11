@@ -335,6 +335,7 @@ musicianDictionary prob = Map.fromList $ splitWithOrder instrs ms
         m = foldl (\m' (i, instr) -> Map.insertWith (++) instr [i] m') seed ms
 
 -- | NOTE: Inner 以外はソートして立ち位置の優先度を考慮する。 Inner はほぼ効果がないので最後に付ける
+--   同じ楽器のミュージシャンによるコラボ効果はもしかしたら Inner でも意味があったかもしれない
 standingPositions :: Problem
                   -> (Align, Adjust) -- 立ち位置に配置をどちら寄せにするかと最後を調整するか
                   -> [((Point, Direction), [(Instrument, Like)])]
