@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: ICFP Programming Contest 2023
+  title: ICFPC2023
   description: ICFP Programming Contest 2023
   version: 1.0.0
 servers:
@@ -89,7 +89,7 @@ paths:
       parameters:
         - name: problem_id
           in: query
-          required: false
+          required: true
           schema:
             type: integer
       responses:
@@ -113,11 +113,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  number_of_problems:
-                    type: number
-                    description: hoge
+                $ref: '#/components/schemas/ProblemsResponse'
 
   /scoreboard:
     get:
@@ -291,6 +287,15 @@ components:
           description: problem definition
       required:
         - Success
+
+    ProblemsResponse:
+      type: object
+      properties:
+        number_of_problems:
+          type: number
+          description: hoge
+      required:
+        - number_of_problems
 
     Scoreboard:
       type: object
