@@ -164,7 +164,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RegisterResponse'
+                $ref: '#/components/schemas/JWTResponse'
 
   /login:
     post:
@@ -183,7 +183,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoginResponse'
+                $ref: '#/components/schemas/JWTResponse'
 
 
 components:
@@ -194,30 +194,16 @@ components:
       description: Credentials or access token for API
 
   schemas:
-    Failure:
-      type: object
-      properties:
-        Failure:
-          type: string
-          description: failure message
-      required:
-        - Failure
-      description: failure message
-
     SubmissionResponse:
-      oneOf:
-        - $ref: '#/components/schemas/SubmissionResponseSuccess'
-        - $ref: '#/components/schemas/Failure'
-      description: submission
-    SubmissionResponseSuccess:
       type: object
       properties:
         Success:
           $ref: '#/components/schemas/Submission'
           description: submission
-      required:
-        - Success
-      description: submission get success
+        Failure:
+          type: string
+          description: failure message
+      description: submission
     Submission:
       type: object
       properties:
@@ -243,21 +229,21 @@ components:
       description: submission result from judge
       oneOf:
         - $ref: '#/components/schemas/ScoreProcessing'
-        - $ref: '#/components/schemas/ScoreSuccess'
-        - $ref: '#/components/schemas/Failure'
+        - $ref: '#/components/schemas/ScoreJudged'
     ScoreProcessing:
       type: string
       enum: [Processing]
       description: score (processing)
-    ScoreSuccess:
+    ScoreJudged:
       type: object
       properties:
         Success:
           type: number
           description: score
-      required:
-        - Success
-      description: score (success)
+        Failure:
+          type: string
+          description: failure message
+      description: score (judged)
 
     SubmissionRequest:
       type: object
@@ -274,19 +260,15 @@ components:
       description: content and problem id
 
     SubmissionsResponse:
-      oneOf:
-        - $ref: '#/components/schemas/SubmissionsResponseSuccess'
-        - $ref: '#/components/schemas/Failure'
-      description: submission response
-    SubmissionsResponseSuccess:
       type: object
       properties:
         Success:
           $ref: '#/components/schemas/Submissions'
           description: submissions
-      required:
-        - Success
-      description: submissions response (success)
+        Failure:
+          type: string
+          description: failure message
+      description: submissions response
     Submissions:
       type: array
       items:
@@ -294,19 +276,15 @@ components:
       description: submissions
 
     ProblemResponse:
-      oneOf:
-        - $ref: '#/components/schemas/ProblemResponseSuccess'
-        - $ref: '#/components/schemas/Failure'
-      description: problem response
-    ProblemResponseSuccess:
       type: object
       properties:
         Success:
           type: string
           description: problem definition
-      required:
-        - Success
-      description: problem definition
+        Failure:
+          type: string
+          description: failure message
+      description: problem response
 
     ProblemsResponse:
       type: object
@@ -352,11 +330,6 @@ components:
       description: username and score
 
     UserboardResponse:
-      oneOf:
-        - $ref: '#/components/schemas/UserboardResponseSuccess'
-        - $ref: '#/components/schemas/Failure'
-      description: userboard response
-    UserboardResponseSuccess:
       type: object
       properties:
         problems:
@@ -365,9 +338,10 @@ components:
             type: number
             nullable: true
           description: the highest score for each problem
-      required:
-        - problems
-      description: userboard response (success)
+        Failure:
+          type: string
+          description: failure message
+      description: userboard response
 
     JWTResponse:
       type: object
@@ -375,8 +349,9 @@ components:
         Success:
           type: string
           description: your JWT access token
-      required:
-        - Success
+        Failure:
+          type: string
+          description: failure message
       description: your JWT access token
 
     RegisterRequest:
@@ -396,11 +371,6 @@ components:
         - email
         - password
       description: register request
-    RegisterResponse:
-      oneOf:
-        - $ref: '#/components/schemas/JWTResponse'
-        - $ref: '#/components/schemas/Failure'
-      description: register response
 
     LoginRequest:
       type: object
@@ -415,8 +385,3 @@ components:
         - username_or_email
         - password
       description: login request
-    LoginResponse:
-      oneOf:
-        - $ref: '#/components/schemas/JWTResponse'
-        - $ref: '#/components/schemas/Failure'
-      description: login response
