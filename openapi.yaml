@@ -134,8 +134,8 @@ paths:
     get:
       tags:
         - scoreboard
-      summary: "Get the global scoreboard."
-      description: "Get the global scoreboard."
+      summary: "Get scoreboard for your account."
+      description: "Get scoreboard for your account. Provides the highest score for each problem."
       parameters: []
       security:
         - Bearer: []
