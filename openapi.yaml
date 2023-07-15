@@ -48,6 +48,8 @@ paths:
           description: hoge
           content:
             text/plain:
+              schema:
+                type: string
               example: hoge
 
   /submissions:
