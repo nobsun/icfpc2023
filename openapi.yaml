@@ -218,6 +218,19 @@ components:
     Submission:
       type: object
       properties:
+        submission:
+          $ref: SubmissionInfo
+          description: submission metadata
+        contents:
+          type: string
+          description: submission contents
+      required:
+        - submission
+        - contents
+      description: submission
+    SubmissionInfo:
+      type: object
+      properties:
         _id:
           type: string
           description: submission id
@@ -235,7 +248,7 @@ components:
         - problem_id
         - user_id
         - score
-      description: submission
+      description: submission metadata
     Score:
       description: submission result from judge
       oneOf:
