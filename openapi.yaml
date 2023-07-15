@@ -272,17 +272,14 @@ components:
       type: object
       properties:
         Success:
-          $ref: '#/components/schemas/Submissions'
+          type: array
+          items:
+            $ref: '#/components/schemas/Submission'
           description: submissions
         Failure:
           type: string
           description: failure message
       description: submissions response
-    Submissions:
-      type: array
-      items:
-        $ref: '#/components/schemas/Submission'
-      description: submissions
 
     ProblemResponse:
       type: object
