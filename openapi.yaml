@@ -241,7 +241,7 @@ components:
           type: string
           description: user id
         score:
-          $ref: '#/components/schemas/Score'
+          $ref: '#/components/schemas/SubmissionInfoScore'
           description: score
       required:
         - _id
@@ -249,17 +249,17 @@ components:
         - user_id
         - score
       description: submission metadata
-    Score:
+    SubmissionInfoScore:
       description: submission result from judge
       # Any Type
       # oneOf:
-      #   - $ref: '#/components/schemas/ScoreProcessing'
-      #   - $ref: '#/components/schemas/ScoreJudged'
-    # ScoreProcessing:
+      #   - $ref: '#/components/schemas/SubmissionInfoScoreProcessing'
+      #   - $ref: '#/components/schemas/SubmissionInfoScoreJudged'
+    # SubmissionInfoScoreProcessing:
     #   type: string
     #   enum: [Processing]
     #   description: score (processing)
-    # ScoreJudged:
+    # SubmissionInfoScoreJudged:
     #   type: object
     #   properties:
     #     Success:
