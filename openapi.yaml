@@ -1,6 +1,9 @@
 openapi: 3.0.0
 info:
-  title: ICFPC2023
+  title: ICFPC2023 System
+  # cabalパッケージ名が icfpc2023-system に、モジュール名が　ICPFP2023System になるように付けた
+  # cabalパッケージ名、モジュール名を生成する際に、titleの末尾のAPIが削除されるのことに注意
+  # https://github.com/OpenAPITools/openapi-generator/blob/v6.6.0/modules/openapi-generator/src/main/java/org/openapitools/codegen/languages/HaskellServantCodegen.java#L288-L291
   description: ICFP Programming Contest 2023
   version: 1.0.0
 servers:
