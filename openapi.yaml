@@ -251,23 +251,24 @@ components:
       description: submission metadata
     Score:
       description: submission result from judge
-      oneOf:
-        - $ref: '#/components/schemas/ScoreProcessing'
-        - $ref: '#/components/schemas/ScoreJudged'
-    ScoreProcessing:
-      type: string
-      enum: [Processing]
-      description: score (processing)
-    ScoreJudged:
-      type: object
-      properties:
-        Success:
-          type: number
-          description: score
-        Failure:
-          type: string
-          description: failure message
-      description: score (judged)
+      # Any Type
+      # oneOf:
+      #   - $ref: '#/components/schemas/ScoreProcessing'
+      #   - $ref: '#/components/schemas/ScoreJudged'
+    # ScoreProcessing:
+    #   type: string
+    #   enum: [Processing]
+    #   description: score (processing)
+    # ScoreJudged:
+    #   type: object
+    #   properties:
+    #     Success:
+    #       type: number
+    #       description: score
+    #     Failure:
+    #       type: string
+    #       description: failure message
+    #   description: score (judged)
 
     SubmissionRequest:
       type: object
