@@ -338,16 +338,24 @@ components:
     UserboardResponse:
       type: object
       properties:
+        Success:
+          $ref: UserboardResponseSuccess
+          description: userboard
+        Failure:
+          type: string
+          description: failure message
+      description: userboard response
+    UserboardResponseSuccess:
+      type: object
+      properties:
         problems:
           type: array
           items:
             type: number
             nullable: true
           description: the highest score for each problem
-        Failure:
-          type: string
-          description: failure message
-      description: userboard response
+      required:
+        - problems      
 
     JWTResponse:
       type: object
