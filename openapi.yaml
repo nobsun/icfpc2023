@@ -10,6 +10,7 @@ servers:
 paths:
   /submission:
     get:
+      operationId: getSubmission
       tags:
         - submission
       summary: "Get submission with ID. You can only get submissions linked to your account."
@@ -30,6 +31,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SubmissionResponse'
     post:
+      operationId: postSubmission
       tags:
         - submission
       summary: "Post submission with contents and problem id."
@@ -50,6 +52,7 @@ paths:
 
   /submissions:
     get:
+      operationId: getSubmissions
       tags:
         - submission
       summary: "Get [limit] number of your past submissions starting from a given [offset], sorted by submission time."
@@ -82,6 +85,7 @@ paths:
 
   /problem:
     get:
+      operationId: getProblem
       tags:
         - problem
       summary: "Get problems contents with problem id."
@@ -102,6 +106,7 @@ paths:
 
   /problems:
     get:
+      operationId: getNumberOfProblems
       tags:
         - problem
       summary: "Get number of problems."
@@ -117,6 +122,7 @@ paths:
 
   /scoreboard:
     get:
+      operationId: getScoreboard
       tags:
         - scoreboard
       summary: "Get the global scoreboard."
@@ -132,6 +138,7 @@ paths:
 
   /userboard:
     get:
+      operationId: getUserboard
       tags:
         - scoreboard
       summary: "Get scoreboard for your account."
@@ -149,6 +156,7 @@ paths:
 
   /register:
     post:
+      operationId: register
       tags:
         - account
       summary: "Register your account to the contest."
@@ -168,6 +176,7 @@ paths:
 
   /login:
     post:
+      operationId: login
       tags:
         - account
       summary: "Login with your account"
