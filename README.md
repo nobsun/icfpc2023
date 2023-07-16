@@ -62,3 +62,12 @@ https://hackage.haskell.org/package/numeric-optimization-0.1.1.0#installing-prer
 ```shell
 ./api-sh/save-problems.sh
 ```
+
+### `icfpc2023-system` パッケージ
+
+
+[openapi-generatorをインストール](https://openapi-generator.tech/docs/installation/)し、 `openapi.yaml` から以下などで生成する。
+
+```sh
+openapi-generator generate -i openapi.yaml -g haskell -o icfpc2023api
+```

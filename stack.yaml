@@ -2,6 +2,7 @@ resolver: lts-21.1
 
 packages:
 - .
+- icfpc2023api
 
 extra-deps:
 - numeric-optimization-0.1.1.0

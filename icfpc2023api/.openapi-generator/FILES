@@ -1,0 +1,7 @@
+.openapi-generator-ignore
+README.md
+Setup.hs
+icfpc2023-system.cabal
+lib/ICFPC2023System/API.hs
+lib/ICFPC2023System/Types.hs
+stack.yaml

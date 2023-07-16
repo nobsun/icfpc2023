@@ -144,6 +144,48 @@ executables:
     - icfpc2023
     - optparse-applicative
 
+  get-problem:
+    main:                get-problem.hs
+    source-dirs:         api-hs
+    ghc-options:
+    - -rtsopts
+    dependencies:
+    - http-client
+    - http-client-tls
+    - icfpc2023
+    - icfpc2023-system
+    - optparse-applicative
+    - servant-client
+    - text
+    
+  get-scoreboard:
+    main:                get-scoreboard.hs
+    source-dirs:         api-hs
+    ghc-options:
+    - -rtsopts
+    dependencies:
+    - http-client
+    - http-client-tls
+    - icfpc2023
+    - icfpc2023-system
+    - optparse-applicative
+    - servant-client
+    - text
+
+  get-submissions:
+    main:                get-submissions.hs
+    source-dirs:         api-hs
+    ghc-options:
+    - -rtsopts
+    dependencies:
+    - http-client
+    - http-client-tls
+    - icfpc2023
+    - icfpc2023-system
+    - optparse-applicative
+    - servant-client
+    - text
+
 
 tests:
   icfpc2023-test:

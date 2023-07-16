@@ -1,6 +1,9 @@
 openapi: 3.0.0
 info:
-  title: ICFP Programming Contest 2023
+  title: ICFPC2023 System
+  # cabalパッケージ名が icfpc2023-system に、モジュール名が　ICPFP2023System になるように付けた
+  # cabalパッケージ名、モジュール名を生成する際に、titleの末尾のAPIが削除されるのことに注意
+  # https://github.com/OpenAPITools/openapi-generator/blob/v6.6.0/modules/openapi-generator/src/main/java/org/openapitools/codegen/languages/HaskellServantCodegen.java#L288-L291
   description: ICFP Programming Contest 2023
   version: 1.0.0
 servers:
@@ -10,6 +13,7 @@ servers:
 paths:
   /submission:
     get:
+      operationId: getSubmission
       tags:
         - submission
       summary: "Get submission with ID. You can only get submissions linked to your account."
@@ -30,6 +34,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SubmissionResponse'
     post:
+      operationId: postSubmission
       tags:
         - submission
       summary: "Post submission with contents and problem id."
@@ -46,10 +51,13 @@ paths:
           description: hoge
           content:
             text/plain:
+              schema:
+                type: string
               example: hoge
 
   /submissions:
     get:
+      operationId: getSubmissions
       tags:
         - submission
       summary: "Get [limit] number of your past submissions starting from a given [offset], sorted by submission time."
@@ -82,6 +90,7 @@ paths:
 
   /problem:
     get:
+      operationId: getProblem
       tags:
         - problem
       summary: "Get problems contents with problem id."
@@ -89,7 +98,7 @@ paths:
       parameters:
         - name: problem_id
           in: query
-          required: false
+          required: true
           schema:
             type: integer
       responses:
@@ -102,6 +111,7 @@ paths:
 
   /problems:
     get:
+      operationId: getNumberOfProblems
       tags:
         - problem
       summary: "Get number of problems."
@@ -113,14 +123,11 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  number_of_problems:
-                    type: number
-                    description: hoge
+                $ref: '#/components/schemas/ProblemsResponse'
 
   /scoreboard:
     get:
+      operationId: getScoreboard
       tags:
         - scoreboard
       summary: "Get the global scoreboard."
@@ -136,10 +143,11 @@ paths:
 
   /userboard:
     get:
+      operationId: getUserboard
       tags:
         - scoreboard
-      summary: "Get the global scoreboard."
-      description: "Get the global scoreboard."
+      summary: "Get scoreboard for your account."
+      description: "Get scoreboard for your account. Provides the highest score for each problem."
       parameters: []
       security:
         - Bearer: []
@@ -153,6 +161,7 @@ paths:
 
   /register:
     post:
+      operationId: register
       tags:
         - account
       summary: "Register your account to the contest."
@@ -168,10 +177,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RegisterResponse'
+                $ref: '#/components/schemas/JWTResponse'
 
   /login:
     post:
+      operationId: login
       tags:
         - account
       summary: "Login with your account"
@@ -187,7 +197,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoginResponse'
+                $ref: '#/components/schemas/JWTResponse'
 
 
 components:
@@ -198,27 +208,30 @@ components:
       description: Credentials or access token for API
 
   schemas:
-    Failure:
-      type: object
-      properties:
-        Failure:
-          type: string
-          description: hoge
-      required:
-        - Failure
-
     SubmissionResponse:
-      oneOf:
-        - $ref: '#/components/schemas/SubmissionResponseSuccess'
-        - $ref: '#/components/schemas/Failure'
-    SubmissionResponseSuccess:
       type: object
       properties:
         Success:
           $ref: '#/components/schemas/Submission'
-      required:
-        - Success
+          description: submission
+        Failure:
+          type: string
+          description: failure message
+      description: submission
     Submission:
+      type: object
+      properties:
+        submission:
+          $ref: SubmissionInfo
+          description: submission metadata
+        contents:
+          type: string
+          description: submission contents
+      required:
+        - submission
+        - contents
+      description: submission
+    SubmissionInfo:
       type: object
       properties:
         _id:
@@ -229,104 +242,128 @@ components:
           description: problem id
         user_id:
           type: string
-          description: hoge
+          description: user id
         score:
-          $ref: '#/components/schemas/Score'
+          $ref: '#/components/schemas/SubmissionInfoScore'
+          description: score
       required:
         - _id
         - problem_id
         - user_id
         - score
-    Score:
-      oneOf:
-        - $ref: '#/components/schemas/ScoreSuccess'
-        - $ref: '#/components/schemas/Failure'
-    ScoreSuccess:
-      type: object
-      properties:
-        Success:
-          type: number
-          description: hoge
-      required:
-        - Success
+      description: submission metadata
+    SubmissionInfoScore:
+      description: submission result from judge
+      # Any Type
+      # oneOf:
+      #   - $ref: '#/components/schemas/SubmissionInfoScoreProcessing'
+      #   - $ref: '#/components/schemas/SubmissionInfoScoreJudged'
+    # SubmissionInfoScoreProcessing:
+    #   type: string
+    #   enum: [Processing]
+    #   description: score (processing)
+    # SubmissionInfoScoreJudged:
+    #   type: object
+    #   properties:
+    #     Success:
+    #       type: number
+    #       description: score
+    #     Failure:
+    #       type: string
+    #       description: failure message
+    #   description: score (judged)
 
     SubmissionRequest:
       type: object
       properties:
         problem_id:
           type: integer
-          description: hoge
+          description: problem id
         contents:
           type: string
           description: submission contents
       required:
         - problem_id
         - contents
+      description: content and problem id
 
     SubmissionsResponse:
-      oneOf:
-        - $ref: '#/components/schemas/SubmissionsResponseSuccess'
-        - $ref: '#/components/schemas/Failure'
-    SubmissionsResponseSuccess:
       type: object
       properties:
         Success:
-          $ref: '#/components/schemas/Submissions'
-      required:
-        - Success
-    Submissions:
-      type: array
-      items:
-        $ref: '#/components/schemas/Submission'
+          type: array
+          items:
+            $ref: '#/components/schemas/Submission'
+          description: submissions
+        Failure:
+          type: string
+          description: failure message
+      description: submissions response
 
     ProblemResponse:
-      oneOf:
-        - $ref: '#/components/schemas/ProblemResponseSuccess'
-        - $ref: '#/components/schemas/Failure'
-    ProblemResponseSuccess:
       type: object
       properties:
         Success:
           type: string
           description: problem definition
+        Failure:
+          type: string
+          description: failure message
+      description: problem response
+
+    ProblemsResponse:
+      type: object
+      properties:
+        number_of_problems:
+          type: number
+          description: number of problems
       required:
-        - Success
+        - number_of_problems
+      description: number of problems
 
     Scoreboard:
       type: object
       properties:
         frozen:
           type: boolean
-          description: hoge
+          description: Frozen means scoreboard is frozen at the last updated point, so you are seeing the snapshot from that moment.
         scoreboard:
           type: array
           items:
             $ref: '#/components/schemas/ScoreboardItem'
-          description: hoge
+          description: sorted by scores
         updated_at:
           type: string
-          description: hoge
+          description: date
       required:
         - frozen
         - scoreboard
         - updated_at
+      description: global score board
     ScoreboardItem:
       type: object
       properties:
         username:
           type: string
-          description: hoge
+          description: user name
         score:
           type: number
-          description: hoge
+          description: score
       required:
         - username
         - score
+      description: username and score
 
     UserboardResponse:
-      oneOf:
-        - $ref: '#/components/schemas/UserboardResponseSuccess'
-        - $ref: '#/components/schemas/Failure'
+      type: object
+      properties:
+        Success:
+          $ref: UserboardResponseSuccess
+          description: userboard
+        Failure:
+          type: string
+          description: failure message
+      description: userboard response
     UserboardResponseSuccess:
       type: object
       properties:
@@ -335,8 +372,9 @@ components:
           items:
             type: number
             nullable: true
+          description: the highest score for each problem
       required:
-        - problems
+        - problems      
 
     JWTResponse:
       type: object
@@ -344,43 +382,39 @@ components:
         Success:
           type: string
           description: your JWT access token
-      required:
-        - Success
+        Failure:
+          type: string
+          description: failure message
+      description: your JWT access token
 
     RegisterRequest:
       type: object
       properties:
         username:
           type: string
-          description: hoge
+          description: username
         email:
           type: string
-          description: hoge
+          description: must be a valid email
         password:
           type: string
-          description: hoge
+          description: password
       required:
         - username
         - email
         - password
-    RegisterResponse:
-      oneOf:
-        - $ref: '#/components/schemas/JWTResponse'
-        - $ref: '#/components/schemas/Failure'
+      description: register request
 
     LoginRequest:
       type: object
       properties:
         username_or_email:
           type: string
-          description: hoge
+          description: username or email
         password:
           type: string
-          description: hoge
+          description: password
       required:
         - username_or_email
         - password
-    LoginResponse:
-      oneOf:
-        - $ref: '#/components/schemas/JWTResponse'
-        - $ref: '#/components/schemas/Failure'
+      description: login request

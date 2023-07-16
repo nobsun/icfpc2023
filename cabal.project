@@ -1,0 +1,4 @@
+packages: icfpc2023.cabal icfpc2023api/icfpc2023-system.cabal
+
+package numeric-optimization
+  flags: -with-lbfgs +with-lbfgsb
