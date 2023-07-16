@@ -142,6 +142,117 @@ executable eval
     , time
   default-language: GHC2021
 
+executable get-problem
+  main-is: get-problem.hs
+  other-modules:
+      Paths_icfpc2023
+  hs-source-dirs:
+      api-hs
+  default-extensions:
+      LambdaCase
+      MultiWayIf
+      NPlusKPatterns
+      OverloadedStrings
+      NoStarIsType
+      TypeFamilyDependencies
+      DataKinds
+      PolyKinds
+      UndecidableInstances
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts
+  build-depends:
+      aeson
+    , array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , directory
+    , filepath
+    , http-client
+    , http-client-tls
+    , icfpc2023
+    , icfpc2023-system
+    , optparse-applicative
+    , process
+    , random
+    , servant-client
+    , text
+    , time
+  default-language: GHC2021
+
+executable get-scoreboard
+  main-is: get-scoreboard.hs
+  other-modules:
+      Paths_icfpc2023
+  hs-source-dirs:
+      api-hs
+  default-extensions:
+      LambdaCase
+      MultiWayIf
+      NPlusKPatterns
+      OverloadedStrings
+      NoStarIsType
+      TypeFamilyDependencies
+      DataKinds
+      PolyKinds
+      UndecidableInstances
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts
+  build-depends:
+      aeson
+    , array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , directory
+    , filepath
+    , http-client
+    , http-client-tls
+    , icfpc2023
+    , icfpc2023-system
+    , optparse-applicative
+    , process
+    , random
+    , servant-client
+    , text
+    , time
+  default-language: GHC2021
+
+executable get-submissions
+  main-is: get-submissions.hs
+  other-modules:
+      Paths_icfpc2023
+  hs-source-dirs:
+      api-hs
+  default-extensions:
+      LambdaCase
+      MultiWayIf
+      NPlusKPatterns
+      OverloadedStrings
+      NoStarIsType
+      TypeFamilyDependencies
+      DataKinds
+      PolyKinds
+      UndecidableInstances
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts
+  build-depends:
+      aeson
+    , array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , directory
+    , filepath
+    , http-client
+    , http-client-tls
+    , icfpc2023
+    , icfpc2023-system
+    , optparse-applicative
+    , process
+    , random
+    , servant-client
+    , text
+    , time
+  default-language: GHC2021
+
 executable happiness
   main-is: happiness_main.hs
   other-modules:
