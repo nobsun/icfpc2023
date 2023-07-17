@@ -24,6 +24,9 @@ jobs:
         ghc-version: '9.4.5'
         cabal-version: '3.8.1.0'
 
+    - name: Setup stack
+      run: stack config set system-ghc --global true
+
     - name: Cache
       uses: actions/cache@v3
       env:
