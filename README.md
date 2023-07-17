@@ -2,6 +2,8 @@
 
 This is Team Sampou's repository for the [ICFP Programming Contest 2023](http://icfpcontest2023.github.io/).
 
+This repository contains changes *after* the end of the contest. You can see the snapshot at the end of the contest in [end-of-contest](https://github.com/nobsun/icfpc2023/releases/tag/end-of-contest) tag.
+
 ## Programming Languages used
 
 * Haskell
