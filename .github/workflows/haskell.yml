@@ -19,12 +19,17 @@ jobs:
       run: sudo apt-get install liblbfgsb-dev
 
     - uses: actions/checkout@v3
-    - uses: actions/setup-haskell@v1
+    - uses: haskell/actions/setup@v2
+      id: setup-haskell
       with:
         ghc-version: '9.4.5'
         cabal-version: '3.8.1.0'
+        enable-stack: true
 
-    - name: Cache
+    - name: Setup stack
+      run: stack config set system-ghc --global true
+
+    - name: Cache ~/.cabal
       uses: actions/cache@v3
       env:
         cache-name: cache-cabal
@@ -35,6 +40,14 @@ jobs:
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
+
+    - name: Cache ~/.stack
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-stack
+      with:
+        path: ${{ steps.setup-haskell.outputs.stack-root }}
+        key: ${{ runner.os }}-stack
 
     - name: Install dependencies
       run: |
