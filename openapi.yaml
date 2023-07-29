@@ -246,11 +246,15 @@ components:
         score:
           $ref: '#/components/schemas/SubmissionInfoScore'
           description: score
+        submitted_at:
+          type: string
+          description: submission time as UTC
       required:
         - _id
         - problem_id
         - user_id
         - score
+        - submitted_at
       description: submission metadata
     SubmissionInfoScore:
       description: submission result from judge

@@ -141,6 +141,7 @@ data SubmissionInfo = SubmissionInfo
   , submissionInfoProblemUnderscoreid :: Int -- ^ problem id
   , submissionInfoUserUnderscoreid :: Text -- ^ user id
   , submissionInfoScore :: Value -- ^ submission result from judge
+  , submissionInfoSubmittedUnderscoreat :: Text -- ^ submission time as UTC
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON SubmissionInfo where
