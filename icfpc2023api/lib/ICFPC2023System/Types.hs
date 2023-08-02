@@ -22,7 +22,7 @@ module ICFPC2023System.Types (
 
 import Data.Data (Data)
 import Data.UUID (UUID)
-import Data.List (stripPrefix)
+import Data.List (lookup)
 import Data.Maybe (fromMaybe)
 import Data.Aeson (Value, FromJSON(..), ToJSON(..), genericToJSON, genericParseJSON)
 import Data.Aeson.Types (Options(..), defaultOptions)
@@ -35,7 +35,6 @@ import qualified Data.Char as Char
 import qualified Data.Text as T
 import qualified Data.Map as Map
 import GHC.Generics (Generic)
-import Data.Function ((&))
 
 
 -- | your JWT access token
@@ -45,9 +44,21 @@ data JWTResponse = JWTResponse
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON JWTResponse where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "jWTResponse")
+  parseJSON = genericParseJSON optionsJWTResponse
 instance ToJSON JWTResponse where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "jWTResponse")
+  toJSON = genericToJSON optionsJWTResponse
+
+optionsJWTResponse :: Options
+optionsJWTResponse =
+  defaultOptions
+    { omitNothingFields  = True
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
+    }
+  where
+    table =
+      [ ("jWTResponseSuccess", "Success")
+      , ("jWTResponseFailure", "Failure")
+      ]
 
 
 -- | login request
@@ -57,9 +68,21 @@ data LoginRequest = LoginRequest
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON LoginRequest where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "loginRequest")
+  parseJSON = genericParseJSON optionsLoginRequest
 instance ToJSON LoginRequest where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "loginRequest")
+  toJSON = genericToJSON optionsLoginRequest
+
+optionsLoginRequest :: Options
+optionsLoginRequest =
+  defaultOptions
+    { omitNothingFields  = True
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
+    }
+  where
+    table =
+      [ ("loginRequestUsernameUnderscoreorUnderscoreemail", "username_or_email")
+      , ("loginRequestPassword", "password")
+      ]
 
 
 -- | problem response
@@ -69,9 +92,21 @@ data ProblemResponse = ProblemResponse
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON ProblemResponse where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "problemResponse")
+  parseJSON = genericParseJSON optionsProblemResponse
 instance ToJSON ProblemResponse where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "problemResponse")
+  toJSON = genericToJSON optionsProblemResponse
+
+optionsProblemResponse :: Options
+optionsProblemResponse =
+  defaultOptions
+    { omitNothingFields  = True
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
+    }
+  where
+    table =
+      [ ("problemResponseSuccess", "Success")
+      , ("problemResponseFailure", "Failure")
+      ]
 
 
 -- | number of problems
@@ -80,9 +115,20 @@ data ProblemsResponse = ProblemsResponse
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON ProblemsResponse where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "problemsResponse")
+  parseJSON = genericParseJSON optionsProblemsResponse
 instance ToJSON ProblemsResponse where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "problemsResponse")
+  toJSON = genericToJSON optionsProblemsResponse
+
+optionsProblemsResponse :: Options
+optionsProblemsResponse =
+  defaultOptions
+    { omitNothingFields  = True
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
+    }
+  where
+    table =
+      [ ("problemsResponseNumberUnderscoreofUnderscoreproblems", "number_of_problems")
+      ]
 
 
 -- | register request
@@ -93,9 +139,22 @@ data RegisterRequest = RegisterRequest
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON RegisterRequest where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "registerRequest")
+  parseJSON = genericParseJSON optionsRegisterRequest
 instance ToJSON RegisterRequest where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "registerRequest")
+  toJSON = genericToJSON optionsRegisterRequest
+
+optionsRegisterRequest :: Options
+optionsRegisterRequest =
+  defaultOptions
+    { omitNothingFields  = True
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
+    }
+  where
+    table =
+      [ ("registerRequestUsername", "username")
+      , ("registerRequestEmail", "email")
+      , ("registerRequestPassword", "password")
+      ]
 
 
 -- | global score board
@@ -106,9 +165,22 @@ data Scoreboard = Scoreboard
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON Scoreboard where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "scoreboard")
+  parseJSON = genericParseJSON optionsScoreboard
 instance ToJSON Scoreboard where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "scoreboard")
+  toJSON = genericToJSON optionsScoreboard
+
+optionsScoreboard :: Options
+optionsScoreboard =
+  defaultOptions
+    { omitNothingFields  = True
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
+    }
+  where
+    table =
+      [ ("scoreboardFrozen", "frozen")
+      , ("scoreboardScoreboard", "scoreboard")
+      , ("scoreboardUpdatedUnderscoreat", "updated_at")
+      ]
 
 
 -- | username and score
@@ -118,9 +190,21 @@ data ScoreboardItem = ScoreboardItem
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON ScoreboardItem where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "scoreboardItem")
+  parseJSON = genericParseJSON optionsScoreboardItem
 instance ToJSON ScoreboardItem where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "scoreboardItem")
+  toJSON = genericToJSON optionsScoreboardItem
+
+optionsScoreboardItem :: Options
+optionsScoreboardItem =
+  defaultOptions
+    { omitNothingFields  = True
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
+    }
+  where
+    table =
+      [ ("scoreboardItemUsername", "username")
+      , ("scoreboardItemScore", "score")
+      ]
 
 
 -- | submission
@@ -130,9 +214,21 @@ data Submission = Submission
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON Submission where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "submission")
+  parseJSON = genericParseJSON optionsSubmission
 instance ToJSON Submission where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "submission")
+  toJSON = genericToJSON optionsSubmission
+
+optionsSubmission :: Options
+optionsSubmission =
+  defaultOptions
+    { omitNothingFields  = True
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
+    }
+  where
+    table =
+      [ ("submissionSubmission", "submission")
+      , ("submissionContents", "contents")
+      ]
 
 
 -- | submission metadata
@@ -145,9 +241,24 @@ data SubmissionInfo = SubmissionInfo
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON SubmissionInfo where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "submissionInfo")
+  parseJSON = genericParseJSON optionsSubmissionInfo
 instance ToJSON SubmissionInfo where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "submissionInfo")
+  toJSON = genericToJSON optionsSubmissionInfo
+
+optionsSubmissionInfo :: Options
+optionsSubmissionInfo =
+  defaultOptions
+    { omitNothingFields  = True
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
+    }
+  where
+    table =
+      [ ("submissionInfoUnderscoreid", "_id")
+      , ("submissionInfoProblemUnderscoreid", "problem_id")
+      , ("submissionInfoUserUnderscoreid", "user_id")
+      , ("submissionInfoScore", "score")
+      , ("submissionInfoSubmittedUnderscoreat", "submitted_at")
+      ]
 
 
 -- | content and problem id
@@ -157,9 +268,21 @@ data SubmissionRequest = SubmissionRequest
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON SubmissionRequest where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "submissionRequest")
+  parseJSON = genericParseJSON optionsSubmissionRequest
 instance ToJSON SubmissionRequest where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "submissionRequest")
+  toJSON = genericToJSON optionsSubmissionRequest
+
+optionsSubmissionRequest :: Options
+optionsSubmissionRequest =
+  defaultOptions
+    { omitNothingFields  = True
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
+    }
+  where
+    table =
+      [ ("submissionRequestProblemUnderscoreid", "problem_id")
+      , ("submissionRequestContents", "contents")
+      ]
 
 
 -- | submission
@@ -169,9 +292,21 @@ data SubmissionResponse = SubmissionResponse
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON SubmissionResponse where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "submissionResponse")
+  parseJSON = genericParseJSON optionsSubmissionResponse
 instance ToJSON SubmissionResponse where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "submissionResponse")
+  toJSON = genericToJSON optionsSubmissionResponse
+
+optionsSubmissionResponse :: Options
+optionsSubmissionResponse =
+  defaultOptions
+    { omitNothingFields  = True
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
+    }
+  where
+    table =
+      [ ("submissionResponseSuccess", "Success")
+      , ("submissionResponseFailure", "Failure")
+      ]
 
 
 -- | submissions response
@@ -181,9 +316,21 @@ data SubmissionsResponse = SubmissionsResponse
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON SubmissionsResponse where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "submissionsResponse")
+  parseJSON = genericParseJSON optionsSubmissionsResponse
 instance ToJSON SubmissionsResponse where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "submissionsResponse")
+  toJSON = genericToJSON optionsSubmissionsResponse
+
+optionsSubmissionsResponse :: Options
+optionsSubmissionsResponse =
+  defaultOptions
+    { omitNothingFields  = True
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
+    }
+  where
+    table =
+      [ ("submissionsResponseSuccess", "Success")
+      , ("submissionsResponseFailure", "Failure")
+      ]
 
 
 -- | userboard response
@@ -193,9 +340,21 @@ data UserboardResponse = UserboardResponse
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON UserboardResponse where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "userboardResponse")
+  parseJSON = genericParseJSON optionsUserboardResponse
 instance ToJSON UserboardResponse where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "userboardResponse")
+  toJSON = genericToJSON optionsUserboardResponse
+
+optionsUserboardResponse :: Options
+optionsUserboardResponse =
+  defaultOptions
+    { omitNothingFields  = True
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
+    }
+  where
+    table =
+      [ ("userboardResponseSuccess", "Success")
+      , ("userboardResponseFailure", "Failure")
+      ]
 
 
 -- | 
@@ -204,70 +363,18 @@ data UserboardResponseSuccess = UserboardResponseSuccess
   } deriving (Show, Eq, Generic, Data)
 
 instance FromJSON UserboardResponseSuccess where
-  parseJSON = genericParseJSON (removeFieldLabelPrefix True "userboardResponseSuccess")
+  parseJSON = genericParseJSON optionsUserboardResponseSuccess
 instance ToJSON UserboardResponseSuccess where
-  toJSON = genericToJSON (removeFieldLabelPrefix False "userboardResponseSuccess")
+  toJSON = genericToJSON optionsUserboardResponseSuccess
 
-
-uncapitalize :: String -> String
-uncapitalize (first:rest) = Char.toLower first : rest
-uncapitalize [] = []
-
--- | Remove a field label prefix during JSON parsing.
---   Also perform any replacements for special characters.
---   The @forParsing@ parameter is to distinguish between the cases in which we're using this
---   to power a @FromJSON@ or a @ToJSON@ instance. In the first case we're parsing, and we want
---   to replace special characters with their quoted equivalents (because we cannot have special
---   chars in identifier names), while we want to do vice versa when sending data instead.
-removeFieldLabelPrefix :: Bool -> String -> Options
-removeFieldLabelPrefix forParsing prefix =
+optionsUserboardResponseSuccess :: Options
+optionsUserboardResponseSuccess =
   defaultOptions
     { omitNothingFields  = True
-    , fieldLabelModifier = uncapitalize . fromMaybe (error ("did not find prefix " ++ prefix)) . stripPrefix prefix . replaceSpecialChars
+    , fieldLabelModifier = \s -> fromMaybe ("did not find JSON field name for " ++ show s) $ lookup s table
     }
   where
-    replaceSpecialChars field = foldl (&) field (map mkCharReplacement specialChars)
-    specialChars =
-      [ ("$", "'Dollar")
-      , ("^", "'Caret")
-      , ("|", "'Pipe")
-      , ("=", "'Equal")
-      , ("*", "'Star")
-      , ("-", "'Dash")
-      , ("&", "'Ampersand")
-      , ("%", "'Percent")
-      , ("#", "'Hash")
-      , ("@", "'At")
-      , ("!", "'Exclamation")
-      , ("+", "'Plus")
-      , (":", "'Colon")
-      , (";", "'Semicolon")
-      , (">", "'GreaterThan")
-      , ("<", "'LessThan")
-      , (".", "'Period")
-      , ("_", "'Underscore")
-      , ("?", "'Question_Mark")
-      , (",", "'Comma")
-      , ("'", "'Quote")
-      , ("/", "'Slash")
-      , ("(", "'Left_Parenthesis")
-      , (")", "'Right_Parenthesis")
-      , ("{", "'Left_Curly_Bracket")
-      , ("}", "'Right_Curly_Bracket")
-      , ("[", "'Left_Square_Bracket")
-      , ("]", "'Right_Square_Bracket")
-      , ("~", "'Tilde")
-      , ("`", "'Backtick")
-      , ("<=", "'Less_Than_Or_Equal_To")
-      , (">=", "'Greater_Than_Or_Equal_To")
-      , ("!=", "'Not_Equal")
-      , ("<>", "'Not_Equal")
-      , ("~=", "'Tilde_Equal")
-      , ("\\", "'Back_Slash")
-      , ("\"", "'Double_Quote")
+    table =
+      [ ("userboardResponseSuccessProblems", "problems")
       ]
-    mkCharReplacement (replaceStr, searchStr) = T.unpack . replacer (T.pack searchStr) (T.pack replaceStr) . T.pack
-    replacer =
-      if forParsing
-        then flip T.replace
-        else T.replace
+

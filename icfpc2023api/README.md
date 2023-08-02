@@ -50,7 +50,7 @@ main = do
   manager <- newManager tlsManagerSettings
 
   -- Create the client (all endpoint functions will be available)
-  ICFPC2023SystemBackend{..} <- API.createICFPC2023SystemClient
+  let ICFPC2023SystemBackend{..} = API.createICFPC2023SystemClient
 
   -- Any ICFPC2023System API call can go here, e.g. here we call `getSomeEndpoint`
   API.callICFPC2023System (mkClientEnv manager url) getSomeEndpoint
