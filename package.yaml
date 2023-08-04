@@ -186,6 +186,18 @@ executables:
     - servant-client
     - text
 
+  check-submissions:
+    main:                check-submissions.hs
+    source-dirs:         api-hs
+    ghc-options:
+    - -rtsopts
+    dependencies:
+    - icfpc2023
+    - icfpc2023-system
+    - scientific
+    - text
+    - turtle
+
 
 tests:
   icfpc2023-test:

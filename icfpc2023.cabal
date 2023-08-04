@@ -76,6 +76,41 @@ library
     , vector
   default-language: GHC2021
 
+executable check-submissions
+  main-is: check-submissions.hs
+  other-modules:
+      Paths_icfpc2023
+  hs-source-dirs:
+      api-hs
+  default-extensions:
+      LambdaCase
+      MultiWayIf
+      NPlusKPatterns
+      OverloadedStrings
+      NoStarIsType
+      TypeFamilyDependencies
+      DataKinds
+      PolyKinds
+      UndecidableInstances
+  ghc-options: -Wall -Wno-unticked-promoted-constructors -Wno-unused-imports -Wno-unused-top-binds -Wno-orphans -rtsopts
+  build-depends:
+      aeson
+    , array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , directory
+    , filepath
+    , icfpc2023
+    , icfpc2023-system
+    , process
+    , random
+    , scientific
+    , text
+    , time
+    , turtle
+  default-language: GHC2021
+
 executable draw-problem
   main-is: draw-problem.hs
   other-modules:
