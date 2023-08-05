@@ -15,6 +15,7 @@ import qualified ICFPC2023System.Types as Types
 import qualified Answer
 import qualified Happiness
 import qualified Problem
+import qualified PastSubmissions
 
 
 main :: IO ()
@@ -45,24 +46,27 @@ main = do
                            }
                        , Types.submissionContents = contents
                        } -> do
-                    case score of
-                      J.String _processing -> return ()
-                      J.Object m -> do
-                        case KeyMap.lookup (fromString "Failure") m of
-                          Just err -> do
-                            print err
-                          Nothing -> do
-                            case KeyMap.lookup (fromString "Success") m of
-                              Nothing -> error "shuold not happen"
-                              Just (J.Number val) -> do
-                                let judge :: Int
-                                    judge = ceiling (val :: Scientific.Scientific)
-                                putStrLn $ "judge: " ++ show judge
-                                case J.eitherDecodeStrict (T.encodeUtf8 contents) of
-                                  Left err -> error err
-                                  Right (answer :: Answer.Answer) -> do
-                                    local <- Happiness.happiness prob answer
-                                    putStrLn $ "local: " ++ show local
-                                    unless (judge == local) $ putStrLn "mismatch"
-                              Just _ -> error "not a number"
-                      _ -> error "shuold not happen"
+                    case parseScore score of
+                      PastSubmissions.ScoreProcessing -> putStrLn "Processing"
+                      PastSubmissions.ScoreFailure err -> putStrLn err
+                      PastSubmissions.ScoreSuccess judge -> do
+                        putStrLn $ "judge: " ++ show judge
+                        case J.eitherDecodeStrict (T.encodeUtf8 contents) of
+                          Left err -> error err
+                          Right (answer :: Answer.Answer) -> do
+                            local <- Happiness.happiness prob answer
+                            putStrLn $ "local: " ++ show local
+                            unless (judge == local) $ putStrLn "mismatch"
+
+
+parseScore :: J.Value -> PastSubmissions.PastScore
+parseScore (J.String "Processing") = PastSubmissions.ScoreProcessing
+parseScore (J.Object m) =
+  case KeyMap.lookup "Failure" m of
+    Just (J.String err) -> PastSubmissions.ScoreFailure (T.unpack err)
+    Just _ -> error "should not happen"
+    Nothing -> do
+      case KeyMap.lookup (fromString "Success") m of
+        Just (J.Number val) -> PastSubmissions.ScoreSuccess (ceiling (val :: Scientific.Scientific))
+        _ -> error "should not happen"
+parseScore _ = error "should not happen"
