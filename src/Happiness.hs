@@ -111,7 +111,8 @@ naiveUnreduced extra prob ans = score
       | otherwise = ceiling $ (vs ! k) * fromIntegral impact
       where
         num = (million_times_atnds_tastes.problem_extra $ extra) ! i ! inst_k
-        den = squareDistance p_k a_i
+        den = d*d -- なぜかsqrtして2乗するとジャッジに完全に一致するらしい
+          where d = sqrt (squareDistance p_k a_i)
         -- I(k)
         impact = ceiling (num / den) :: Happiness
         closeness = 1 +
@@ -170,7 +171,8 @@ withQueue extra prob ans = do
       | otherwise = ceiling $ (vs ! k) * fromIntegral impact
       where
         num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
-        den = squareDistance p_k a_i
+        den = d*d -- なぜかsqrtして2乗するとジャッジに完全に一致するらしい
+          where d = sqrt (squareDistance p_k a_i)
         -- I(k)
         impact = ceiling (num / den) :: Happiness
         closeness = 1 +
