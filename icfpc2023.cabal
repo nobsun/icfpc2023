@@ -81,7 +81,7 @@ executable check-submissions
   other-modules:
       Paths_icfpc2023
   hs-source-dirs:
-      api-hs
+      mains
   default-extensions:
       LambdaCase
       MultiWayIf

@@ -188,7 +188,7 @@ executables:
 
   check-submissions:
     main:                check-submissions.hs
-    source-dirs:         api-hs
+    source-dirs:         mains
     ghc-options:
     - -rtsopts
     dependencies:
