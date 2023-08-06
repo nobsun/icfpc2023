@@ -10,6 +10,7 @@ import Data.Array.IO (IOUArray)
 import Data.Array.Unboxed (UArray)
 import Data.Function (on)
 import Data.List.Split (chunksOf)
+import Data.Maybe (fromMaybe)
 import Data.IORef (readIORef, modifyIORef)
 
 import Problem
@@ -100,12 +101,14 @@ naiveUnreduced extra prob ans = score
     ms = placements ans
     ms_ar :: Array Int Placement
     ms_ar = listArray (0, length ms-1) ms
+    vs :: UArray Int Double
+    vs = listArray (0, length ms - 1) $ fromMaybe (replicate (length ms) 1) (Answer.volumes ans)
     plrs = pillars prob
 
-    -- q(k) * I(k) or I(k)
+    -- volumes[k] * q(k) * I(k) or volumes[k] * I(k)
     unit_score (i, a_i) (k, inst_k, p_k)
-      | isFullDivisionProblem prob = ceiling $ closeness * fromIntegral impact
-      | otherwise = impact
+      | isFullDivisionProblem prob = ceiling $ (vs ! k) * closeness * fromIntegral impact
+      | otherwise = ceiling $ (vs ! k) * fromIntegral impact
       where
         num = (million_times_atnds_tastes.problem_extra $ extra) ! i ! inst_k
         den = squareDistance p_k a_i
@@ -157,12 +160,14 @@ withQueue extra prob ans = do
     ms = placements ans
     ms_ar :: Array Int Placement
     ms_ar = listArray (0, length ms-1) ms
+    vs :: UArray Int Double
+    vs = listArray (0, length ms - 1) $ fromMaybe (replicate (length ms) 1) (Answer.volumes ans)
     plrs = pillars prob
 
-    -- q(k) * I(k) or I(k)
+    -- volumes[k] * q(k) * I(k) or volumes[k] * I(k)
     unit_score (i, a_i) (k, inst_k, p_k)
-      | isFullDivisionProblem prob = ceiling $ closeness * fromIntegral impact
-      | otherwise = impact
+      | isFullDivisionProblem prob = ceiling $ (vs ! k) * closeness * fromIntegral impact
+      | otherwise = ceiling $ (vs ! k) * fromIntegral impact
       where
         num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
         den = squareDistance p_k a_i
