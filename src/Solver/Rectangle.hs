@@ -1,7 +1,10 @@
+{-# LANGUAGE OverloadedLists #-}
+
 module Solver.Rectangle where
 
 import Data.List (sortBy, partition)
 import qualified Data.Map as Map
+import qualified Data.Vector.Generic as VG
 
 import Problem
 import Solver (SolverF)
@@ -246,7 +249,7 @@ attendeesForPositions prob (align, adjust)
     southEastAtnds = map (by inRangeOfSouthEastMusician) southEastPos
     southWestAtnds :: [((Point, Direction), [Attendee])]
     southWestAtnds = map (by inRangeOfSouthWestMusician) southWestPos
-    by pred pd@(p, _) = (pd, filter (\(Attendee x y _) -> pred p (x, y)) atnds)
+    by pred pd@(p, _) = (pd, filter (\(Attendee x y _) -> pred p (x, y)) (VG.toList atnds))
     -- NOTE: 必ず外周から埋めるのでここが影響を与えることはない
     -- 外周に穴が開いているならここにはミュージシャンは配置されていないはず
     innerAtnds :: [((Point, Direction), [Attendee])]
@@ -261,7 +264,7 @@ pillarsForPositions prob (align, adjust)
     ++ innerPlrs
   where
     plrs :: [Pillar]
-    plrs = pillars prob
+    plrs = VG.toList $ pillars prob
     westPoss :: [(Point, Direction)]
     (westPoss, northPoss, eastPoss, southPoss
       , northWestPos, northEastPos, southEastPos, southWestPos
@@ -315,8 +318,8 @@ pillarsForPositions prob (align, adjust)
 expectHappiness :: Problem -> Point -> [Attendee] -> [Pillar] -> [Like]
 expectHappiness prob (x0, y0) atnds plrs = foldr expect (replicate n 0.0) atnds
   where
-    n = length (tastes (head (attendees prob)))
-    expect (Attendee x y ts) acc = zipWith (calcHappiness (x, y)) acc ts
+    n = VG.length (tastes (VG.head (attendees prob)))
+    expect (Attendee x y ts) acc = zipWith (calcHappiness (x, y)) acc (VG.toList ts)
       where calcHappiness (x, y) acc t
               | disturbedBy plrs = acc
               | otherwise        = acc + 1e6*t / ((x-x0)^2 + (y-y0)^2)
@@ -325,9 +328,9 @@ expectHappiness prob (x0, y0) atnds plrs = foldr expect (replicate n 0.0) atnds
 musicianDictionary :: Problem -> Map.Map Instrument [Int]
 musicianDictionary prob = Map.fromList $ splitWithOrder instrs ms
   where
-    ms = zip [0..] (musicians prob)
+    ms = zip [0..] (VG.toList (musicians prob))
     instrs = [0..n-1]
-    n = length (tastes (head (attendees prob)))
+    n = VG.length (tastes (VG.head (attendees prob)))
 
     splitWithOrder :: [Instrument] -> [(Int, Instrument)] -> [(Instrument, [Int])]
     splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs

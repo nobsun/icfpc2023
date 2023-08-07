@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedLists #-}
 module HappinessSpec
   ( spec
   ) where

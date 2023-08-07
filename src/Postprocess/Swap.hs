@@ -29,10 +29,10 @@ import qualified Happiness
 
 swap :: Extra -> Problem -> Answer -> Maybe Int -> IO (Answer, Maybe Happiness)
 swap extra prob ans maxIters
-  | IntSet.size (IntSet.fromList (Problem.musicians prob)) <= 1 = return (ans, Nothing)
+  | IntSet.size (IntSet.fromList (VG.toList (Problem.musicians prob))) <= 1 = return (ans, Nothing)
   | otherwise = do
       let instToMusicians :: V.Vector (VU.Vector Int)
-          instToMusicians = V.fromList $ map VU.fromList $ IArray.elems (Extra.same_inst_musicians $ Extra.problem_extra extra)
+          instToMusicians = VG.map VU.fromList $ Extra.same_inst_musicians $ Extra.problem_extra extra
 
           weights :: VU.Vector Double
           weights = VG.convert $ V.map (fromIntegral . VU.length) $ instToMusicians
@@ -57,9 +57,8 @@ swap extra prob ans maxIters
                 printf "try to swap %d (inst %d) and %d (inst %d) \n"  k1 inst1 k2 inst2
                 -- TODO: 関係のあるattendeeだけに着目したproblemを作ることで計算を高速化
                 -- let relevantAttendees = IntSet.union (table IntMap.! k1) (table IntMap.! k1)
-                let swapElem :: [a] -> [a]
-                    swapElem xs = V.toList $ xs' VG.// [(k1, xs' V.! k2), (k2, xs' V.! k1)]
-                      where xs' = V.fromList xs
+                let swapElem :: VG.Vector v a => v a -> v a
+                    swapElem xs = xs VG.// [(k1, xs VG.! k2), (k2, xs VG.! k1)]
                     newSol =
                       bestSol
                       { Answer.placements = swapElem (Answer.placements bestSol)

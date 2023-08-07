@@ -1,10 +1,10 @@
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE RecordWildCards #-}
 module Happiness where
 
 import Control.Concurrent (newChan, writeChan, readChan, forkIO, getNumCapabilities)
 import Control.Monad
-import Data.Array (Array)
-import Data.Array.IArray ((!), listArray)
+import Data.Array.IArray ((!))
 import qualified Data.Array.MArray as MA (writeArray, freeze, thaw)
 import Data.Array.IO (IOUArray)
 import Data.Array.Unboxed (UArray)
@@ -12,6 +12,8 @@ import Data.Function (on)
 import Data.List.Split (chunksOf)
 import Data.Maybe (fromMaybe)
 import Data.IORef (readIORef, modifyIORef)
+import qualified Data.Vector.Generic as VG
+import qualified Data.Vector.Unboxed as VU
 
 import Problem
 import Answer
@@ -52,10 +54,11 @@ weightedAverage extra prob ans = pure score
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
     score = sum [ impact 0 k
                 | k <- [0..length ms-1], j <- [0..length ms-1]
-                , not $ isBlock (ms !! k) (atnds !! 0) (ms !! j)
+                , not $ isBlock (ms VG.! k) (atnds !! 0) (ms VG.! j)
                 ]
     atnds = [Attendee centerX centerY waTaste]
     ms = placements ans
+    num_instruments = VG.length $ tastes $ VG.head $ attendees prob
 
     (centerX, centerY) = centerOfStage prob
     n = length atnds
@@ -66,16 +69,16 @@ weightedAverage extra prob ans = pure score
         (x, y) = foldr f (0.0, 0.0) atnds
           where f (Attendee x_ y_ _) (x', y') = (x_ + x', y_ + y')
     -- 観客の平均taste
-    waTaste = foldr f [0.0..] (attendees prob)
+    waTaste = VG.foldr f (VG.replicate num_instruments 0.0) (attendees prob)
       where
-        f (Attendee x y ts) ts' = zipWith (\t t' -> w * t + t') ts ts'
+        f (Attendee x y ts) ts' = VG.zipWith (\t t' -> w * t + t') ts ts'
           where
             d2 = (attendeeX - x)^(2::Int) + (attendeeY - y)^(2::Int)
             w = 1.0 / d2
     impact i k = ceiling $  num / den
       where
-        num = 1e6 * (tastes (atnds !! i) !! (musicians prob !! k))
-        den = squareDistance (ms !! k) (atnds !! i)
+        num = 1e6 * (tastes (atnds !! i) VG.! (musicians prob VG.! k))
+        den = squareDistance (ms VG.! k) (atnds !! i)
 
 happiness :: Problem -> Answer -> IO Happiness
 happiness prob ans = do
@@ -93,31 +96,30 @@ naiveUnreduced extra prob ans = score
     isBlock :: Obstacle o => Placement -> Attendee -> o -> Bool
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
     score = [ (i, k, unit_score (i, a_i) (k, inst_k, p_k))
-            | (k, inst_k, p_k) <- zip3 [0 :: Int ..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
-            , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
-            , and [not $ isBlock p_k a_i pl | pl <- plrs]
+            | (k, inst_k, p_k) <- zip3 [0 :: Int ..] (VG.toList (musicians prob)) (VG.toList ms)
+            , (i, a_i) <- zip [0..] (VG.toList atnds)
+            , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] (VG.toList ms), k /= j]
+            , and [not $ isBlock p_k a_i pl | pl <- VG.toList plrs]
             ]
     atnds = attendees prob
     ms = placements ans
-    ms_ar :: Array Int Placement
-    ms_ar = listArray (0, length ms-1) ms
-    vs :: UArray Int Double
-    vs = listArray (0, length ms - 1) $ fromMaybe (replicate (length ms) 1) (Answer.volumes ans)
+    vs :: VU.Vector Double
+    vs = fromMaybe (VG.replicate (VG.length ms) 1) (Answer.volumes ans)
     plrs = pillars prob
 
     -- volumes[k] * q(k) * I(k) or volumes[k] * I(k)
     unit_score (i, a_i) (k, inst_k, p_k)
-      | isFullDivisionProblem prob = ceiling $ (vs ! k) * closeness * fromIntegral impact
-      | otherwise = ceiling $ (vs ! k) * fromIntegral impact
+      | isFullDivisionProblem prob = ceiling $ (vs VG.! k) * closeness * fromIntegral impact
+      | otherwise = ceiling $ (vs VG.! k) * fromIntegral impact
       where
-        num = (million_times_atnds_tastes.problem_extra $ extra) ! i ! inst_k
+        num = (million_times_atnds_tastes.problem_extra $ extra) VG.! i VG.! inst_k
         den = d*d -- なぜかsqrtして2乗するとジャッジに完全に一致するらしい
           where d = sqrt (squareDistance p_k a_i)
         -- I(k)
         impact = ceiling (num / den) :: Happiness
         closeness = 1 +
-          sum[ 1 / sqrt (squareDistance p_k (ms_ar!j))
-             | j <- (same_inst_musicians.problem_extra $ extra) ! inst_k
+          sum[ 1 / sqrt (squareDistance p_k (ms VG.! j))
+             | j <- (same_inst_musicians.problem_extra $ extra) VG.! inst_k
              , k /= j
              ]
 
@@ -125,7 +127,7 @@ withQueue :: Extra -> Problem -> Answer -> IO Happiness
 withQueue extra prob ans = do
   nthread <- getNumCapabilities
 
-  let inputs = zip3 [0 :: Int ..] (musicians prob) ms
+  let inputs = zip3 [0 :: Int ..] (VG.toList (musicians prob)) (VG.toList ms)
       jobs = map chunk_score $ chunksOf chunkSize inputs
         where
           chunkSize = 1 `max` (length inputs `quot` chunks)
@@ -152,32 +154,30 @@ withQueue extra prob ans = do
       sum
       [ unit_score (i, a_i) (k, inst_k, p_k)
       | (k, inst_k, p_k) <- triple_chunk
-      , (i, a_i) <- zip [0..] atnds
-      , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
-      , and [not $ isBlock p_k a_i pl | pl <- plrs]
+      , (i, a_i) <- zip [0..] (VG.toList atnds)
+      , and [not $ isBlock p_k a_i p_j | (j, p_j) <- zip [0..] (VG.toList ms), k /= j]
+      , and [not $ isBlock p_k a_i pl | pl <- VG.toList plrs]
       ]
 
     atnds = attendees prob
     ms = placements ans
-    ms_ar :: Array Int Placement
-    ms_ar = listArray (0, length ms-1) ms
-    vs :: UArray Int Double
-    vs = listArray (0, length ms - 1) $ fromMaybe (replicate (length ms) 1) (Answer.volumes ans)
+    vs :: VU.Vector Double
+    vs = fromMaybe (VG.replicate (length ms) 1) (Answer.volumes ans)
     plrs = pillars prob
 
     -- volumes[k] * q(k) * I(k) or volumes[k] * I(k)
     unit_score (i, a_i) (k, inst_k, p_k)
-      | isFullDivisionProblem prob = ceiling $ (vs ! k) * closeness * fromIntegral impact
-      | otherwise = ceiling $ (vs ! k) * fromIntegral impact
+      | isFullDivisionProblem prob = ceiling $ (vs VG.! k) * closeness * fromIntegral impact
+      | otherwise = ceiling $ (vs VG.! k) * fromIntegral impact
       where
-        num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
+        num = (million_times_atnds_tastes.problem_extra $ extra) VG.! i VG.! inst_k
         den = d*d -- なぜかsqrtして2乗するとジャッジに完全に一致するらしい
           where d = sqrt (squareDistance p_k a_i)
         -- I(k)
         impact = ceiling (num / den) :: Happiness
         closeness = 1 +
-          sum[ 1 / sqrt (squareDistance p_k (ms_ar!j))
-             | j <- (same_inst_musicians.problem_extra $ extra) ! inst_k
+          sum[ 1 / sqrt (squareDistance p_k (ms VG.! j))
+             | j <- (same_inst_musicians.problem_extra $ extra) VG.! inst_k
              , k /= j
              ]
 
@@ -195,8 +195,6 @@ memoise extra prob ans curNo oldNo = do
     isBlock = isBlockWith (int_compat_blocktest extra) (answer_valid extra)
     atnds = attendees prob
     ms = placements ans
-    ms_ar :: Array Int Placement
-    ms_ar = listArray (0, length ms-1) ms
     n_ms = (num_musicians.problem_extra $ extra)
     insts = musicians prob
     plrs = pillars prob
@@ -208,7 +206,7 @@ memoise extra prob ans curNo oldNo = do
       | isFullDivisionProblem prob = ceiling $ closeness * fromIntegral (ceiling (num / den) :: Happiness)
       | otherwise = ceiling (num / den)
       where
-        num = (million_times_atnds_tastes.problem_extra $ extra)! i ! inst_k
+        num = (million_times_atnds_tastes.problem_extra $ extra) VG.! i VG.! inst_k
         den = mad!(maIndex n_ms k i)
         closeness = clo!k
 
@@ -217,21 +215,21 @@ memoise extra prob ans curNo oldNo = do
 --      putStrLn $ "debug: old: " ++ (take 1000 $ show(s_answer old))
 --      putStrLn $ "debug: cur: " ++ (take 1000 $ show ans)
       let diff :: [(Int,Instrument)]
-          diff = [is | (is,same) <-zip (zip[0..]insts) $ (zipWith (==)`on`placements) ans (s_answer old)
+          diff = [is | (is,same) <-zip (zip [0..] (VG.toList insts)) $ VG.toList $ (VG.zipWith (==)`on`placements) ans (s_answer old)
                      , not same]
           madUpdate =
-            [ (maIndex n_ms k i, if blockedByM || blockedByP then -1 else squareDistance (ms_ar!k) a_i)
-            | (k,_) <-diff, (i, a_i) <- zip[0..]atnds
-            , let blockedByM = or[isBlock (ms_ar!k) a_i p_j | (j, p_j) <- zip [0..] ms, k /= j]
-            , let blockedByP = or[isBlock (ms_ar!k) a_i pl | pl <- plrs]
+            [ (maIndex n_ms k i, if blockedByM || blockedByP then -1 else squareDistance (ms VG.! k) a_i)
+            | (k,_) <-diff, (i, a_i) <- zip [0..] (VG.toList atnds)
+            , let blockedByM = or[isBlock (ms VG.! k) a_i p_j | (j, p_j) <- zip [0..] (VG.toList ms), k /= j]
+            , let blockedByP = or[isBlock (ms VG.! k) a_i pl | pl <- VG.toList plrs]
             ]
           mmdUpdate =
-            [ (mmIndex k j, squareDistance (ms_ar!k) p_j)
-            | (k,_) <-diff, (j,p_j)<-zip[0..]ms, k/=j
+            [ (mmIndex k j, squareDistance (ms VG.! k) p_j)
+            | (k,_) <-diff, (j,p_j)<-zip[0..] (VG.toList ms), k/=j
             ]
           cloUpdate =
-            [ (k, 1 + sum[ 1 / sqrt (squareDistance (ms_ar!k) (ms_ar!j))
-                         | j <-(same_inst_musicians.problem_extra $ extra)! inst_k])
+            [ (k, 1 + sum[ 1 / sqrt (squareDistance (ms VG.! k) (ms VG.! j))
+                         | j <-(same_inst_musicians.problem_extra $ extra) VG.! inst_k])
             | (k,inst_k) <-diff
             ]
 --      putStrLn $ "debug: diff size: " ++show(length  diff)
@@ -253,7 +251,8 @@ memoise extra prob ans curNo oldNo = do
       modifyIORef (state extra) (\hists-> take 8 ((curNo,cur):hists))
       let score =
              sum [ impact mad mmd clo (i, a_i) (k, inst_k, p_k)
-                 | (k, inst_k, p_k) <- zip3 [0 :: Int ..] (musicians prob) ms, (i, a_i) <- zip [0..] atnds
+                 | (k, inst_k, p_k) <- zip3 [0 :: Int ..] (VG.toList (musicians prob)) (VG.toList ms)
+                 , (i, a_i) <- zip [0..] (VG.toList atnds)
                  , mad!(maIndex n_ms k i) > 0 -- minus means "blocked"
                  ]
       putStrLn $ "debug: score="++ show score
@@ -276,37 +275,37 @@ isBlockWith NotIntCompat Invalid  = isBlockDoubleInvalid
 --     blocker  (bx, by)
 --
 -- 線分の端点が一致した場合は垂線が通る
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 0.0 0.0)
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement 0.0 0.0)
 -- True
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 1.0)
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement 1.0 1.0)
 -- True
 --
 -- 距離が 5 より離れている
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 7.0 8.0)
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement 7.0 8.0)
 -- False
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (-8.0) (-7.0))
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement (-8.0) (-7.0))
 -- False
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (6.0))
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement (0.0) (6.0))
 -- False
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (7.0))
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement (0.0) (7.0))
 -- False
 --
 -- (4.0, 6.0) までそれぞれ、 4, 5, 6
--- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 []) (Placement 4.0 2.0)
+-- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 VG.empty) (Placement 4.0 2.0)
 -- True
--- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 []) (Placement 4.0 1.0)
+-- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 VG.empty) (Placement 4.0 1.0)
 -- True
--- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 []) (Placement 4.0 0.0)
+-- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 VG.empty) (Placement 4.0 0.0)
 -- False
 --
 -- 斜辺の真ん中までそれぞれ、 3√2, 5, 5, 4√2
--- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 1.0 1.0)
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 VG.empty) (Placement 1.0 1.0)
 -- True
--- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 1.0 0.0)
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 VG.empty) (Placement 1.0 0.0)
 -- True
--- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 0.0 1.0)
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 VG.empty) (Placement 0.0 1.0)
 -- True
--- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 0.0 0.0)
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 VG.empty) (Placement 0.0 0.0)
 -- False
 --
 isBlockInt :: Obstacle o => Placement -> Attendee -> o -> Bool
@@ -323,37 +322,37 @@ isBlockInt' = BlockVec.isBlock
 --   isBlockInt の Int には特化していないバージョン
 --
 -- 線分の端点が一致した場合は垂線が通る
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 0.0 0.0)
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement 0.0 0.0)
 -- True
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 1.0)
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement 1.0 1.0)
 -- True
 --
 -- 距離が 5 より離れている
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 7.0 8.0)
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement 7.0 8.0)
 -- False
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (-8.0) (-7.0))
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement (-8.0) (-7.0))
 -- False
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (6.0))
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement (0.0) (6.0))
 -- False
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (7.0))
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement (0.0) (7.0))
 -- False
 --
 -- (4.0, 6.0) までそれぞれ、 4, 5, 6
--- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 []) (Placement 4.0 2.0)
+-- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 VG.empty) (Placement 4.0 2.0)
 -- True
--- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 []) (Placement 4.0 1.0)
+-- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 VG.empty) (Placement 4.0 1.0)
 -- True
--- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 []) (Placement 4.0 0.0)
+-- >>> isBlockDouble (Placement 0.0 6.0) (Attendee 8.0 6.0 VG.empty) (Placement 4.0 0.0)
 -- False
 --
 -- 斜辺の真ん中までそれぞれ、 3√2, 5, 5, 4√2
--- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 1.0 1.0)
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 VG.empty) (Placement 1.0 1.0)
 -- True
--- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 1.0 0.0)
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 VG.empty) (Placement 1.0 0.0)
 -- True
--- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 0.0 1.0)
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 VG.empty) (Placement 0.0 1.0)
 -- True
--- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 []) (Placement 0.0 0.0)
+-- >>> isBlockDouble (Placement 1.0 7.0) (Attendee 7.0 1.0 VG.empty) (Placement 0.0 0.0)
 -- False
 --
 isBlockDouble :: Obstacle o => Placement -> Attendee -> o -> Bool
@@ -366,13 +365,13 @@ isBlockDouble (Placement mx my) (Attendee ax ay _) obs =
 -- | isBlockIntInvalid
 --   isBlockInt の valid でない answer に対応したバージョン
 --
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 2.0 2.0)
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement 2.0 2.0)
 -- True
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 2.0)
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement 1.0 2.0)
 -- True
--- >>> isBlockIntInvalid (Placement (-1.0) 1.0) (Attendee 0.0 3.0 []) (Placement 0.0 0.0)
+-- >>> isBlockIntInvalid (Placement (-1.0) 1.0) (Attendee 0.0 3.0 VG.empty) (Placement 0.0 0.0)
 -- True
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement (0.0) (5.0))
 -- True
 --
 isBlockIntInvalid :: Obstacle o => Placement -> Attendee -> o -> Bool
@@ -388,13 +387,13 @@ isBlockIntInvalid' = BlockVec.isBlockWithoutValid
 -- | isBlockIntInvalid
 --   isBlockDouble の valid でない answer に対応したバージョン
 --
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 2.0 2.0)
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement 2.0 2.0)
 -- True
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement 1.0 2.0)
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement 1.0 2.0)
 -- True
--- >>> isBlockIntInvalid (Placement (-1.0) 1.0) (Attendee 0.0 3.0 []) (Placement 0.0 0.0)
+-- >>> isBlockIntInvalid (Placement (-1.0) 1.0) (Attendee 0.0 3.0 VG.empty) (Placement 0.0 0.0)
 -- True
--- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 []) (Placement (0.0) (5.0))
+-- >>> isBlockIntInvalid (Placement 0.0 0.0) (Attendee 1.0 1.0 VG.empty) (Placement (0.0) (5.0))
 -- True
 --
 isBlockDoubleInvalid :: Obstacle o => Placement -> Attendee -> o -> Bool

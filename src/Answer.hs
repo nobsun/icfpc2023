@@ -12,6 +12,9 @@ module Answer
 import Data.String (fromString)
 import qualified Data.ByteString.Lazy as B
 import Data.Aeson
+import qualified Data.Vector as V
+import qualified Data.Vector.Generic as VG
+import qualified Data.Vector.Unboxed as VU
 -- import Text.Printf (printf)
 import GHC.Generics
 
@@ -29,13 +32,13 @@ instance Obstacle Placement where
   obRadius _ = 5
 
 data Answer
-  = Answer { placements :: [Placement]
-           , volumes    :: Maybe [Double]
+  = Answer { placements :: V.Vector Placement
+           , volumes    :: Maybe (VU.Vector Double)
            }
   deriving (Show, Eq, Generic)
 
 mkAnswer :: [Placement] -> [Double] -> Answer
-mkAnswer ps vs = Answer { placements = ps, volumes = normalVolumes vs }
+mkAnswer ps vs = Answer { placements = VG.fromList ps, volumes = fmap VG.fromList (normalVolumes vs) }
 
 normalVolumes :: [Double] -> Maybe [Double]
 normalVolumes vs
@@ -54,15 +57,17 @@ _test = ( encode ans1
         , maybe (error "parse error: str1") id $ decode str1
         , maybe (error "parse error: str2") id $ decode str2
         )
-  where ans1 = Answer { placements = [ Placement {x = 10.0, y = 20.0}
+  where ans1 = Answer { placements = VG.fromList
+                                     [ Placement {x = 10.0, y = 20.0}
                                      , Placement {x = 30.0, y = 40.0}
                                      ]
                       , volumes = Nothing
                       }
-        ans2 = Answer { placements = [ Placement {x = 10.0, y = 20.0}
+        ans2 = Answer { placements = VG.fromList
+                                     [ Placement {x = 10.0, y = 20.0}
                                      , Placement {x = 30.0, y = 40.0}
                                      ]
-                      , volumes = Just [1.0, 2.0]
+                      , volumes = Just (VG.fromList [1.0, 2.0])
                       }
 
         str1 = fromString "{\"placements\":[{\"x\":10,\"y\":20},{\"x\":30,\"y\":40}]}"
@@ -71,9 +76,9 @@ _test = ( encode ans1
 isValidAnswer :: Problem -> Answer -> Bool
 isValidAnswer Problem{ stage_bottom_left = (x0,y0), stage_width = w, stage_height = h, musicians = ms } Answer{ placements = ps, volumes = _vs } =
   and
-  [ length ps == length ms
-  , and [x0 + 10 <= x && x <= x0 + w - 10 && y0 + 10 <= y && y <= y0 + h - 10 | Placement x y <- ps]
-  , and [(x1 - x2)^(2::Int) + (y1 - y2)^(2::Int) >= 100 | (Placement x1 y1, Placement x2 y2) <- pairs' ps]
+  [ length ps == VG.length ms
+  , and [x0 + 10 <= x && x <= x0 + w - 10 && y0 + 10 <= y && y <= y0 + h - 10 | Placement x y <- VG.toList ps]
+  , and [(x1 - x2)^(2::Int) + (y1 - y2)^(2::Int) >= 100 | (Placement x1 y1, Placement x2 y2) <- pairs' (VG.toList ps)]
   ]
 
 pairs' :: [a] -> [(a,a)]
