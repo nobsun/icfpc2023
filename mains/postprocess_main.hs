@@ -12,6 +12,7 @@ import Problem
 
 import Postprocess.TuneVolume (tuneVolume)
 import Postprocess.Swap (swap)
+import Postprocess.Reassign (reassignMusicians)
 
 
 data Options
@@ -42,7 +43,7 @@ optionsParser = Options
     command :: Parser String
     command = strArgument
       $  metavar "COMMAND"
-      <> help "command: tune-volume, swap"
+      <> help "command: tune-volume, swap, reassign"
 
     inputFile :: Parser FilePath
     inputFile = strArgument
@@ -94,6 +95,9 @@ main = do
       "swap" -> do
         extra <- Extra.mkExtra prob sol1
         swap extra prob sol1 (optSteps opt)
+      "reassign" -> do
+        extra <- Extra.mkExtra prob sol1
+        pure $ (, Nothing) $ reassignMusicians extra prob sol1
       name -> error ("unknown command: " ++ name)
 
   BL.writeFile (optOutputFile opt) (encode sol2)
