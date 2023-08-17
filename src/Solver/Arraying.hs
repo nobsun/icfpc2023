@@ -3,6 +3,8 @@
 
 module Solver.Arraying where
 
+import qualified Data.Vector.Generic as VG
+
 import Problem
 import Solver (SolverF)
 
@@ -103,12 +105,12 @@ cordsFromRange Range{..} = map fromIntegral [ rgMin' + 10, rgMin' + 20 .. rgMax'
 getCandidates :: Problem -> Either String [((Double, Double), Double)]
 getCandidates problem = Right $ map (\pos -> (pos, 1.0)) $ take len $ cordsFromRect stage -- FIXME
   where
-    len = length $ musicians problem
+    len = VG.length $ musicians problem
     stage = getStageRect problem
 
 getCandidatesOld :: Problem -> Either String [((Double, Double), Double)]
 getCandidatesOld problem = do
   (r0, mr1) <- getStageRectsOld problem
-  let len = length $ musicians problem
+  let len = VG.length $ musicians problem
   -- FIXME
   return $ map (\pos -> (pos, 1.0)) $ take len $ concatMap cordsFromRect $ maybe [r0] (\r1 -> [r0, r1]) mr1

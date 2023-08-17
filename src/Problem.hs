@@ -8,6 +8,8 @@ import Control.Monad
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Set as Set
 import Data.Aeson
+import qualified Data.Vector as V
+import qualified Data.Vector.Unboxed as VU
 import Text.Printf (printf)
 import GHC.Generics
 
@@ -17,7 +19,7 @@ type Like = Double
 data Attendee
   = Attendee { x      :: Double
              , y      :: Double
-             , tastes :: [Like]
+             , tastes :: VU.Vector Like
              }
   deriving (Show, Eq, Generic)
 
@@ -53,9 +55,9 @@ data Problem
             , stage_width       :: Double
             , stage_height      :: Double
             , stage_bottom_left :: (Double, Double)
-            , musicians         :: [Instrument]
-            , attendees         :: [Attendee]
-            , pillars           :: [Pillar]
+            , musicians         :: VU.Vector Instrument
+            , attendees         :: V.Vector Attendee
+            , pillars           :: V.Vector Pillar
             }
   deriving (Show, Eq, Generic)
 
@@ -108,8 +110,8 @@ checkProblem Problem{..} = do
           [ "bottom + stage_height > room_height: " ++ show (bottom + stage_height) ++ " > " ++ show room_height
           | bottom + stage_height > room_height ]
           ++
-          [ "instruments id set inconsistent: " ++ show (Set.size is) ++ " /= " ++ show (maximum (0 : musicians) + 1)
-          | let is = Set.fromList musicians, Set.size is /= maximum (0 : musicians) + 1 ]
+          [ "instruments id set inconsistent: " ++ show (Set.size is) ++ " /= " ++ show (VU.maximum (VU.cons 0 musicians) + 1)
+          | let is = Set.fromList (VU.toList musicians), Set.size is /= VU.maximum (VU.cons 0 musicians) + 1 ]
 
     when (length errors > 0) $ Left errors
 

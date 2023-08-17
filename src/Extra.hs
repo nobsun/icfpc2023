@@ -2,14 +2,16 @@
 -- extra metadata for Problem and Answer
 module Extra where
 
-import Data.Array (Array)
-import Data.Array.IArray ((!), listArray)
+import Data.Array.IArray (listArray)
 import Data.Array.Unboxed (UArray)
 import Data.Function (on)
 import Data.IntMap.Strict (IntMap)
 import qualified Data.IntMap.Strict as IntMap
 import Data.List (sortBy, groupBy)
 import Data.IORef (IORef, newIORef)
+import qualified Data.Vector as V
+import qualified Data.Vector.Generic as VG
+import qualified Data.Vector.Unboxed as VU
 import Text.Printf (printf)
 
 import qualified IntCompat
@@ -28,20 +30,20 @@ data ProblemExtra
                  , num_instruments :: Int
                  , attendees_int_compat :: Bool
                  , pillars_int_compat :: Bool
-                 , million_times_atnds_tastes :: Array Int (UArray Int Double)
-                 , same_inst_musicians :: Array Instrument [Int]
+                 , million_times_atnds_tastes :: V.Vector (VU.Vector Double)
+                 , same_inst_musicians :: V.Vector [Int]
                  } deriving Show
 
 mkProblemExtra :: Problem -> ProblemExtra
 mkProblemExtra p@Problem{..} =
   ProblemExtra
   { division = if isFullDivisionProblem p then Full else Lightening
-  , num_musicians = length musicians
-  , num_attendees = length attendees
+  , num_musicians = VG.length musicians
+  , num_attendees = VG.length attendees
   , num_instruments = num_instruments
   , attendees_int_compat = all compatA attendees
   , pillars_int_compat = all compatP pillars
-  , million_times_atnds_tastes = listArray (0, length attendees - 1) $ map million_times_tastes attendees
+  , million_times_atnds_tastes = VG.map million_times_tastes attendees
   , same_inst_musicians = same_inst_musicians
   }
   where
@@ -49,14 +51,14 @@ mkProblemExtra p@Problem{..} =
     compatP Pillar{..} = IntCompat.double (fst center) && IntCompat.double (snd center) && IntCompat.double radius
 
     {- each tastes times 1,000,000 memos -}
-    million_times_tastes :: Attendee -> UArray Int Double
-    million_times_tastes a = listArray (0, length ts - 1) $ map (1e6 *) ts  where ts = tastes a
+    million_times_tastes :: Attendee -> VU.Vector Double
+    million_times_tastes a = VU.map (1e6 *) ts  where ts = tastes a
 
-    num_instruments = maximum (0 : musicians) + 1
+    num_instruments = VG.maximum (VG.cons 0 musicians) + 1
 
-    same_inst_musicians = listArray (0, num_instruments - 1) [IntMap.findWithDefault [] inst m | inst <- [0 .. num_instruments - 1]]
+    same_inst_musicians = V.fromList [IntMap.findWithDefault [] inst m | inst <- [0 .. num_instruments - 1]]
       where
-        m = IntMap.fromListWith (++) $ zip musicians $ map (\k -> [k]) [0..]
+        m = IntMap.fromListWith (++) $ zip (VG.toList musicians) $ map (\k -> [k]) [0..]
 
 
 pprProblemExtraShort :: ProblemExtra -> String

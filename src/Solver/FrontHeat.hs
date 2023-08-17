@@ -2,6 +2,8 @@ module Solver.FrontHeat where
 
 import Data.List (sortBy, foldl')
 import qualified Data.Map as Map
+import qualified Data.Vector.Generic as VG
+import qualified Data.Vector.Unboxed as VU
 
 import Problem
 import Solver (SolverF)
@@ -25,7 +27,7 @@ decideFrontHeat rate prob = last xs
 
 -- | d がステージからの距離でどこまでヒートエリアとするかを指定している
 frontAttendees :: Double -> Problem -> [Attendee]
-frontAttendees d prob = filter inHeatArea (attendees prob)
+frontAttendees d prob = filter inHeatArea $ VG.toList $ attendees prob
   where
     inHeatArea (Attendee x y _) = w <= x && x <= e && s <= y && y <= n
     (w, n, e, s) = heatArea d prob
@@ -62,11 +64,11 @@ standingPositions (d, atnds) prob
            ]
     near (x, y) = filter (\(Attendee x' y' _) -> (x-x')^2 + (y-y')^2 <= (d+10)^2)
     preferedInstrs :: (Double, Double) -> [Attendee] -> [(Instrument, Like)]
-    preferedInstrs (x, y) = sortBy descByLike . zip [0..] . summary
+    preferedInstrs (x, y) = sortBy descByLike . zip [0..] . VG.toList . summary
       where descByLike x y = compare (snd y) (snd x)
-            n = length (tastes (head (attendees prob)))
-            summary :: [Attendee] -> [Like] -- この場所で期待できる楽器ごとのインパクト
-            summary = foldr (\(Attendee x' y' ts) acc -> zipWith (calc x' y') acc ts) (replicate n 0.0)
+            n = VG.length (tastes (VG.head (attendees prob)))
+            summary :: [Attendee] -> VU.Vector Like -- この場所で期待できる楽器ごとのインパクト
+            summary = foldr (\(Attendee x' y' ts) acc -> VG.zipWith (calc x' y') acc ts) (VG.replicate n 0.0)
               where
                 calc :: Double -> Double -> Double -> Double -> Double
                 calc x' y' acc t = acc + t / ((x-x')^2 + (y-y')^2)
@@ -81,9 +83,9 @@ simpleStandingPositions xs prob
 musicianDictionary :: Problem -> Map.Map Instrument [Int]
 musicianDictionary prob = Map.fromList $ splitWithOrder instrs ms
   where
-    ms = zip [0..] (musicians prob)
+    ms = zip [0..] (VG.toList (musicians prob))
     instrs = [0..n-1]
-    n = length (tastes (head (attendees prob)))
+    n = VG.length (tastes (VG.head (attendees prob)))
 
 splitWithOrder :: [Instrument] -> [(Int, Instrument)] -> [(Instrument, [Int])]
 splitWithOrder instrs ms = map (\instr -> (instr, m Map.! instr)) instrs

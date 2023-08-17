@@ -27,25 +27,25 @@ import Debug.Trace
 
 getCandidatesIO :: Problem -> IO (Either String [((Double, Double), Double)])
 getCandidatesIO problem = do
-  let numMusicians = length (Problem.musicians problem)
-      numAttendees = length $ Problem.attendees problem
-      numInstruments = length $ Problem.tastes $ Problem.attendees problem !! 0 
+  let numMusicians = VG.length (Problem.musicians problem)
+      numAttendees = VG.length $ Problem.attendees problem
+      numInstruments = VG.length $ Problem.tastes $ VG.head $ Problem.attendees problem
 
       tasteTable :: UArray (Int, Int) Double
       tasteTable = array ((0,0), (numAttendees-1, numInstruments-1)) $ do
-        (i, attendee) <- zip [0..] (Problem.attendees problem)
-        (j, like) <- zip [0..] (Problem.tastes attendee)
+        (i, attendee) <- zip [0..] (VG.toList (Problem.attendees problem))
+        (j, like) <- zip [0..] (VG.toList (Problem.tastes attendee))
         return ((i,j), like)
 
       weightTable :: UArray (Int, Int) Double
       weightTable = array ((0,0), (numAttendees-1, numMusicians-1)) $ do
         i <- [0..numAttendees-1]
         k <- [0..numMusicians-1]
-        return ((i,k), tasteTable ! (i, Problem.musicians problem !! k))
+        return ((i,k), tasteTable ! (i, Problem.musicians problem VG.! k))
 
       squareDistance :: (VG.Vector v e, IArray a e, Fractional e) => (v e, v e) -> a (Int, Int) e
       squareDistance (xs, ys) = array ((0,0), (numAttendees-1, numMusicians-1)) $ do
-        (i, Problem.Attendee{ Problem.x = x1, Problem.y = y1 }) <- zip [0..] (Problem.attendees problem)
+        (i, Problem.Attendee{ Problem.x = x1, Problem.y = y1 }) <- zip [0..] (VG.toList (Problem.attendees problem))
         k <- [0..numMusicians-1]
         let x2 = xs VG.! k
             y2 = ys VG.! k
@@ -56,12 +56,12 @@ getCandidatesIO problem = do
         ( VS.generate numMusicians $ \k ->
             let x2 = xs VS.! k
              in sum [ (gret ! (i,k)) * 2 * (x1 - x2) * (-1)
-                    | (i, Problem.Attendee{ Problem.x = x1 }) <- zip [0..] (Problem.attendees problem)
+                    | (i, Problem.Attendee{ Problem.x = x1 }) <- zip [0..] (VG.toList (Problem.attendees problem))
                     ]
         , VS.generate numMusicians $ \k ->
             let y2 = ys VS.! k
              in sum [ (gret ! (i,k)) * 2 * (y1 - y2) * (-1)
-                    | (i, Problem.Attendee{ Problem.y = y1 }) <- zip [0..] (Problem.attendees problem)
+                    | (i, Problem.Attendee{ Problem.y = y1 }) <- zip [0..] (VG.toList (Problem.attendees problem))
                     ]
         )
 

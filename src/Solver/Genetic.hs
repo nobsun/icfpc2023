@@ -8,6 +8,7 @@ module Solver.Genetic
 import Data.List (sortBy, nub, partition)
 import Data.Maybe (catMaybes)
 import Data.Function (on)
+import qualified Data.Vector.Generic as VG
 import System.IO.Unsafe (unsafePerformIO)
 import System.Random (RandomGen, newStdGen, randomRs, randomRIO)
 
@@ -41,7 +42,7 @@ getCandidatesIO problem@(Problem{stage_width=w, stage_height=h ,stage_bottom_lef
   return $ Right (map (\pos -> (pos, 1.0)) (head descendant)) -- FIXME
   where
     nMusician :: Int
-    nMusician = length ms
+    nMusician = VG.length ms
 
     go :: Double -> Extra -> [(Int,[Point])] -> IO [[Point]]
     go count extra cands | count >= 16 = pure $ map snd cands
@@ -138,5 +139,5 @@ mutation :: Problem-> Int -> [Point] -> IO (Maybe [Point])
 mutation problem@(Problem{musicians=ms}) n as = do
   g <- newStdGen
   let (rest,target) = partition (\(i,_)->i`elem`targets) (zip[0..]as)
-      targets = nub $ take n $ randomRs (0,length ms-1) g
+      targets = nub $ take n $ randomRs (0,VG.length ms-1) g
   fmap Just $ randomPlace problem target rest
